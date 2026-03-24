@@ -1,0 +1,5 @@
+{
+  "project": "mjm-sistema-2026",
+  "provider": "google.stitch",
+  "mode": "agentic-v3"
+}
