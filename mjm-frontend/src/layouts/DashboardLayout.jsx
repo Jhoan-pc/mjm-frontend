@@ -1,7 +1,10 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { LayoutDashboard, FileText, Kanban, LogOut, Settings, Menu, X, ShieldCheck, MessageSquare } from 'lucide-react';
+import {
+  LayoutDashboard, FileText, Kanban, LogOut, Settings,
+  Menu, X, Package, Calendar, MessageSquare, ChevronRight
+} from 'lucide-react';
 
 export default function DashboardLayout() {
   const { tenant, user, logout } = useAuthStore();
@@ -14,127 +17,133 @@ export default function DashboardLayout() {
     navigate('/');
   };
 
+  // Módulos de Aseguramiento Metrológico
   const navItems = [
-    { name: 'Dashboard KPIs', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Inventario Equipos', path: '/dashboard/inventory', icon: <FileText size={20} /> },
-    { name: 'Planificador', path: '/dashboard/planner', icon: <Kanban size={20} /> },
-    { name: 'Solicitudes Chatbot', path: '/dashboard/solicitudes', icon: <MessageSquare size={20} /> }
+    { name: 'Dashboard KPIs', path: '/dashboard', exact: true, icon: <LayoutDashboard size={18} /> },
+    { name: 'Inventario', path: '/dashboard/inventario', icon: <Package size={18} /> },
+    { name: 'Planificador', path: '/dashboard/calendario', icon: <Calendar size={18} /> },
+    { name: 'Tablero Kanban', path: '/dashboard/kanban', icon: <Kanban size={18} /> },
   ];
+
+  const secondaryItems = [
+    { name: 'Solicitudes', path: '/dashboard/solicitudes', icon: <MessageSquare size={18} /> },
+  ];
+
+  const isActive = (path, exact = false) =>
+    exact ? location.pathname === path : location.pathname.startsWith(path);
 
   if (!tenant) return null;
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden font-sans text-gray-800 relative">
-      
-      {/* OVERLAY for mobile sidebar */}
+
+      {/* OVERLAY para móvil */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* SIDEBAR: Estilo industrial, neutro pero adaptado al tenant */}
-      <aside className={`fixed md:static inset-y-0 left-0 w-64 bg-gray-900 text-gray-300 flex flex-col shadow-2xl z-40 transition-transform duration-300 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-        <div className="h-20 flex items-center justify-center p-4 border-b border-gray-800 bg-white">
-          {/* Logo del Tenant */}
-          <img src={tenant.logo_url} alt={tenant.nombre_empresa} className="h-10 object-contain" />
+      {/* SIDEBAR */}
+      <aside className={`fixed md:static inset-y-0 left-0 w-64 bg-[#050b14] text-gray-300 flex flex-col shadow-2xl z-40 transition-transform duration-300 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        {/* Logo del cliente */}
+        <div className="h-16 flex items-center justify-center p-4 border-b border-white/10 bg-white/5">
+          <img src={tenant.logo_url} alt={tenant.nombre_empresa} className="h-8 object-contain" />
         </div>
-        
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Gestión Metrológica</p>
+
+        {/* Nav Principal */}
+        <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+          <p className="px-3 text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">Aseguramiento</p>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const activeStyle = isActive 
-                ? { backgroundColor: tenant.color_institucional_principal, color: 'white' } 
-                : {};
+            const active = isActive(item.path, item.exact);
             return (
               <Link
                 key={item.name}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all hover:bg-white/10 ${isActive ? 'shadow-md shadow-[var(--tenant-main)/30]' : ''}`}
-                style={activeStyle}
+                onClick={() => setIsSidebarOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-all ${active ? 'text-white shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'}`}
+                style={active ? { backgroundColor: tenant.color_institucional_principal } : {}}
               >
                 {item.icon}
-                {item.name}
+                <span className="flex-1">{item.name}</span>
+                {active && <ChevronRight size={14} className="opacity-60" />}
               </Link>
-            )
+            );
           })}
+
+          <div className="pt-4">
+            <p className="px-3 text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">Gestión</p>
+            {secondaryItems.map((item) => {
+              const active = isActive(item.path);
+              return (
+                <Link key={item.name} to={item.path} onClick={() => setIsSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-all ${active ? 'text-white' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'}`}
+                  style={active ? { backgroundColor: tenant.color_institucional_principal } : {}}>
+                  {item.icon}<span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </div>
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
-          <Link 
-            to="/dashboard/settings"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all hover:bg-white/10 ${location.pathname.startsWith('/dashboard/settings') ? 'bg-white/10 text-white shadow-md' : 'text-gray-300'}`}
-          >
-            <Settings size={20} />
-            Configuración
+        {/* Footer del Sidebar */}
+        <div className="border-t border-white/10">
+          <Link to="/dashboard/settings" onClick={() => setIsSidebarOpen(false)}
+            className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-all ${isActive('/dashboard/settings') ? 'text-white bg-white/10' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'}`}>
+            <Settings size={18} /> Configuración
           </Link>
-          <button 
-            onClick={handleLogout}
-            className="w-full mt-2 flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors font-medium cursor-pointer"
-          >
-            <LogOut size={20} />
-            Cerrar Sesión
+          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-5 py-3 text-red-400 hover:bg-red-400/10 transition-colors text-sm font-semibold">
+            <LogOut size={18} /> Cerrar Sesión
           </button>
         </div>
 
-        {/* MJM Platform Ownership Badge (Sidebar Bottom) */}
-        <div className="mt-auto p-10 flex flex-col items-center">
-            <div className="flex flex-col items-center opacity-40 hover:opacity-100 transition-opacity duration-500">
-               <span className="text-[10px] uppercase tracking-[0.3em] font-black text-gray-500 mb-2 text-center">Tecnología de</span>
-               <span className="text-[12px] font-black text-white uppercase tracking-tighter">Asesorías Integrales MJM</span>
-            </div>
+        {/* Sello MJM */}
+        <div className="py-5 flex flex-col items-center opacity-30 hover:opacity-100 transition-opacity duration-500">
+          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">Tecnología de</span>
+          <span className="text-[11px] font-black text-white uppercase tracking-tighter mt-1">Asesorías Integrales MJM</span>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative w-full">
-        {/* Dynamic Theme Banner / Topbar */}
-        <header 
-          className="h-20 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 border-b-4 relative z-20"
+        {/* Header */}
+        <header
+          className="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 border-b-[3px] relative z-20 shrink-0"
           style={{ borderColor: tenant.color_institucional_principal }}
         >
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 hover:bg-gray-100 rounded-lg md:hidden text-gray-600"
-            >
-              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg md:hidden text-gray-600">
+              {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
             <div>
-                <h2 className="text-lg md:text-xl font-bold text-gray-800 leading-tight">Panel de Control: <span className="hidden xs:inline">{tenant.nombre_empresa}</span></h2>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="text-[10px] font-black text-mjm-orange uppercase tracking-widest">Asesorías Integrales MJM</span>
-                  <div className="w-px h-4 bg-gray-300"></div>
-                  <p className="text-[10px] md:text-xs text-gray-500 font-black uppercase tracking-[0.2em]">Sistema de Aseguramiento Metrológico</p>
-                </div>
+              <h2 className="text-base font-black text-gray-900 leading-tight">{tenant.nombre_empresa}</h2>
+              <div className="flex items-center gap-3 mt-0.5">
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: tenant.color_institucional_principal }}>
+                  Asesorías Integrales MJM
+                </span>
+                <div className="w-px h-3 bg-gray-200"></div>
+                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Sistema de Aseguramiento Metrológico</p>
+              </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-gray-800">{user?.email}</p>
-              <p className="text-xs text-mjm-orange font-bold uppercase">{user?.rol}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: tenant.color_institucional_principal }}>{user?.rol}</p>
             </div>
-            <div 
-              className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold"
-              style={{ backgroundColor: tenant.color_institucional_principal }}
-            >
-              {tenant.nombre_empresa.substring(0, 1)}
+            <div className="w-9 h-9 rounded-full text-white flex items-center justify-center font-black text-sm"
+              style={{ backgroundColor: tenant.color_institucional_principal }}>
+              {tenant.nombre_empresa?.substring(0, 1)}
             </div>
           </div>
         </header>
 
-        {/* Global CSS variables para los hijos (Tenant UI Theme) */}
-        <main 
-          className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-8"
-          style={{
-            '--tenant-main': tenant.color_institucional_principal,
-            '--tenant-sec': tenant.color_institucional_secundario
-          }}
-        >
-          <div className="max-w-6xl mx-auto h-full">
+        {/* Contenido */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-6"
+          style={{ '--tenant-main': tenant.color_institucional_principal, '--tenant-sec': tenant.color_institucional_secundario }}>
+          <div className="max-w-7xl mx-auto h-full flex flex-col">
             <Outlet />
           </div>
         </main>

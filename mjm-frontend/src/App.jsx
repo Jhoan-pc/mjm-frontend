@@ -4,9 +4,10 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardKPIs from './pages/dashboard/DashboardKPIs';
-import Inventory from './pages/dashboard/Inventory';
-import InstrumentDetails from './pages/dashboard/InstrumentDetails';
-import Planner from './pages/dashboard/Planner';
+import Inventario from './pages/dashboard/Inventario';
+import HojaDeVida from './pages/dashboard/HojaDeVida';
+import Calendario from './pages/dashboard/Calendario';
+import KanbanMetrologico from './pages/dashboard/KanbanMetrologico';
 import ChatbotSubmissions from './pages/dashboard/ChatbotSubmissions';
 import Settings from './pages/dashboard/Settings';
 import { useAuthStore } from './store/authStore';
@@ -28,13 +29,22 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        
+
         {/* Private Dashboard Routes */}
         <Route path="/dashboard" element={<PrivateRoute><DashboardLayout /></PrivateRoute>}>
           <Route index element={<DashboardKPIs />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="hoja-de-vida/:id" element={<InstrumentDetails />} />
-          <Route path="planner" element={<Planner />} />
+
+          {/* Inventario y Hojas de Vida */}
+          <Route path="inventario" element={<Inventario />} />
+          <Route path="inventario/:id" element={<HojaDeVida />} />
+
+          {/* Planificador */}
+          <Route path="calendario" element={<Calendario />} />
+
+          {/* Kanban Metrológico */}
+          <Route path="kanban" element={<KanbanMetrologico />} />
+
+          {/* Otros módulos */}
           <Route path="solicitudes" element={<ChatbotSubmissions />} />
           <Route path="settings" element={<Settings />} />
         </Route>
