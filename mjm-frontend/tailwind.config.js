@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        'mjm-navy': '#1D2A4C',
-        'mjm-orange': '#F26122',
+        'mjm-navy': '#234c74',
+        'mjm-orange': '#ee8c2c',
       }
     },
   },

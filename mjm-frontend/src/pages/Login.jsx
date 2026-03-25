@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { Shield, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import metrologyBg from '../assets/metrology_bg_real.jpg';
+import mjmLogo from '../assets/logo_final_2.0.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,22 +15,27 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await login(email, password);
-    navigate('/dashboard');
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      alert('Error al iniciar sesión. Por favor, verifica tus credenciales.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-mjm-navy flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Background Industrial Overlay (Simulado con gradiente y bordes duros) */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
-        <div 
-          className="w-full h-full"
-          style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '30px 30px'
-          }}
-        ></div>
+    <div className="min-h-screen bg-mjm-navy flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background with real image */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src={metrologyBg} 
+          alt="Metrology Background" 
+          className="w-full h-full object-cover opacity-55 blur-[2px] brightness-75 scale-105"
+        />
+        <div className="absolute inset-0 bg-mjm-navy/75"></div>
       </div>
 
       <div className="relative sm:mx-auto sm:w-full sm:max-w-md z-10">
@@ -36,75 +43,75 @@ export default function Login() {
           <Link to="/" className="text-gray-400 hover:text-white flex items-center gap-2 mb-6 transition-colors self-start ml-4 sm:ml-0">
             <ArrowLeft className="w-4 h-4" /> Volver a Inicio
           </Link>
-          <div className="bg-mjm-orange p-3 rounded-lg mb-4 shadow-lg shadow-mjm-orange/30">
-            <Shield className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-center text-3xl font-extrabold text-white">
-            Portal Multi-tenant
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-300">
-            Aseguramiento Metrológico MJM
-          </p>
-        </div>
-      </div>
-
-      <div className="relative mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="bg-white py-8 px-4 shadow-2xl sm:rounded-xl sm:px-10 border border-gray-100">
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Correo corporativo
-              </label>
-              <div className="mt-1">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-mjm-orange focus:border-mjm-orange sm:text-sm"
-                  placeholder="admin@industrias.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Contraseña
-              </label>
-              <div className="mt-1">
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-mjm-orange focus:border-mjm-orange sm:text-sm"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-mjm-navy hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mjm-navy disabled:opacity-70 transition-colors"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ingresar'}
-              </button>
-            </div>
-          </form>
           
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+          <div className="w-full max-w-[195px] mb-8 animate-in fade-in zoom-in duration-700 flex justify-center items-center">
+            <img 
+              src={mjmLogo} 
+              alt="MJM Logo" 
+              className="w-full h-auto object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]" 
+            />
+          </div>
+
+          <h2 className="text-center text-3xl font-extrabold text-white tracking-tight">
+            Aseguramiento Metrológico
+          </h2>
+        </div>
+
+        <div className="mt-8">
+          <div className="bg-white/10 backdrop-blur-xl py-10 px-6 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 sm:rounded-2xl sm:px-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+            <form className="space-y-6" onSubmit={handleLogin}>
+              <div>
+                <label htmlFor="email" className="block text-sm font-bold text-gray-200 uppercase tracking-widest">
+                  Correo Electrónico
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="appearance-none block w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl shadow-sm placeholder-white text-white focus:outline-none focus:ring-2 focus:ring-mjm-orange focus:border-transparent sm:text-sm transition-all"
+                    placeholder="usuario@empresa.com"
+                  />
+                </div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Acceso Seguro
-                </span>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-bold text-gray-200 uppercase tracking-widest">
+                  Contraseña
+                </label>
+                <div className="mt-2 text-center">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="appearance-none block w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl shadow-sm placeholder-white text-white focus:outline-none focus:ring-2 focus:ring-mjm-orange focus:border-transparent sm:text-sm transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
               </div>
-            </div>
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-[0_10px_20px_rgba(238,140,44,0.3)] text-sm font-black uppercase tracking-[0.2em] text-white bg-mjm-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-mjm-orange disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    'Ingresar al Portal'
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
