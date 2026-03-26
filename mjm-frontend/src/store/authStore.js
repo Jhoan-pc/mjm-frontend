@@ -8,6 +8,9 @@ export const useAuthStore = create((set) => ({
   user: null,
   tenant: null,
   loading: true,
+  isSuperAdmin: true,
+
+  setSuperAdmin: (val) => set({ isSuperAdmin: val }),
 
   // Escucha cambios de Firebase en tiempo real
   initializeAuth: () => {
@@ -38,15 +41,26 @@ export const useAuthStore = create((set) => ({
           user: { id: firebaseUser.uid, email: firebaseUser.email, rol: 'admin' },
           tenant: {
             id: 't_backup',
-            nombre_empresa: 'Empresa Demo (Firestore vacío)',
-            logo_url: 'https://via.placeholder.com/150x50?text=EMPRESA+DEMO',
-            color_institucional_principal: '#4f46e5', // Indigo
-            color_institucional_secundario: '#4338ca'
+            nombre_empresa: 'Delta CoreTech',
+            logo_url: 'https://placehold.co/200x60/050b14/white?text=DELTA+CORETECH',
+            color_institucional_principal: '#234c74', // Azul MJM Corp
+            color_institucional_secundario: '#f7931b' // Naranja MJM
           },
           loading: false
         });
 
       } else {
+        // Firebase dice que no hay sesión real — pero puede haber sesión mock guardada
+        const mockSession = localStorage.getItem('mjm_mock_session');
+        if (mockSession) {
+          try {
+            const session = JSON.parse(mockSession);
+            set({ isAuthenticated: true, user: session.user, tenant: session.tenant, loading: false });
+            return;
+          } catch (_) {
+            localStorage.removeItem('mjm_mock_session');
+          }
+        }
         set({ isAuthenticated: false, user: null, tenant: null, loading: false });
       }
     });
@@ -56,17 +70,17 @@ export const useAuthStore = create((set) => ({
     try {
       // Login de Emergencia/Simulado temporal (Por si aún no habilitan Auth)
       if (email === "admin@industrias.com" && password === "123456") {
-          set({
-            isAuthenticated: true,
-            user: { id: 'mock1', email, rol: 'admin' },
-            tenant: {
-              id: 't1',
-              nombre_empresa: 'Industrias Alfa (Habilitar Auth primero)',
-              logo_url: 'https://via.placeholder.com/150x50?text=Industrias+Alfa',
-              color_institucional_principal: '#0D9488',
-              color_institucional_secundario: '#0F766E'
-            }
-          });
+          const mockUser = { id: 'mock1', email, rol: 'admin' };
+          const mockTenant = {
+            id: 'OUumulD5EqPIbuHXb1P1',
+            nombre_empresa: 'Delta CoreTech',
+            logo_url: 'https://placehold.co/200x60/050b14/white?text=DELTA+CORETECH',
+            color_institucional_principal: '#234c74',
+            color_institucional_secundario: '#f7931b'
+          };
+          // Persistir en localStorage para sobrevivir F5
+          localStorage.setItem('mjm_mock_session', JSON.stringify({ user: mockUser, tenant: mockTenant }));
+          set({ isAuthenticated: true, user: mockUser, tenant: mockTenant });
           return true;
       }
 
@@ -80,6 +94,8 @@ export const useAuthStore = create((set) => ({
   },
 
   logout: async () => {
+    // Limpiar sesión mock si existe
+    localStorage.removeItem('mjm_mock_session');
     // Si era el usuario simulado
     if (useAuthStore.getState().user?.id === 'mock1') {
        set({ isAuthenticated: false, user: null, tenant: null });

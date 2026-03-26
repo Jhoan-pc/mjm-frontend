@@ -1,13 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInventoryStore } from '../../store/inventoryStore';
-import { ChevronLeft, ChevronRight, Plus, AlertTriangle, Wrench, ThumbsUp, Clock, Search, X } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Plus, AlertTriangle, Wrench, ThumbsUp, Clock, 
+  Search, X, Package, CheckCircle2, AlertCircle 
+} from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 
 const TIPOS_COLOR = {
-  'Calibración':  { bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500' },
-  'Verificación': { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
-  'Calificación': { bg: 'bg-teal-100',   text: 'text-teal-700',   dot: 'bg-teal-500' },
-  'Mantenimiento':{ bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
+  'Calibración':  { bg: 'bg-blue-50',   text: 'text-blue-700',   dot: 'bg-blue-500',   border: 'border-blue-200' },
+  'Verificación': { bg: 'bg-purple-50', text: 'text-purple-700', dot: 'bg-purple-500', border: 'border-purple-200' },
+  'Calificación': { bg: 'bg-teal-50',   text: 'text-teal-700',   dot: 'bg-teal-500',   border: 'border-teal-200' },
+  'Mantenimiento':{ bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500', border: 'border-orange-200' },
 };
 
 const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -69,7 +73,17 @@ const NuevaActividadModal = ({ instruments, onClose, onSave }) => {
 // ─── Página Calendario / Planificador ─────────────────────────────────────
 export default function Calendario() {
   const navigate = useNavigate();
-  const { activities, instruments, addActivity } = useInventoryStore();
+  const { tenant, isSuperAdmin } = useAuthStore();
+  const { activities, instruments, addActivity, loadInstruments, loadActivities } = useInventoryStore();
+
+  // 🔄 Carga de Datos Reales (Instrumentos y Actividades)
+  React.useEffect(() => {
+    if (tenant) {
+      loadInstruments(tenant.id, isSuperAdmin);
+      loadActivities(tenant.id, isSuperAdmin);
+    }
+  }, [tenant, isSuperAdmin, loadInstruments, loadActivities]);
+
   const today = new Date();
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [showModal, setShowModal] = useState(false);
@@ -108,8 +122,8 @@ export default function Calendario() {
   for (let d = 1; d <= daysInMonth; d++) calendarCells.push(d);
 
   return (
-    <div className="space-y-6">
-      {showModal && <NuevaActividadModal instruments={instruments} onClose={() => setShowModal(false)} onSave={(data) => { addActivity({ ...data, instrumentNombre: instruments.find(i=>i.id===data.instrumentId)?.nombre, codigoMJM: instruments.find(i=>i.id===data.instrumentId)?.codigoMJM, cliente: 'Industrias Alfa', prioridad: 'Normal' }); }} />}
+    <div className="p-6 lg:p-10 space-y-10">
+      {showModal && <NuevaActividadModal instruments={instruments} onClose={() => setShowModal(false)} onSave={(data) => { addActivity({ ...data, tenantId: tenant?.id, instrumentNombre: instruments.find(i=>i.id===data.instrumentId)?.nombre, codigoMJM: instruments.find(i=>i.id===data.instrumentId)?.codigoMJM, cliente: tenant?.nombre_empresa || 'Gestión Local', prioridad: 'Normal' }); }} />}
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -133,9 +147,9 @@ export default function Calendario() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
-        {/* Calendario */}
-        <div className="col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
+      <div className="flex flex-col xl:flex-row gap-8">
+        {/* Calendario (Prioridad Principal) */}
+        <div className="flex-1 bg-white rounded-2xl shadow-xl shadow-mjm-navy/5 border border-mjm-navy/5 overflow-hidden">
           {/* Nav Mes */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg transition"><ChevronLeft size={18}/></button>
@@ -151,26 +165,55 @@ export default function Calendario() {
           {/* Cuadrícula de días */}
           <div className="grid grid-cols-7">
             {calendarCells.map((day, idx) => {
-              if (!day) return <div key={`empty-${idx}`} className="h-24 border-b border-r border-gray-50" />;
+              if (!day) return <div key={`empty-${idx}`} className="h-32 border-b border-r border-gray-50" />;
               const dayActs = getActivitiesForDay(day);
               const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
               const isSelected = day === selectedDay;
               const hasVencidas = dayActs.some(a => a.estado !== 'done' && new Date(a.fechaProgramada) < today);
               return (
                 <div key={day} onClick={() => setSelectedDay(day === selectedDay ? null : day)}
-                  className={`h-24 border-b border-r border-gray-50 p-2 cursor-pointer transition-all ${isSelected ? 'bg-orange-50' : 'hover:bg-gray-50'}`}>
+                  className={`h-32 border-b border-r border-gray-50 p-3 cursor-pointer transition-all ${isSelected ? 'bg-orange-50' : 'hover:bg-gray-50'}`}>
                   <div className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold mb-1 ${isToday ? 'bg-[#050b14] text-white' : 'text-gray-600'}`}>{day}</div>
-                  <div className="space-y-0.5 overflow-hidden">
-                    {dayActs.slice(0, 2).map(a => {
+                  <div className="space-y-0.5">
+                    {dayActs.slice(0, 3).map(a => {
                       const c = TIPOS_COLOR[a.tipo] || TIPOS_COLOR['Calibración'];
+                      const isDone = a.estado === 'done';
+                      const isOverdue = !isDone && new Date(a.fechaProgramada) < today;
+                      
                       return (
-                        <div key={a.id} className={`text-[9px] font-black px-1.5 py-0.5 rounded truncate flex items-center gap-1 ${c.bg} ${c.text}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${c.dot}`}></span>
-                          {a.tipo}
+                        <div key={a.id} className="group/act relative hover:z-[70]">
+                          <div className={`text-[9px] font-black px-1.5 py-1 rounded truncate flex items-center justify-between gap-1 border ${isOverdue ? 'bg-red-50 text-red-700 border-red-200' : `${c.bg} ${c.text} ${c.border}`} transition-all hover:scale-[1.02] cursor-help`}>
+                            <div className="flex items-center gap-1 truncate">
+                              {isDone ? <CheckCircle2 size={10} className="text-green-500 shrink-0" /> : 
+                               isOverdue ? <AlertCircle size={10} className="text-red-500 shrink-0" /> : 
+                               <Clock size={10} className="text-blue-400 shrink-0" />}
+                              <span className="truncate">{a.tipo}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Premium Tooltip */}
+                          <div className="invisible group-hover/act:visible opacity-0 group-hover/act:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#050b14] text-white p-3 rounded-xl shadow-2xl z-[60] transition-all duration-200 pointer-events-none border border-white/10">
+                            <div className="flex items-center justify-between mb-2">
+                               <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${isOverdue ? 'bg-red-500/20 text-red-400' : isDone ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                                 {isDone ? 'Ejecutada' : isOverdue ? 'Vencida' : 'Pendiente'}
+                               </span>
+                               <span className="text-[8px] font-mono text-white/40">{a.fechaProgramada}</span>
+                            </div>
+                            <h4 className="text-[10px] font-black leading-tight uppercase tracking-tight">{a.instrumentNombre}</h4>
+                            <p className="text-[9px] font-mono text-mjm-orange mt-1">{a.codigoMJM}</p>
+                            {isDone && a.certificado && (
+                              <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between">
+                                <span className="text-[7px] text-white/40 uppercase font-black">Certificado:</span>
+                                <span className="text-[8px] font-mono text-white/80">{a.certificado}</span>
+                              </div>
+                            )}
+                            {/* Flecha del tooltip */}
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-[#050b14]"></div>
+                          </div>
                         </div>
                       );
                     })}
-                    {dayActs.length > 2 && <div className="text-[9px] text-gray-400 font-bold px-1">+{dayActs.length - 2} más</div>}
+                    {dayActs.length > 3 && <div className="text-[9px] text-gray-400 font-bold px-1">+{dayActs.length - 3} más</div>}
                   </div>
                 </div>
               );
@@ -178,67 +221,110 @@ export default function Calendario() {
           </div>
         </div>
 
-        {/* Panel Lateral: Actividades del día / Resumen */}
-        <div className="col-span-1 space-y-4">
-          {/* Resumen del mes */}
-          <div className="bg-white rounded-xl shadow-sm p-5">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-3">Resumen del Mes</h3>
-            <div className="space-y-2">
-              {Object.entries(TIPOS_COLOR).map(([tipo, color]) => {
-                const count = activitiesThisMonth.filter(a => a.tipo === tipo).length;
-                return (
-                  <div key={tipo} className="flex items-center gap-3">
-                    <span className={`w-2.5 h-2.5 rounded-sm ${color.dot}`}></span>
-                    <span className="text-sm font-medium text-gray-600 flex-1">{tipo}</span>
-                    <span className="text-sm font-black text-gray-900">{count}</span>
-                  </div>
-                );
-              })}
-              <div className="border-t border-gray-100 pt-2 mt-1 flex items-center justify-between">
-                <span className="text-sm font-black text-gray-700">Total</span>
-                <span className="text-lg font-black text-[#050b14]">{activitiesThisMonth.length}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Actividades del día seleccionado */}
-          {selectedDay && (
-            <div className="bg-white rounded-xl shadow-sm p-5">
+        {/* Panel Lateral: Resumen e Información (Secundario) */}
+        <div className="w-full xl:w-80 space-y-6">
+          {/* Actividades del día seleccionado (PRIORIDAD) */}
+          {selectedDay ? (
+            <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-l-orange-500">
               <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-3">
                 {DIAS_SEMANA[new Date(year, month, selectedDay).getDay()]} {selectedDay} de {MESES[month]}
               </h3>
               {dayActivities.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-4">Sin actividades</p>
-              ) : dayActivities.map(a => {
-                const c = TIPOS_COLOR[a.tipo] || TIPOS_COLOR['Calibración'];
-                return (
-                  <div key={a.id} className={`p-3 rounded-lg mb-2 ${c.bg}`}>
-                    <div className={`text-[10px] font-black uppercase tracking-wider ${c.text} mb-1`}>{a.tipo}</div>
-                    <p className="text-sm font-bold text-gray-800 leading-tight">{a.instrumentNombre}</p>
-                    <p className="text-[11px] text-gray-500 font-mono mt-0.5">{a.codigoMJM}</p>
-                  </div>
-                );
-              })}
+                <p className="text-sm text-gray-400 text-center py-4 italic">Sin actividades para este día</p>
+              ) : (
+                <div className="space-y-3">
+                    {dayActivities.map(a => {
+                      const c = TIPOS_COLOR[a.tipo] || TIPOS_COLOR['Calibración'];
+                      const isDone = a.estado === 'done';
+                      const isOverdue = !isDone && new Date(a.fechaProgramada) < today;
+
+                      return (
+                        <div key={a.id} className={`p-4 rounded-xl border-l-4 shadow-sm bg-white border ${isOverdue ? 'border-red-200 border-l-red-500' : isDone ? 'border-green-100 border-l-green-500' : `${c.border} border-l-blue-400`}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className={`text-[10px] font-black uppercase tracking-wider ${isOverdue ? 'text-red-600' : isDone ? 'text-green-600' : c.text}`}>
+                              {a.tipo}
+                            </div>
+                            <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${isDone ? 'bg-green-100 text-green-700' : isOverdue ? 'bg-red-100 text-red-700' : 'bg-blue-50 text-blue-600'}`}>
+                              {isDone ? <><CheckCircle2 size={8}/> Ejecutada</> : 
+                               isOverdue ? <><AlertCircle size={8}/> Vencida</> : 
+                               <><Clock size={8}/> Pendiente</>}
+                            </div>
+                          </div>
+                          <p className="text-sm font-black text-gray-800 leading-tight">{a.instrumentNombre}</p>
+                          <p className="text-[11px] text-gray-500 font-mono mt-1">{a.codigoMJM}</p>
+                          {isDone && a.certificado && (
+                            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                              <span className="text-[9px] font-bold text-gray-400 uppercase">Certificado:</span>
+                              <span className="text-[10px] font-mono font-black text-mjm-navy">{a.certificado}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-orange-50 rounded-xl p-5 border border-orange-100 text-center">
+              <Clock className="mx-auto text-orange-300 mb-2" size={24} />
+              <p className="text-xs font-bold text-orange-700">Selecciona un día en el calendario para ver el cronograma detallado.</p>
             </div>
           )}
 
-          {/* Vencidas */}
-          {vencidas.length > 0 && !selectedDay && (
-            <div className="bg-white rounded-xl shadow-sm p-5">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-red-400 mb-3 flex items-center gap-2"><AlertTriangle size={11}/> Sin ejecutar</h3>
-              <div className="space-y-2">
-                {vencidas.slice(0,5).map(a => (
-                  <div key={a.id} className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold text-red-700 truncate">{a.instrumentNombre}</p>
-                      <p className="text-[10px] text-red-400 font-mono">{a.fechaProgramada}</p>
-                    </div>
-                    <span className="text-[9px] font-black bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase">{a.tipo}</span>
+          {/* Vencidas (URGENTE) */}
+          {vencidas.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm p-5 border-l-4 border-l-red-500">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-red-500 mb-3 flex items-center gap-2"><AlertTriangle size={11}/> Pendientes Críticas</h3>
+              <div className="space-y-3">
+                {vencidas.slice(0,3).map(a => (
+                  <div key={a.id} className="p-3 bg-red-50 rounded-lg border border-red-100">
+                    <p className="text-[11px] font-black text-red-700 truncate">{a.instrumentNombre}</p>
+                    <p className="text-[10px] text-red-400 font-mono mt-0.5">{a.fechaProgramada}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Resumen del mes (INFOGRAFÍA - CONSOLIDADO) */}
+          <div className="bg-white rounded-2xl shadow-xl shadow-mjm-navy/5 p-6 border border-mjm-navy/5">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400 mb-5">Carga de Trabajo Mensual</h3>
+            <div className="space-y-4">
+              {Object.entries(TIPOS_COLOR).map(([tipo, color]) => {
+                const count = activitiesThisMonth.filter(a => a.tipo === tipo).length;
+                const percentage = activitiesThisMonth.length > 0 ? (count / activitiesThisMonth.length) * 100 : 0;
+                if (count === 0 && activitiesThisMonth.length > 0) return null;
+                return (
+                  <div key={tipo} className="group cursor-default">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className={`w-2.5 h-2.5 rounded-full ${color.dot} shadow-sm border-2 border-white`}></div>
+                        <span className="text-[11px] font-black text-gray-600 uppercase tracking-widest">{tipo}</span>
+                      </div>
+                      <span className="text-xs font-black text-gray-950">{count}</span>
+                    </div>
+                    {/* Barra de Progreso Mini */}
+                    <div className="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-100/50">
+                      <div 
+                        className={`h-full ${color.dot} transition-all duration-700 ease-out`} 
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              <div className="pt-5 border-t border-gray-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Total Programadas</p>
+                  <p className="text-2xl font-black text-mjm-navy">{activitiesThisMonth.length}</p>
+                </div>
+                <div className="bg-mjm-navy/5 p-2 rounded-lg">
+                   <Package className="text-mjm-navy/20" size={24} />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

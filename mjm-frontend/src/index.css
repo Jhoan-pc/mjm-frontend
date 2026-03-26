@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .animate-pulse-slow {
+    animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1.05); }
+    50% { opacity: 0.9; transform: scale(1.1); }
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(35, 76, 116, 0.05);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(35, 76, 116, 0.2);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #ee8c2c;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }

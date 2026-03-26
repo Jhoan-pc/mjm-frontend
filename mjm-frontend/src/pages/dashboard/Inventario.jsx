@@ -105,6 +105,86 @@ const HierarchyTree = ({ instruments, activeFilter, onFilterChange }) => {
   );
 };
 
+// ─── Componente Tarjeta de Instrumento (Premium) ──────────────────────────
+const InstrumentCard = ({ inst, onNavigate }) => {
+  // Mapa de imágenes técnicas por magnitud para realismo
+  const imageMap = {
+    'Longitud':    'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800',
+    'Temperatura': 'https://images.unsplash.com/photo-1510218830377-0e9d01d49650?auto=format&fit=crop&q=80&w=800',
+    'Presión':     'https://images.unsplash.com/photo-1581093450021-4a7360e9a6ad?auto=format&fit=crop&q=80&w=800',
+    'Masa':        'https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=800',
+    'Default':     'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800'
+  };
+
+  const img = inst.imageUrl || imageMap[inst.magnitud] || imageMap['Default'];
+
+  return (
+    <div className="bg-white rounded-2xl shadow-md border border-mjm-navy/5 overflow-hidden group hover:shadow-2xl hover:shadow-mjm-orange/10 transition-all transform hover:-translate-y-2 flex flex-col h-full border-t-4 border-t-mjm-orange/20">
+      {/* Header con Imagen */}
+      <div className="relative h-44 overflow-hidden">
+        <img src={img} alt={inst.nombre} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+        <div className="absolute top-4 left-4">
+          <span className="bg-[#050b14] text-white font-mono text-[10px] px-3 py-1 rounded-full border border-white/20 uppercase tracking-widest shadow-lg">
+            {inst.codigoMJM}
+          </span>
+        </div>
+        <div className="absolute top-4 right-4">
+          <CriticidadBadge criticidad={inst.criticidad} />
+        </div>
+        <div className="absolute bottom-4 left-4 right-4">
+          <p className="text-white font-black uppercase text-sm tracking-tighter truncate">{inst.nombre}</p>
+        </div>
+      </div>
+
+      {/* Cuerpo de Datos */}
+      <div className="p-6 flex-1 flex flex-col gap-5">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400">Marca / Modelo</span>
+            <p className="text-xs font-bold text-mjm-navy truncate">{inst.marca || 'N/A'} · {inst.modelo || '--'}</p>
+          </div>
+          <div className="space-y-1 border-l border-gray-100 pl-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400">Magnitud</span>
+            <p className="text-xs font-black text-mjm-orange uppercase">{inst.magnitud}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-50 bg-gray-50/50 -mx-6 px-6">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400">Resolución</span>
+            <p className="text-xs font-mono font-bold text-gray-600">{inst.resolucion || '--'}</p>
+          </div>
+          <div className="space-y-1 border-l border-gray-200 pl-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400">Capacidad Max</span>
+            <p className="text-xs font-mono font-bold text-gray-600 truncate">{inst.capacidadMaxima || inst.capacidadMax || '--'}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400">Estado</span>
+            <EstadoBadge estado={inst.estado} />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400">Próx. Vencimiento</span>
+            <span className="text-xs font-mono font-black text-mjm-navy bg-mjm-navy/5 px-2 py-1 rounded">{inst.proximaCalibracion || '--'}</span>
+          </div>
+        </div>
+
+        <div className="mt-auto pt-4">
+          <button
+            onClick={() => onNavigate(inst.id)}
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#050b14] text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg hover:shadow-orange-200 group/btn"
+          >
+            <Eye size={14} className="group-hover/btn:scale-125 transition-transform" /> Ver Hoja de Vida
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── Modal Nuevo Instrumento ────────────────────────────────────────────────
 const NuevoInstrumentoModal = ({ onClose, onSave }) => {
   const [form, setForm] = useState({
@@ -219,8 +299,8 @@ const NuevoInstrumentoModal = ({ onClose, onSave }) => {
 // ─── Página Principal Inventario ───────────────────────────────────────────
 export default function Inventario() {
   const navigate = useNavigate();
-  const { instruments, addInstrument, loading } = useInventoryStore();
-  const { tenant, user } = useAuthStore();
+  const { tenant, isSuperAdmin, user } = useAuthStore();
+  const { instruments, loadInstruments, addInstrument, loading } = useInventoryStore();
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -228,138 +308,148 @@ export default function Inventario() {
   const [estadoFilter, setEstadoFilter] = useState('');
   const isAdmin = user?.rol === 'admin';
 
-  const tenantInstruments = instruments.filter(i => !i.tenantId || i.tenantId === tenant?.id || tenant?.id === 'mjm_admin');
+  // 🔄 Carga de Datos Reales
+  React.useEffect(() => {
+    if (tenant) loadInstruments(tenant.id, isSuperAdmin);
+  }, [tenant, isSuperAdmin, loadInstruments]);
+
+  const displayedInstruments = instruments; 
 
   const filtered = useMemo(() => {
-    return tenantInstruments.filter(i => {
-      const q = search.toLowerCase();
-      const matchSearch = !search || [i.nombre, i.marca, i.modelo, i.serie, i.codigoInterno, i.magnitud].some(v => v?.toLowerCase().includes(q));
+    return displayedInstruments.filter(i => {
+      const q = search.toLowerCase().trim();
+      const matchSearch = !q || [
+        // Identificación
+        i.nombre, i.marca, i.modelo, i.serie,
+        i.codigoMJM, i.codigoInterno,
+        // Características técnicas
+        i.magnitud, i.resolucion, i.capacidadMax, i.capacidadMaxima,
+        i.criticidad, i.estado,
+        // Adquisición y origen
+        i.proveedor, i.accesorios,
+        String(i.anioAdquisicion ?? ''),
+        // Jerarquía operativa
+        ...(i.jerarquia ? Object.values(i.jerarquia) : []),
+        // Ubicación plana (retrocompatibilidad)
+        i.ubicacion,
+      ].some(v => v?.toString().toLowerCase().includes(q));
       const matchFilter = !activeFilter || Object.values(i.jerarquia || {}).includes(activeFilter);
       const matchMagnitud = !magnitudFilter || i.magnitud === magnitudFilter;
       const matchEstado = !estadoFilter || i.estado === estadoFilter;
       return matchSearch && matchFilter && matchMagnitud && matchEstado;
     });
-  }, [tenantInstruments, search, activeFilter, magnitudFilter, estadoFilter]);
+  }, [displayedInstruments, search, activeFilter, magnitudFilter, estadoFilter]);
 
   const kpis = useMemo(() => {
-    const total = tenantInstruments.length;
-    const vigentes = tenantInstruments.filter(i => i.estado === 'Vigente').length;
-    const proximos = tenantInstruments.filter(i => i.estado === 'Próximo Vencimiento').length;
-    const vencidos = tenantInstruments.filter(i => i.estado === 'Vencido').length;
+    const total = displayedInstruments.length;
+    const vigentes = displayedInstruments.filter(i => i.estado === 'Vigente').length;
+    const proximos = displayedInstruments.filter(i => i.estado === 'Próximo Vencimiento').length;
+    const vencidos = displayedInstruments.filter(i => i.estado === 'Vencido').length;
     return { total, vigentes, proximos, vencidos, pct: total ? Math.round((vigentes / total) * 100) : 0 };
-  }, [tenantInstruments]);
+  }, [displayedInstruments]);
 
   return (
-    <div className="flex gap-6 h-full min-h-0">
+    <div className="flex gap-6 h-full min-h-0 bg-[#f8f9fa] p-6 lg:p-10">
       {showModal && <NuevoInstrumentoModal onClose={() => setShowModal(false)} onSave={(data) => addInstrument(data, tenant?.id)} />}
 
       {/* ── Sidebar Árbol Jerárquico ── */}
-      <aside className="w-64 shrink-0 bg-white rounded-xl shadow-sm overflow-y-auto flex flex-col">
-        <div className="p-4 border-b border-gray-100">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">Jerarquía</h3>
-          <p className="text-sm font-bold text-gray-700 mt-0.5">{tenant?.nombre_empresa}</p>
+      <aside className="w-72 shrink-0 bg-white rounded-2xl shadow-xl shadow-mjm-navy/5 overflow-hidden flex flex-col border border-mjm-navy/5">
+        <div className="p-6 bg-mjm-navy text-white">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-1">Estructura Operativa</h3>
+          <p className="text-lg font-black tracking-tighter truncate">{tenant?.nombre_empresa}</p>
         </div>
-        <div className="p-3 flex-1 overflow-y-auto">
-          <HierarchyTree instruments={tenantInstruments} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+        <div className="p-4 flex-1 overflow-y-auto">
+          <HierarchyTree instruments={displayedInstruments} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
         </div>
       </aside>
 
       {/* ── Panel Principal ── */}
-      <main className="flex-1 flex flex-col gap-4 min-w-0">
+      <main className="flex-1 flex flex-col gap-6 min-w-0">
         {/* KPIs rápidos */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-6">
           {[
             { label: 'Total Equipos', value: kpis.total, color: 'text-gray-900', bg: 'bg-white' },
             { label: 'Vigentes', value: kpis.vigentes, color: 'text-emerald-600', bg: 'bg-white' },
             { label: 'Próx. Vencimiento', value: kpis.proximos, color: 'text-amber-600', bg: 'bg-white' },
             { label: 'Vencidos', value: kpis.vencidos, color: 'text-red-600', bg: 'bg-white' },
           ].map(({ label, value, color, bg }) => (
-            <div key={label} className={`${bg} rounded-xl p-4 shadow-sm`}>
-              <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{label}</p>
-              <p className={`text-3xl font-black mt-1 ${color}`}>{value}</p>
+            <div key={label} className={`${bg} rounded-2xl p-6 shadow-xl shadow-mjm-navy/5 border border-mjm-navy/5`}>
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">{label}</p>
+              <p className={`text-4xl font-black ${color}`}>{value}</p>
             </div>
           ))}
         </div>
 
         {/* Barra Búsqueda y Acción */}
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center gap-3">
+        <div className="bg-white rounded-2xl shadow-xl shadow-mjm-navy/5 p-6 border border-mjm-navy/5">
+          <div className="flex flex-col xl:flex-row xl:items-center gap-6">
             <div className="flex-1 relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar por nombre, serie, código o magnitud..."
-                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400/40"
+                placeholder="Buscar por nombre, código, marca, modelo, serie, proveedor, área, criticidad..."
+                className="w-full pl-12 pr-10 py-4 bg-gray-50 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-4 focus:ring-orange-400/10 transition-all border border-transparent focus:border-orange-400/20"
               />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition">
+                  <X size={16} />
+                </button>
+              )}
             </div>
-            <select value={magnitudFilter} onChange={e => setMagnitudFilter(e.target.value)} className="bg-gray-50 border-0 rounded-lg px-3 py-2.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400/40">
-              <option value="">Todas las magnitudes</option>
-              {['Longitud','Temperatura','Presión','Masa','Fuerza','Volumen','Caudal','Voltaje','Corriente','Vibración'].map(m => <option key={m}>{m}</option>)}
-            </select>
-            <select value={estadoFilter} onChange={e => setEstadoFilter(e.target.value)} className="bg-gray-50 border-0 rounded-lg px-3 py-2.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400/40">
-              <option value="">Todos los estados</option>
-              {['Vigente','Próximo Vencimiento','Vencido','En Reparación'].map(s => <option key={s}>{s}</option>)}
-            </select>
-            {isAdmin && (
-              <button onClick={() => setShowModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-[#EE8C2C] text-white rounded-lg text-sm font-black uppercase tracking-wider hover:bg-[#d47d22] transition shadow-md shadow-orange-200 shrink-0">
-                <Plus size={15} /> Agregar
-              </button>
-            )}
+            <div className="flex flex-wrap items-center gap-4">
+              <select value={magnitudFilter} onChange={e => setMagnitudFilter(e.target.value)} className="bg-gray-50 border border-mjm-navy/5 rounded-xl px-5 py-4 text-sm font-bold text-gray-600 focus:outline-none focus:ring-4 focus:ring-orange-400/10">
+                <option value="">Magnitudes</option>
+                {['Longitud','Temperatura','Temperatura Infraroja','Presión','Masa','Fuerza','Volumen','Caudal','Voltaje','Corriente','Resistencia','Vibración','Torque','Tiempo','Tiempo y Frecuencia','Humedad'].map(m => <option key={m}>{m}</option>)}
+              </select>
+              <select value={estadoFilter} onChange={e => setEstadoFilter(e.target.value)} className="bg-gray-50 border border-mjm-navy/5 rounded-xl px-5 py-4 text-sm font-bold text-gray-600 focus:outline-none focus:ring-4 focus:ring-orange-400/10">
+                <option value="">Estados</option>
+                {['Vigente','Próximo Vencimiento','Vencido','En Reparación'].map(s => <option key={s}>{s}</option>)}
+              </select>
+              {isAdmin && (
+                <button onClick={() => setShowModal(true)} className="flex items-center gap-3 px-8 py-4 bg-[#EE8C2C] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#d47d22] transition shadow-xl shadow-orange-200 shrink-0">
+                  <Plus size={18} /> Nuevo Equipo
+                </button>
+              )}
+            </div>
           </div>
           {(activeFilter || search || magnitudFilter || estadoFilter) && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Filtros activos:</span>
-              {activeFilter && <span className="bg-orange-100 text-orange-700 text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1">{activeFilter}<button onClick={() => setActiveFilter(null)}><X size={10}/></button></span>}
-              {magnitudFilter && <span className="bg-blue-100 text-blue-700 text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1">{magnitudFilter}<button onClick={() => setMagnitudFilter('')}><X size={10}/></button></span>}
-              {estadoFilter && <span className="bg-gray-100 text-gray-700 text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1">{estadoFilter}<button onClick={() => setEstadoFilter('')}><X size={10}/></button></span>}
+            <div className="flex items-center gap-3 mt-6 pt-6 border-t border-gray-100">
+              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Filtros:</span>
+              <div className="flex flex-wrap gap-2">
+                {activeFilter && <span className="bg-orange-100 text-orange-700 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-2 border border-orange-200">{activeFilter}<button onClick={() => setActiveFilter(null)}><X size={12}/></button></span>}
+                {magnitudFilter && <span className="bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-2 border border-blue-200">{magnitudFilter}<button onClick={() => setMagnitudFilter('')}><X size={12}/></button></span>}
+                {estadoFilter && <span className="bg-gray-100 text-gray-700 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-2 border border-gray-200">{estadoFilter}<button onClick={() => setEstadoFilter('')}><X size={12}/></button></span>}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Tabla de Instrumentos */}
-        <div className="bg-white rounded-xl shadow-sm flex-1 overflow-hidden flex flex-col">
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50">
-                  {['Código MJM','Nombre / Modelo','Marca','Magnitud','Resolución','Capacidad','Criticidad','Estado Calibración','Próx. Vencimiento','Acción'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={10} className="text-center py-16 text-gray-400 text-sm">No se encontraron instrumentos</td></tr>
-                ) : filtered.map((inst, idx) => (
-                  <tr key={inst.id} className={`border-t border-gray-50 hover:bg-orange-50/30 transition-colors ${idx % 2 === 0 ? '' : 'bg-gray-50/30'}`}>
-                    <td className="px-4 py-3 font-mono text-[11px] font-black text-gray-500">{inst.codigoMJM}</td>
-                    <td className="px-4 py-3">
-                      <p className="font-bold text-gray-900 text-[13px] leading-tight">{inst.nombre}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{inst.modelo} · {inst.codigoInterno}</p>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 font-medium whitespace-nowrap">{inst.marca}</td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{inst.magnitud}</td>
-                    <td className="px-4 py-3 font-mono text-[12px] text-gray-500">{inst.resolucion}</td>
-                    <td className="px-4 py-3 font-mono text-[12px] text-gray-500 whitespace-nowrap">{inst.capacidadMaxima}</td>
-                    <td className="px-4 py-3"><CriticidadBadge criticidad={inst.criticidad} /></td>
-                    <td className="px-4 py-3"><EstadoBadge estado={inst.estado} /></td>
-                    <td className="px-4 py-3 text-[12px] text-gray-500 whitespace-nowrap font-mono">{inst.proximaCalibracion}</td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => navigate(`/dashboard/inventario/${inst.id}`)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#050b14] text-white rounded-lg text-[11px] font-black uppercase tracking-wider hover:bg-gray-800 transition"
-                      >
-                        <Eye size={12} /> Ver HV
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between">
-            <span className="text-[11px] text-gray-400 font-medium">Mostrando <strong>{filtered.length}</strong> de <strong>{tenantInstruments.length}</strong> instrumentos</span>
-          </div>
+        {/* Galería de Instrumentos en Tarjetas */}
+        <div className="flex-1 overflow-y-auto pb-10">
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-20 text-center">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Search size={32} className="text-gray-300" />
+              </div>
+              <h3 className="text-xl font-black text-mjm-navy uppercase tracking-tighter">Sin resultados</h3>
+              <p className="text-sm text-gray-400 mt-2 font-medium max-w-xs mx-auto">No encontramos instrumentos que coincidan con los filtros seleccionados.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-8">
+              {filtered.map((inst) => (
+                <InstrumentCard 
+                  key={inst.id} 
+                  inst={inst} 
+                  onNavigate={(id) => navigate(`/dashboard/inventario/${id}`)} 
+                />
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <div className="bg-mjm-navy p-4 rounded-xl flex items-center justify-between text-white/50 text-[10px] font-black uppercase tracking-widest border border-white/5">
+          <span>Mostrando <strong>{filtered.length}</strong> de <strong>{displayedInstruments.length}</strong> instrumentos</span>
+          <span>GESTIÓN METROLÓGICA V2.0</span>
         </div>
       </main>
     </div>

@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useInventoryStore } from '../../store/inventoryStore';
+import { useAuthStore } from '../../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, Archive, CheckCircle, Clock, Eye, X, Upload, Image, ArrowRight } from 'lucide-react';
 
@@ -23,7 +24,8 @@ const CierreModal = ({ activity, onClose, onSave }) => {
     fechaRealizacion: new Date().toISOString().split('T')[0],
     laboratorio: '', certificado: '', observaciones: '', evidencias: []
   });
-  const set = (f, v) => setForm(p => ({...p, [f]: v}));
+  const [isSaving, setIsSaving] = useState(false);
+  const setField = (f, v) => setForm(p => ({...p, [f]: v}));
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files).slice(0, 3 - form.evidencias.length);
@@ -49,20 +51,20 @@ const CierreModal = ({ activity, onClose, onSave }) => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Fecha de Realización</label>
-              <input type="date" value={form.fechaRealizacion} onChange={e => set('fechaRealizacion', e.target.value)} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
+              <input type="date" value={form.fechaRealizacion} onChange={e => setField('fechaRealizacion', e.target.value)} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
             </div>
             <div>
               <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Laboratorio</label>
-              <input value={form.laboratorio} onChange={e => set('laboratorio', e.target.value)} placeholder="Ej: CERTLAB SAS" className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
+              <input value={form.laboratorio} onChange={e => setField('laboratorio', e.target.value)} placeholder="Ej: CERTLAB SAS" className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
             </div>
           </div>
           <div>
             <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">N° Certificado / Informe</label>
-            <input value={form.certificado} onChange={e => set('certificado', e.target.value)} placeholder="Opcional" className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
+            <input value={form.certificado} onChange={e => setField('certificado', e.target.value)} placeholder="Opcional" className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
           </div>
           <div>
             <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Observaciones y Resultados</label>
-            <textarea value={form.observaciones} onChange={e => set('observaciones', e.target.value)} rows={3} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/40" placeholder="Describe el resultado de la actividad..." />
+            <textarea value={form.observaciones} onChange={e => setField('observaciones', e.target.value)} rows={3} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/40" placeholder="Describe el resultado de la actividad..." />
           </div>
           {/* Carga de Evidencias */}
           <div>
@@ -87,10 +89,21 @@ const CierreModal = ({ activity, onClose, onSave }) => {
           </div>
         </div>
         <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-lg">Cancelar</button>
-          <button onClick={() => { onSave(form); onClose(); }}
-            className="px-6 py-2 text-sm font-black uppercase tracking-wider bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-md shadow-emerald-200">
-            <div className="flex items-center gap-2"><CheckCircle size={14}/> Completar</div>
+          <button onClick={onClose} disabled={isSaving} className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-lg disabled:opacity-50">Cancelar</button>
+          <button
+            disabled={isSaving}
+            onClick={async () => {
+              setIsSaving(true);
+              await onSave(form);
+              setIsSaving(false);
+              onClose();
+            }}
+            className="px-6 py-2 text-sm font-black uppercase tracking-wider bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-md shadow-emerald-200 disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle size={14}/>
+              {isSaving ? 'Guardando...' : 'Completar'}
+            </div>
           </button>
         </div>
       </div>
@@ -183,8 +196,14 @@ const KanbanColumn = ({ title, activities, color, count, children, icon: Icon })
 // ─── Página Principal Kanban ───────────────────────────────────────────────
 export default function KanbanMetrologico() {
   const navigate = useNavigate();
-  const { activities, moveActivity, closeActivity, archiveActivity } = useInventoryStore();
+  const { activities, moveActivity, closeActivity, archiveActivity, loadActivities } = useInventoryStore();
+  const { tenant, isSuperAdmin } = useAuthStore();
   const [closingActivity, setClosingActivity] = useState(null);
+
+  // Siempre cargar actividades frescas desde Firestore al montar
+  useEffect(() => {
+    if (tenant) loadActivities(tenant.id, isSuperAdmin);
+  }, [tenant, isSuperAdmin, loadActivities]);
 
   const today = new Date();
   const startOfWeek = new Date(today);
@@ -192,21 +211,25 @@ export default function KanbanMetrologico() {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
 
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
   const active = activities.filter(a => !a.archivada);
   const archived = activities.filter(a => a.archivada);
 
-  const todo = active.filter(a => a.estado === 'todo');
+  // Filtro real por "Este Mes" para la primera columna
+  const todo = active.filter(a => {
+    if (a.estado !== 'todo') return false;
+    const d = new Date(a.fechaProgramada);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+
   const doing = active.filter(a => a.estado === 'doing');
   const done = active.filter(a => a.estado === 'done');
 
-  // "Doing" sugiere las de esta semana
-  const doingThisWeek = doing.filter(a => {
-    const d = new Date(a.fechaProgramada);
-    return d >= startOfWeek && d <= endOfWeek;
-  });
-
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col gap-8 h-full p-6 lg:p-10 w-full min-h-screen">
       {closingActivity && (
         <CierreModal activity={closingActivity} onClose={() => setClosingActivity(null)}
           onSave={(data) => closeActivity(closingActivity.id, data)} />

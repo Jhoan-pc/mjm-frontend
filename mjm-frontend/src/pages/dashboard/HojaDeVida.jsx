@@ -1,407 +1,400 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
 import { useReactToPrint } from 'react-to-print';
 import {
-  ArrowLeft, Printer, Download, CalendarPlus, CheckCircle, Clock,
-  XCircle, Wrench, AlertTriangle, FileText, ClipboardList, Settings2,
-  Calendar, Plus, X, RefreshCw
+  ArrowLeft, Printer, CheckCircle, Clock,
+  XCircle, Wrench, AlertTriangle, FileText,
+  Calendar, Plus, X, CloudLightning, CalendarPlus
 } from 'lucide-react';
+import { stichService } from '../../services/stichGateway';
 
-// ─── Estado Badge ──────────────────────────────────────────────────────────
-const EstadoBadge = ({ estado, size = 'md' }) => {
-  const config = {
-    'Vigente':            { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: CheckCircle },
-    'Próximo Vencimiento':{ bg: 'bg-amber-100',   text: 'text-amber-700',   icon: Clock },
-    'Vencido':            { bg: 'bg-red-100',      text: 'text-red-700',     icon: XCircle },
-    'En Reparación':      { bg: 'bg-gray-100',     text: 'text-gray-600',    icon: Wrench },
-  };
-  const c = config[estado] || config['Vigente'];
-  const Icon = c.icon;
-  const sizeClass = size === 'lg' ? 'px-4 py-2 text-sm' : 'px-3 py-1.5 text-[11px]';
-  return (
-    <span className={`inline-flex items-center gap-2 rounded-lg font-black uppercase tracking-wider ${c.bg} ${c.text} ${sizeClass}`}>
-      <Icon size={size === 'lg' ? 16 : 12} />
-      {estado}
-    </span>
-  );
-};
-
-// ─── Modal Programar Evento ────────────────────────────────────────────────
-const ProgramarEventoModal = ({ instrument, onClose, onSave }) => {
+// ─── Modal Programar Evento (Premium Branded) ──────────────────────────────
+const ProgramarEventoModal = ({ instrument, onClose }) => {
   const [form, setForm] = useState({
     tipo: 'Calibración', laboratorio: '', fechaInicio: '', frecuenciaNum: 6,
     frecuenciaUnidad: 'meses', repeticiones: 4, observaciones: ''
   });
-  const set = (f, v) => setForm(prev => ({ ...prev, [f]: v }));
-  const { activities, addActivity } = useInventoryStore();
+  const { addActivity } = useInventoryStore();
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [savedCount, setSavedCount] = useState(0);
 
-  const handleSave = () => {
-    // Generar actividades cíclicas
+  const handleSave = async () => {
+    if (!form.fechaInicio) return;
+    setIsSaving(true);
+    setSaveError(null);
     let fecha = new Date(form.fechaInicio);
-    for (let i = 0; i < form.repeticiones; i++) {
-      if (i > 0) {
-        if (form.frecuenciaUnidad === 'meses') fecha.setMonth(fecha.getMonth() + parseInt(form.frecuenciaNum));
-        if (form.frecuenciaUnidad === 'dias') fecha.setDate(fecha.getDate() + parseInt(form.frecuenciaNum));
-        if (form.frecuenciaUnidad === 'años') fecha.setFullYear(fecha.getFullYear() + parseInt(form.frecuenciaNum));
+    let saved = 0;
+    try {
+      for (let i = 0; i < form.repeticiones; i++) {
+        if (i > 0) {
+          if (form.frecuenciaUnidad === 'meses') fecha.setMonth(fecha.getMonth() + parseInt(form.frecuenciaNum));
+          if (form.frecuenciaUnidad === 'dias') fecha.setDate(fecha.getDate() + parseInt(form.frecuenciaNum));
+          if (form.frecuenciaUnidad === 'años') fecha.setFullYear(fecha.getFullYear() + parseInt(form.frecuenciaNum));
+        }
+        await addActivity({
+          instrumentId: instrument.id,
+          instrumentNombre: instrument.nombre,
+          codigoMJM: instrument.codigoMJM,
+          tenantId: instrument.tenantId,
+          tipo: form.tipo,
+          laboratorio: form.laboratorio || 'Laboratorio MJM',
+          fechaProgramada: new Date(fecha).toISOString().split('T')[0],
+          prioridad: instrument.criticidad === 'Crítica' ? 'Alta' : 'Normal',
+          observaciones: form.observaciones,
+          ciclo: { total: parseInt(form.repeticiones), numero: i + 1 }
+        });
+        saved++;
+        setSavedCount(saved);
       }
-      addActivity({
-        instrumentId: instrument.id,
-        instrumentNombre: instrument.nombre,
-        codigoMJM: instrument.codigoMJM,
-        cliente: instrument.jerarquia?.cliente || 'Cliente',
-        tipo: form.tipo,
-        laboratorio: form.laboratorio,
-        fechaProgramada: new Date(fecha).toISOString().split('T')[0],
-        prioridad: instrument.criticidad === 'Crítica' ? 'Alta' : instrument.criticidad || 'Normal',
-        observaciones: form.observaciones,
-        ciclo: { total: form.repeticiones, numero: i + 1 }
-      });
+      // Breve pausa para mostrar el éxito antes de cerrar
+      await new Promise(r => setTimeout(r, 800));
+      onClose();
+    } catch (err) {
+      setSaveError(`Error al guardar en base de datos: ${err.message || 'Revisa la consola.'}`);
+    } finally {
+      setIsSaving(false);
     }
-    onSave?.();
-    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-        <div className="bg-[#050b14] text-white px-6 py-4 flex items-center justify-between rounded-t-xl">
+    <div className="fixed inset-0 bg-mjm-navy/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="bg-mjm-navy text-white px-8 py-5 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-black uppercase tracking-wider">Programar Evento</h2>
-            <p className="text-[11px] text-white/50 mt-0.5">{instrument?.nombre}</p>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em]">Programar Ciclo Maestro</h2>
+            <p className="text-[10px] text-white/50 mt-1 uppercase tracking-widest">{instrument?.codigoMJM} · {instrument?.nombre}</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg"><X size={18}/></button>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition"><X size={18}/></button>
         </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Tipo de Rutina</label>
-            <div className="grid grid-cols-2 gap-2">
-              {(instrument?.rutinas || ['Calibración','Verificación','Calificación','Mantenimiento']).map(r => (
-                <button key={r} onClick={() => set('tipo', r)}
-                  className={`py-2 rounded-lg text-xs font-black uppercase tracking-wider transition ${form.tipo === r ? 'bg-[#050b14] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Fecha Inicio</label>
-              <input type="date" value={form.fechaInicio} onChange={e => set('fechaInicio', e.target.value)} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40" />
+        <div className="p-8 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Tipo de Actividad</label>
+              <div className="grid grid-cols-2 gap-2">
+                {['Calibración','Verificación','Calificación','Mantenimiento'].map(t => (
+                  <button key={t} onClick={() => setForm({...form, tipo: t})} 
+                    className={`py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition ${form.tipo === t ? 'bg-mjm-orange text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Laboratorio</label>
-              <input value={form.laboratorio} onChange={e => set('laboratorio', e.target.value)} placeholder="Opcional" className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40" />
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Fecha Inicio</label>
+              <input type="date" value={form.fechaInicio} onChange={e => setForm({...form, fechaInicio: e.target.value})} className="w-full bg-gray-50 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-mjm-orange/40 outline-none transition" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Laboratorio Sugerido</label>
+              <input value={form.laboratorio} onChange={e => setForm({...form, laboratorio: e.target.value})} placeholder="Ej: MJM Metrología" className="w-full bg-gray-50 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-mjm-orange/40 outline-none transition" />
             </div>
           </div>
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-2">Frecuencia de Repetición</label>
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Frecuencia y Repeticiones</label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Cada</span>
-              <input type="number" value={form.frecuenciaNum} onChange={e => set('frecuenciaNum', e.target.value)} className="w-16 bg-gray-50 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-400/40" min="1" />
-              <select value={form.frecuenciaUnidad} onChange={e => set('frecuenciaUnidad', e.target.value)} className="flex-1 bg-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40">
-                <option value="dias">Días</option>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Cada</span>
+              <input type="number" value={form.frecuenciaNum} onChange={e => setForm({...form, frecuenciaNum: e.target.value})} className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs font-black text-center" />
+              <select value={form.frecuenciaUnidad} onChange={e => setForm({...form, frecuenciaUnidad: e.target.value})} className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-wider">
                 <option value="meses">Meses</option>
+                <option value="dias">Días</option>
                 <option value="años">Años</option>
               </select>
-              <span className="text-sm text-gray-500">×</span>
-              <input type="number" value={form.repeticiones} onChange={e => set('repeticiones', e.target.value)} className="w-16 bg-gray-50 rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-orange-400/40" min="1" max="20" />
-              <span className="text-sm text-gray-500">veces</span>
+              <span className="text-gray-300">/</span>
+              <input type="number" value={form.repeticiones} onChange={e => setForm({...form, repeticiones: e.target.value})} className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs font-black text-center" />
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Veces</span>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">Se crearán <strong>{form.repeticiones} actividades</strong> en el planificador</p>
-          </div>
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Observaciones</label>
-            <textarea value={form.observaciones} onChange={e => set('observaciones', e.target.value)} rows={2} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40 resize-none" />
+            <p className="text-[9px] text-mjm-orange font-black uppercase tracking-widest mt-3">⚡ Se generarán {form.repeticiones} eventos automáticos</p>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
-          <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-lg">Cancelar</button>
-          <button onClick={handleSave} disabled={!form.fechaInicio} className="px-6 py-2 text-sm font-black uppercase tracking-wider bg-[#EE8C2C] text-white rounded-lg hover:bg-[#d47d22] disabled:opacity-40 transition shadow-md shadow-orange-200">
-            Programar
+        <div className="px-8 py-5 bg-gray-50 border-t border-gray-100 flex gap-3">
+        <button onClick={onClose} className="flex-1 py-3 text-[11px] font-black uppercase tracking-widest border-2 border-gray-200 rounded-xl hover:bg-white transition text-gray-400" disabled={isSaving}>Cancelar</button>
+          <button onClick={handleSave} disabled={isSaving || !form.fechaInicio} className="flex-1 py-3 bg-mjm-orange text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-mjm-orange/20 hover:scale-[1.02] transition active:scale-95 disabled:opacity-50">
+            {isSaving ? `🤖 Guardando ${savedCount}/${form.repeticiones}...` : '🦸 Programar Ciclo'}
           </button>
         </div>
+        {saveError && (
+          <div className="px-8 pb-5">
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[10px] font-bold text-red-600 uppercase tracking-wider">
+              ⚠️ {saveError}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// ─── Contenido Imprimible (Hoja de Vida) ───────────────────────────────────
-const PrintableHV = React.forwardRef(({ instrument, tenant }, ref) => (
-  <div ref={ref} className="print-only p-8 max-w-4xl mx-auto font-sans">
-    {/* Header */}
-    <div className="flex items-center justify-between mb-8 pb-6 border-b-4 border-[#050b14]">
-      <div>
-        <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-1">Hoja de Vida Metrológica</div>
-        <h1 className="text-2xl font-black text-[#050b14] leading-tight">{instrument?.nombre}</h1>
-        <div className="text-sm text-gray-500 font-mono mt-1">{instrument?.codigoMJM} · {instrument?.codigoInterno}</div>
-      </div>
-      <div className="text-right">
-        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{tenant?.nombre_empresa}</div>
-        <div className="text-[11px] text-gray-400 mt-1">Generado: {new Date().toLocaleDateString('es-CO', { dateStyle: 'long' })}</div>
-        <div className="mt-2 inline-block bg-[#050b14] text-white text-xs font-black px-3 py-1 uppercase tracking-wider">{instrument?.estado}</div>
-      </div>
-    </div>
+// ─── CSS de Impresión (inyectado globalmente) ─────────────────────────────
+const PrintStyles = () => (
+  <style>{`
+    @media print {
+      @page { size: letter portrait; margin: 0; }
+      body * { visibility: hidden !important; }
+      .hv-carta, .hv-carta * { visibility: visible !important; }
+      .hv-carta {
+        position: fixed !important;
+        top: 0; left: 0;
+        width: 216mm !important;
+        height: 279mm !important;
+        overflow: hidden !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+    }
+  `}</style>
+);
 
-    {/* Datos Técnicos */}
-    <div className="grid grid-cols-3 gap-4 mb-8">
-      {[
-        ['Marca', instrument?.marca], ['Modelo', instrument?.modelo], ['N° Serie', instrument?.serie],
-        ['Magnitud', instrument?.magnitud], ['Resolución', instrument?.resolucion], ['Cap. Máxima', instrument?.capacidadMaxima],
-        ['Criticidad', instrument?.criticidad], ['Año Adquisición', instrument?.anioAdquisicion], ['Proveedor', instrument?.proveedor],
-      ].map(([label, val]) => (
-        <div key={label} className="bg-gray-50 p-3 rounded">
-          <div className="text-[9px] font-black uppercase tracking-widest text-gray-400">{label}</div>
-          <div className="text-sm font-bold text-gray-800 mt-1">{val || '—'}</div>
+// ─── Documento Imprimible (Monochrome Elite) ──────────────────────────────
+const PrintableHV = React.forwardRef(({ instrument, tenant, isSuperAdmin }, ref) => {
+  const mjmName = "MJM METROLOGÍA";
+  const displayLogo = isSuperAdmin ? null : (tenant?.logo_url);
+  const displayName = isSuperAdmin ? mjmName : (tenant?.nombre_empresa || "CLIENTE MJM");
+
+  return (
+    <>
+    <PrintStyles />
+    <div
+      ref={ref}
+      className="hv-carta bg-white text-black font-sans"
+      style={{
+        width: '816px',       /* 216mm @ 96dpi */
+        minHeight: '1056px',  /* 279mm @ 96dpi */
+        maxHeight: '1056px',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+        padding: '36px 48px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+      }}
+    >
+      {/* HEADER ISO */}
+      <div className="grid grid-cols-3 border-2 border-black mb-4">
+        <div className="border-r-2 border-black p-3 flex items-center justify-center">
+          {displayLogo ? (
+            <img src={displayLogo} alt="Logo" className="grayscale max-h-10 object-contain" />
+          ) : (
+            <div className="text-base font-black tracking-widest">{displayName}</div>
+          )}
         </div>
-      ))}
-    </div>
-
-    {/* Historial */}
-    <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-3 pt-4 border-t border-gray-200">Historial de Actividades Metrológicas</h2>
-    <table className="w-full text-sm mb-8">
-      <thead>
-        <tr className="bg-[#050b14] text-white">
-          {['Fecha', 'Tipo', 'Laboratorio', 'N° Certificado', 'Resultado', 'Observaciones'].map(h => (
-            <th key={h} className="text-left px-3 py-2 text-[9px] font-black uppercase tracking-wider">{h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {(instrument?.historial || []).length === 0 ? (
-          <tr><td colSpan={6} className="text-center py-6 text-gray-400 text-sm">Sin registros en el historial</td></tr>
-        ) : (instrument?.historial || []).map((h, i) => (
-          <tr key={h.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-            <td className="px-3 py-2 font-mono text-xs">{h.fecha}</td>
-            <td className="px-3 py-2 font-bold">{h.tipo}</td>
-            <td className="px-3 py-2">{h.laboratorio}</td>
-            <td className="px-3 py-2 font-mono text-xs">{h.certificado}</td>
-            <td className="px-3 py-2"><span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${h.resultado === 'Aprobado' || h.resultado === 'Completado' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{h.resultado}</span></td>
-            <td className="px-3 py-2 text-gray-500">{h.observaciones}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-
-    {/* Firma */}
-    <div className="grid grid-cols-2 gap-16 mt-12 pt-4">
-      {['Realizó', 'Verificó / Aprobó'].map(label => (
-        <div key={label}>
-          <div className="border-t-2 border-gray-300 pt-3">
-            <div className="text-[9px] font-black uppercase tracking-widest text-gray-400">{label}</div>
-            <div className="text-xs text-gray-500 mt-1">Nombre: ___________________________</div>
-            <div className="text-xs text-gray-500 mt-1">Cargo: ____________________________</div>
-            <div className="text-xs text-gray-500 mt-1">Fecha: _____________________________</div>
+        <div className="border-r-2 border-black p-3 flex flex-col items-center justify-center text-center">
+          <span className="text-[8px] font-black tracking-[0.4em] mb-0.5 opacity-50 uppercase">Expediente Técnico</span>
+          <h1 className="text-sm font-black tracking-[0.4em] uppercase leading-tight">Hoja de Vida</h1>
+          <span className="text-[8px] font-bold mt-0.5 opacity-40 uppercase">MJM-MET-V2-001</span>
+        </div>
+        <div className="p-3 flex flex-col justify-center text-[8px] font-black uppercase tracking-widest">
+          <div className="flex justify-between border-b border-black/10 pb-1 mb-1">
+            <span>CÓDIGO:</span> <span className="font-bold">{instrument?.codigoMJM}</span>
+          </div>
+          <div className="flex justify-between border-b border-black/10 pb-1 mb-1">
+            <span>VERSIÓN:</span> <span>02</span>
+          </div>
+          <div className="flex justify-between">
+            <span>FECHA:</span> <span>{new Date().toLocaleDateString('es-CO')}</span>
           </div>
         </div>
-      ))}
-    </div>
-    <div className="mt-8 text-center text-[9px] text-gray-300 font-black uppercase tracking-[0.3em]">Asesorías Integrales MJM · Sistema de Aseguramiento Metrológico</div>
-  </div>
-));
-PrintableHV.displayName = 'PrintableHV';
+      </div>
 
-// ─── Página Hoja de Vida ───────────────────────────────────────────────────
+      {/* GALERÍA (EL ÚNICO COLOR) */}
+      <div className="grid grid-cols-2 gap-5 mb-4 items-start">
+        <div className="border border-black p-1.5 bg-gray-50 flex items-center justify-center overflow-hidden" style={{height:'200px'}}>
+           <img 
+             src={instrument?.imageUrl || '/assets/instruments/default.jpeg'} 
+             alt="Instrumento" 
+             className="w-full h-full object-cover"
+           />
+        </div>
+        <div className="space-y-3">
+          <div className="border-l-4 border-black pl-3">
+             <h2 className="text-[8px] font-black tracking-widest uppercase mb-0.5 opacity-40 italic">Descripción del Instrumento</h2>
+             <p className="text-base font-black tracking-tight leading-tight">{instrument?.nombre}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+             <div>
+               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Marca / Modelo</h3>
+               <p className="text-[10px] font-bold">{instrument?.marca} · {instrument?.modelo}</p>
+             </div>
+             <div>
+               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Serie Única</h3>
+               <p className="text-[10px] font-bold font-mono">{instrument?.serie}</p>
+             </div>
+             <div>
+               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Magnitud Física</h3>
+               <p className="text-[10px] font-black uppercase tracking-widest">{instrument?.magnitud}</p>
+             </div>
+             <div>
+               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Vencimiento</h3>
+               <p className="text-[10px] font-black uppercase tracking-tighter underline">{instrument?.proximaFecha || 'POR PROGRAMAR'}</p>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* FICHA TÉCNICA FORMAL */}
+      <h3 className="text-[8px] font-black uppercase tracking-[0.4em] mb-2 border-b border-black pb-1 text-center opacity-40">Identificación y Especificaciones Técnicas</h3>
+      <div className="grid grid-cols-4 border-t border-l border-black mb-4 text-[8px]">
+        {[
+          ['RESOLUCIÓN', instrument?.resolucion],
+          ['CAP. MÁXIMA', instrument?.capacidadMaxima],
+          ['CRITICIDAD', instrument?.criticidad],
+          ['AÑO ADQ.', instrument?.anioAdquisicion],
+          ['PROVEEDOR', instrument?.proveedor],
+          ['ACCESORIOS', instrument?.accesorios || 'NINGUNO'],
+          ['CÓD. INTERNO', instrument?.codigoInterno],
+          ['UBICACIÓN', instrument?.ubicacion || 'PLANTA'],
+        ].map(([k, v]) => (
+          <div key={k} className="border-b border-r border-black px-2 py-1.5 flex flex-col justify-between" style={{minHeight:'44px'}}>
+            <span className="text-[7px] font-black tracking-widest opacity-30 uppercase">{k}</span>
+            <span className="text-[8px] font-bold text-gray-800 tracking-tight leading-tight uppercase">{v || '—'}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* HISTORIAL METROLÓGICO */}
+      <h3 className="text-[8px] font-black uppercase tracking-[0.4em] mb-2 border-b border-black pb-1 text-center opacity-40">Registro de Intervenciones Metrológicas</h3>
+      <table className="w-full border-t border-l border-black text-[8px] mb-4">
+        <thead>
+          <tr className="bg-black text-white">
+            {['Fecha', 'Actividad Realizada', 'Laboratorio Responsable', 'N° Certificado', 'Veredicto'].map(h => (
+              <th key={h} className="border-r border-black p-1.5 text-left font-black tracking-widest text-[7px] uppercase">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {(instrument?.historial || []).length === 0 ? (
+            <tr><td colSpan={5} className="border-b border-r border-black p-4 text-center text-gray-400 italic text-[8px]">Sin intervenciones registradas.</td></tr>
+          ) : ([...(instrument?.historial || [])].slice(-6).reverse().map((h) => (
+            <tr key={h.id} className="border-b border-black">
+              <td className="border-r border-black p-1.5 font-mono">{h.fecha}</td>
+              <td className="border-r border-black p-1.5 font-black uppercase tracking-tighter">{h.tipo}</td>
+              <td className="border-r border-black p-1.5 uppercase opacity-60">{h.laboratorio}</td>
+              <td className="border-r border-black p-1.5 font-mono">{h.certificado}</td>
+              <td className="border-r border-black p-1.5 font-black uppercase underline">{h.resultado}</td>
+            </tr>
+          )))}
+        </tbody>
+      </table>
+
+      {/* FIRMAS ISO */}
+      <div className="grid grid-cols-2 gap-12 pt-4 mt-auto">
+        <div className="border-t border-black text-center pt-2">
+          <p className="text-[7px] font-black uppercase tracking-[0.3em] mb-1">Analista Metrológico</p>
+          <div className="h-6"></div>
+          <p className="text-[6px] opacity-40 uppercase tracking-widest font-bold">Firma y Sello Realizó</p>
+        </div>
+        <div className="border-t border-black text-center pt-2">
+          <p className="text-[7px] font-black uppercase tracking-[0.3em] mb-1">Director Técnico / Calidad</p>
+          <div className="h-6"></div>
+          <p className="text-[6px] opacity-40 uppercase tracking-widest font-bold">Firma y Sello Aprobó</p>
+        </div>
+      </div>
+
+      <div className="text-[6px] font-bold tracking-[0.4em] text-center opacity-10 uppercase pt-3">
+        DOCUMENTACIÓN TÉCNICA MJM METROLOGÍA V2.0 · USO EXCLUSIVO CLIENTE
+      </div>
+    </div>
+    </>
+  );
+});
+
 export default function HojaDeVida() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { instruments, selectInstrument, selectedInstrument, addHistorialEntry } = useInventoryStore();
-  const { tenant } = useAuthStore?.() || {};
+  const { instruments, loadInstruments, getInstrumentFromFirestore } = useInventoryStore();
+  const { tenant, isSuperAdmin } = useAuthStore();
   const [showProgramar, setShowProgramar] = useState(false);
-  const [showAddHistorial, setShowAddHistorial] = useState(false);
-  const [historialForm, setHistorialForm] = useState({ tipo: 'Calibración', fecha: '', laboratorio: '', certificado: '', resultado: 'Aprobado', observaciones: '' });
+  const [loading, setLoading] = useState(true);
   const printRef = useRef();
-  const inst = instruments.find(i => i.id === id) || selectedInstrument;
 
-  useEffect(() => { selectInstrument(id); }, [id]);
+  // El instrumento se toma del store (se actualiza al cargar)
+  const inst = useMemo(() => instruments.find(i => i.id === id), [instruments, id]);
 
-  const handlePrint = useReactToPrint({ content: () => printRef.current, documentTitle: `HV_${inst?.codigoMJM}` });
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      // Siempre recargar el instrumento fresco desde Firestore
+      // para que el historial esté al día (no caché obsoleto)
+      if (id) {
+        await getInstrumentFromFirestore(id);
+      }
+      // Si el store general está vacío, cargar todos
+      if (instruments.length === 0 && tenant) {
+        await loadInstruments(tenant.id, isSuperAdmin);
+      }
+      setLoading(false);
+    };
+    init();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const handlePrint = useReactToPrint({
+    content: () => printRef.current,
+    documentTitle: `HV_${inst?.codigoMJM || 'instrument'}`
+  });
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-full gap-4">
+      <div className="w-12 h-12 border-4 border-mjm-orange border-t-transparent rounded-full animate-spin"></div>
+      <p className="text-[10px] font-black uppercase tracking-widest text-mjm-navy/50">Recuperando Expediente...</p>
+    </div>
+  );
 
   if (!inst) return (
-    <div className="flex items-center justify-center h-64 text-gray-400">
-      <div className="text-center">
-        <AlertTriangle size={40} className="mx-auto mb-3 opacity-40" />
-        <p className="font-bold">Instrumento no encontrado</p>
-        <button onClick={() => navigate('/dashboard/inventario')} className="mt-4 text-sm text-orange-600 font-bold hover:underline">← Volver al Inventario</button>
+    <div className="flex items-center justify-center h-full p-20">
+      <div className="bg-white rounded-3xl shadow-2xl shadow-mjm-navy/10 w-full max-w-sm p-12 text-center border border-gray-100 animate-in zoom-in duration-300">
+        <div className="w-20 h-20 bg-mjm-orange/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+           <AlertTriangle size={40} className="text-mjm-orange" />
+        </div>
+        <h2 className="text-lg font-black uppercase tracking-widest text-mjm-navy">Extraviado</h2>
+        <p className="text-xs text-gray-500 mt-3 font-medium px-4">El instrumento solicitado no existe o no tiene permisos suficientes.</p>
+        <button onClick={() => navigate('/dashboard/inventario')} className="mt-8 w-full py-4 bg-mjm-navy text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-mjm-orange transition-all shadow-xl shadow-mjm-navy/20">
+          Volver al Inventario
+        </button>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-full bg-gray-50 flex flex-col">
       {showProgramar && <ProgramarEventoModal instrument={inst} onClose={() => setShowProgramar(false)} />}
-      <div style={{ display: 'none' }}><PrintableHV ref={printRef} instrument={inst} tenant={tenant} /></div>
-
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
-          <button onClick={() => navigate('/dashboard/inventario')} className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-400 mt-1">
+      
+      {/* BARRA DE ACCIONES (STICKY - BRANDED) */}
+      <div className="sticky top-0 z-30 bg-white shadow-xl shadow-mjm-navy/5 border-b border-mjm-navy/5 px-8 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <button onClick={() => navigate('/dashboard/inventario')} className="p-3 bg-gray-50 hover:bg-mjm-navy hover:text-white rounded-2xl transition-all text-mjm-navy shadow-inner">
             <ArrowLeft size={20} />
           </button>
           <div>
             <div className="flex items-center gap-3">
-              <span className="font-mono text-xs font-black text-gray-400 bg-gray-100 px-2.5 py-1 rounded">{inst.codigoMJM}</span>
-              <EstadoBadge estado={inst.estado} />
+               <span className="font-mono text-[10px] font-black bg-mjm-navy text-white px-3 py-1 rounded-lg shadow-lg shadow-mjm-navy/20">{inst.codigoMJM}</span>
+               <h1 className="text-sm font-black uppercase tracking-widest text-mjm-navy">{inst.nombre}</h1>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 mt-2 leading-tight">{inst.nombre}</h1>
-            <p className="text-sm text-gray-500 mt-1">{inst.marca} {inst.modelo} · Código Interno: <strong>{inst.codigoInterno}</strong></p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <button onClick={() => setShowProgramar(true)} className="flex items-center gap-2 px-4 py-2.5 bg-[#EE8C2C] text-white rounded-lg text-sm font-black uppercase tracking-wider hover:bg-[#d47d22] transition shadow-md shadow-orange-200">
-            <CalendarPlus size={15} /> Programar
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowProgramar(true)} className="flex items-center gap-2 px-6 py-3.5 bg-mjm-orange text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-mjm-navy transition-all shadow-xl shadow-mjm-orange/20 active:scale-95 group">
+            <CalendarPlus size={16} className="group-hover:rotate-12 transition-transform" /> Programar Ciclo
           </button>
-          <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2.5 bg-[#050b14] text-white rounded-lg text-sm font-black uppercase tracking-wider hover:bg-gray-800 transition">
-            <Printer size={15} /> Imprimir HV
+          <button onClick={handlePrint} className="flex items-center gap-2 px-6 py-3.5 bg-mjm-navy text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-mjm-orange transition-all shadow-xl shadow-mjm-navy/20 group">
+            <Printer size={16} /> Imprimir Hoja de Vida
+          </button>
+          <button onClick={async () => {
+             try {
+                await stichService.triggerPdfGeneration({ instrumentId: inst.id, codigo: inst.codigoMJM });
+                alert('🧬 Webhook Stich disparado exitosamente.');
+             } catch (err) { alert('Error: ' + err.message); }
+          }} className="p-3.5 bg-gray-100 hover:bg-indigo-600 hover:text-white rounded-xl transition-all text-gray-400">
+            <CloudLightning size={18} />
           </button>
         </div>
       </div>
 
-      {/* Cuerpo */}
-      <div className="grid grid-cols-3 gap-6">
-        {/* Columna Izquierda: Ficha Técnica */}
-        <div className="col-span-1 space-y-4">
-          <div className="bg-white rounded-xl shadow-sm p-5">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-4 flex items-center gap-2"><Settings2 size={12}/> Ficha Técnica</h2>
-            <div className="space-y-3">
-              {[
-                ['Marca', inst.marca], ['Modelo', inst.modelo], ['N° Serie', inst.serie],
-                ['Cod. Interno', inst.codigoInterno], ['Magnitud', inst.magnitud],
-                ['Resolución', inst.resolucion], ['Cap. Máxima', inst.capacidadMaxima],
-                ['Criticidad', inst.criticidad], ['Año Adquisición', inst.anioAdquisicion],
-                ['Proveedor', inst.proveedor], ['Accesorios', inst.accesorios || '—'],
-              ].map(([k, v]) => (
-                <div key={k} className="flex justify-between items-start gap-2 py-2 border-b border-gray-50 last:border-0">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 shrink-0">{k}</span>
-                  <span className="text-sm text-gray-800 font-medium text-right">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Ubicación */}
-          <div className="bg-white rounded-xl shadow-sm p-5">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-4 flex items-center gap-2"><ClipboardList size={12}/> Ubicación</h2>
-            <div className="space-y-2">
-              {Object.entries(inst.jerarquia || {}).filter(([,v]) => v).map(([k, v]) => (
-                <div key={k} className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-orange-300 shrink-0"></span>
-                  <span className="text-[10px] font-black text-gray-400 uppercase w-20 shrink-0">{k}</span>
-                  <span className="text-sm text-gray-700 font-medium">{v}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Rutinas */}
-          <div className="bg-white rounded-xl shadow-sm p-5">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-4">Rutinas Aplicables</h2>
-            <div className="flex flex-wrap gap-2">
-              {(inst.rutinas || []).map(r => (
-                <span key={r} className="bg-[#050b14] text-white text-[10px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider">{r}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Columna Derecha: Historial */}
-        <div className="col-span-2 space-y-4">
-          {/* Próximas Fechas */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center shrink-0"><CheckCircle size={22} className="text-green-600" /></div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Última Calibración</p>
-                <p className="text-lg font-black text-gray-900 mt-0.5 font-mono">{inst.ultimaCalibracion || '—'}</p>
-              </div>
-            </div>
-            <div className={`bg-white rounded-xl shadow-sm p-5 flex items-center gap-4 ${inst.estado === 'Vencido' ? 'ring-2 ring-red-200' : ''}`}>
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${inst.estado === 'Vencido' ? 'bg-red-100' : 'bg-amber-100'}`}>
-                <Calendar size={22} className={inst.estado === 'Vencido' ? 'text-red-600' : 'text-amber-600'} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Próxima Calibración</p>
-                <p className={`text-lg font-black mt-0.5 font-mono ${inst.estado === 'Vencido' ? 'text-red-600' : 'text-gray-900'}`}>{inst.proximaCalibracion || '—'}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Historial de Actividades */}
-          <div className="bg-white rounded-xl shadow-sm flex-1">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 flex items-center gap-2"><FileText size={12}/> Historial de Actividades Metrológicas</h2>
-              <button onClick={() => setShowAddHistorial(v => !v)} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider bg-[#050b14] text-white rounded-lg hover:bg-gray-800 transition">
-                <Plus size={12}/> Registrar
-              </button>
-            </div>
-
-            {/* Formulario de entrada manual de historial */}
-            {showAddHistorial && (
-              <div className="px-5 py-4 bg-gray-50 border-b border-gray-100">
-                <div className="grid grid-cols-3 gap-3">
-                  <div><label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Tipo</label>
-                    <select value={historialForm.tipo} onChange={e => setHistorialForm(f => ({...f, tipo: e.target.value}))} className="w-full bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40">
-                      {['Calibración','Verificación','Calificación','Mantenimiento'].map(t => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div><label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Fecha</label>
-                    <input type="date" value={historialForm.fecha} onChange={e => setHistorialForm(f => ({...f, fecha: e.target.value}))} className="w-full bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40" />
-                  </div>
-                  <div><label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Resultado</label>
-                    <select value={historialForm.resultado} onChange={e => setHistorialForm(f => ({...f, resultado: e.target.value}))} className="w-full bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40">
-                      {['Aprobado','No Conforme','Completado'].map(t => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div><label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Laboratorio</label>
-                    <input value={historialForm.laboratorio} onChange={e => setHistorialForm(f => ({...f, laboratorio: e.target.value}))} className="w-full bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40" />
-                  </div>
-                  <div><label className="block text-[10px] font-black uppercase text-gray-400 mb-1">N° Certificado</label>
-                    <input value={historialForm.certificado} onChange={e => setHistorialForm(f => ({...f, certificado: e.target.value}))} className="w-full bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40" />
-                  </div>
-                  <div><label className="block text-[10px] font-black uppercase text-gray-400 mb-1">Observaciones</label>
-                    <input value={historialForm.observaciones} onChange={e => setHistorialForm(f => ({...f, observaciones: e.target.value}))} className="w-full bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40" />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-3">
-                  <button onClick={() => setShowAddHistorial(false)} className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded-lg">Cancelar</button>
-                  <button onClick={() => { addHistorialEntry(id, historialForm); setShowAddHistorial(false); setHistorialForm({ tipo: 'Calibración', fecha: '', laboratorio: '', certificado: '', resultado: 'Aprobado', observaciones: '' }); }}
-                    className="px-4 py-1.5 text-xs font-black uppercase bg-[#EE8C2C] text-white rounded-lg hover:bg-[#d47d22] transition">
-                    Guardar
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Tabla de historial */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50">
-                    {['Fecha','Tipo','Laboratorio','Certificado','Resultado','Observaciones'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(inst.historial || []).length === 0 ? (
-                    <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">Sin registros en el historial<br/><span className="text-xs">Registre la primera actividad con el botón "Registrar"</span></td></tr>
-                  ) : [...(inst.historial || [])].sort((a,b) => b.fecha?.localeCompare(a.fecha)).map((h, i) => (
-                    <tr key={h.id} className="border-t border-gray-50 hover:bg-gray-50/60 transition">
-                      <td className="px-4 py-3 font-mono text-[12px] whitespace-nowrap text-gray-600">{h.fecha}</td>
-                      <td className="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{h.tipo}</td>
-                      <td className="px-4 py-3 text-gray-500">{h.laboratorio}</td>
-                      <td className="px-4 py-3 font-mono text-[11px] text-gray-500">{h.certificado}</td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${h.resultado === 'Aprobado' || h.resultado === 'Completado' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>{h.resultado}</span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-400 text-[12px]">{h.observaciones}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+      {/* VISTA PREVIA DEL DOCUMENTO */}
+      <div className="flex-1 overflow-auto bg-[#e8e8e8] flex justify-center py-10 px-4">
+        <div className="shadow-[0_8px_40px_rgba(0,0,0,0.18)] border border-white/60 mb-10 shrink-0" style={{width:'816px'}}>
+           <PrintableHV ref={printRef} instrument={inst} tenant={tenant} isSuperAdmin={isSuperAdmin} />
         </div>
       </div>
     </div>
