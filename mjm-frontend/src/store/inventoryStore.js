@@ -53,7 +53,8 @@ const generateActivitiesForInstrument = async (tenantId, instrumentId, instrumen
       const [year, month, day] = startDateStr.split('-').map(Number);
       const current = new Date(year, month - 1, day);
       
-      const count = Math.max(1, Math.floor(60 / freqMonths));
+      const years = Number(rutinas[`${key}_anos`]) || 5;
+      const count = Math.max(1, Math.floor((years * 12) / freqMonths));
 
       for (let i = 0; i < count; i++) {
         const y = current.getFullYear();
