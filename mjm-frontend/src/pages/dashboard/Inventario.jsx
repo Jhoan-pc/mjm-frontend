@@ -285,6 +285,359 @@ const InstrumentCard = ({ inst, onNavigate }) => {
   );
 };
 
+// --- UNIT GROUPS ---
+const UNIT_GROUPS = [
+  {
+    label: 'Eléctricas',
+    units: [
+      { value: 'V', label: 'V (Voltio)' },
+      { value: 'mV', label: 'mV (Milivoltio)' },
+      { value: 'kV', label: 'kV (Kilovoltio)' },
+      { value: 'A', label: 'A (Amperio)' },
+      { value: 'mA', label: 'mA (Miliamperio)' },
+      { value: 'µA', label: 'µA (Microamperio)' },
+      { value: 'Ω', label: 'Ω (Ohmio)' },
+      { value: 'kΩ', label: 'kΩ (Kilohmio)' },
+      { value: 'MΩ', label: 'MΩ (Megohmio)' },
+      { value: 'Hz', label: 'Hz (Hercio)' },
+      { value: 'kHz', label: 'kHz (Kilohercio)' },
+      { value: 'MHz', label: 'MHz (Megahercio)' },
+      { value: 'F', label: 'F (Faradio)' },
+      { value: 'µF', label: 'µF (Microfaradio)' },
+      { value: 'nF', label: 'nF (Nanofaradio)' },
+      { value: 'pF', label: 'pF (Picofaradio)' }
+    ]
+  },
+  {
+    label: 'Presión',
+    units: [
+      { value: 'bar', label: 'bar (Bar)' },
+      { value: 'mbar', label: 'mbar (Milibar)' },
+      { value: 'psi', label: 'psi (Libra por pulgada cuadrada)' },
+      { value: 'Pa', label: 'Pa (Pascal)' },
+      { value: 'kPa', label: 'kPa (Kilopascal)' },
+      { value: 'MPa', label: 'MPa (Megapascal)' },
+      { value: 'kg/cm²', label: 'kg/cm² (Kilogramo por centímetro cuadrado)' },
+      { value: 'atm', label: 'atm (Atmósfera)' },
+      { value: 'mmHg', label: 'mmHg (Milímetro de mercurio)' },
+      { value: 'inHg', label: 'inHg (Pulgada de mercurio)' },
+      { value: 'mmH2O', label: 'mmH2O (Milímetro de agua)' }
+    ]
+  },
+  {
+    label: 'Torque',
+    units: [
+      { value: 'N·m', label: 'N·m (Newton metro)' },
+      { value: 'mN·m', label: 'mN·m (Milinewton metro)' },
+      { value: 'dN·m', label: 'dN·m (Decinewton metro)' },
+      { value: 'lbf·ft', label: 'lbf·ft (Libra-fuerza pie)' },
+      { value: 'lbf·in', label: 'lbf·in (Libra-fuerza pulgada)' },
+      { value: 'ozf·in', label: 'ozf·in (Onza-fuerza pulgada)' },
+      { value: 'kgf·cm', label: 'kgf·cm (Kilogramo-fuerza centímetro)' },
+      { value: 'kgf·m', label: 'kgf·m (Kilogramo-fuerza metro)' }
+    ]
+  },
+  {
+    label: 'Masa',
+    units: [
+      { value: 'g', label: 'g (Gramo)' },
+      { value: 'kg', label: 'kg (Kilogramo)' },
+      { value: 'mg', label: 'mg (Miligramo)' },
+      { value: 'lb', label: 'lb (Libra)' },
+      { value: 'oz', label: 'oz (Onza)' },
+      { value: 't', label: 't (Tonelada)' }
+    ]
+  },
+  {
+    label: 'Cantidad Sustancia',
+    units: [
+      { value: 'mol', label: 'mol (Mol)' },
+      { value: 'mmol', label: 'mmol (Milimol)' }
+    ]
+  },
+  {
+    label: 'Temperatura',
+    units: [
+      { value: '°C', label: '°C (Grado Celsius)' },
+      { value: '°F', label: '°F (Grado Fahrenheit)' },
+      { value: 'K', label: 'K (Kelvin)' }
+    ]
+  },
+  {
+    label: 'Longitud',
+    units: [
+      { value: 'mm', label: 'mm (Milímetro)' },
+      { value: 'µm', label: 'µm (Micrómetro)' },
+      { value: 'cm', label: 'cm (Centímetro)' },
+      { value: 'm', label: 'm (Metro)' },
+      { value: 'in', label: 'in (Pulgada)' },
+      { value: 'ft', label: 'ft (Pie)' }
+    ]
+  },
+  {
+    label: 'Otros',
+    units: [
+      { value: '%', label: '% (Porcentaje)' },
+      { value: 'ppm', label: 'ppm (Partes por millón)' }
+    ]
+  }
+];
+
+const getShortSymbol = (uniStr) => {
+  if (!uniStr) return '';
+  const cleanUni = String(uniStr).trim();
+  
+  // Try direct match first
+  for (const group of UNIT_GROUPS) {
+    for (const u of group.units) {
+      if (cleanUni.toLowerCase() === u.label.toLowerCase() || 
+          cleanUni.toLowerCase() === u.value.toLowerCase()) {
+        return u.value;
+      }
+    }
+  }
+  
+  // Sort descending by length to match longest first
+  const allUnits = UNIT_GROUPS.flatMap(g => g.units).sort((a, b) => b.value.length - a.value.length);
+  for (const u of allUnits) {
+    if (cleanUni.startsWith(u.value)) {
+      return u.value;
+    }
+  }
+  
+  return cleanUni.split(' ')[0] || cleanUni;
+};
+
+const getFullLabel = (shortUni) => {
+  if (!shortUni) return '';
+  const cleanShort = String(shortUni).trim();
+  for (const group of UNIT_GROUPS) {
+    const found = group.units.find(u => u.value.toLowerCase() === cleanShort.toLowerCase());
+    if (found) return found.label;
+  }
+  return shortUni;
+};
+
+// --- CUSTOM SEARCHABLE SELECT COMPONENT ---
+const SearchableUnitSelect = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredGroups = useMemo(() => {
+    if (!searchTerm.trim()) return UNIT_GROUPS;
+    const term = searchTerm.toLowerCase();
+    return UNIT_GROUPS.map(group => {
+      const filteredUnits = group.units.filter(
+        u => u.value.toLowerCase().includes(term) || u.label.toLowerCase().includes(term)
+      );
+      return { ...group, units: filteredUnits };
+    }).filter(group => group.units.length > 0);
+  }, [searchTerm]);
+
+  const displayVal = useMemo(() => {
+    return value || '';
+  }, [value]);
+
+  return (
+    <div ref={containerRef} className="relative w-[100px] flex-shrink-0">
+      <button
+        type="button"
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setSearchTerm('');
+        }}
+        className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-2 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all flex items-center justify-between cursor-pointer h-[38px]"
+      >
+        <span className="truncate">{displayVal || '(Sin)'}</span>
+        <ChevronDown size={12} className="text-[var(--text-muted)] flex-shrink-0 ml-1" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-white border border-slate-200 rounded-xl shadow-xl flex flex-col max-h-72 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="p-2 border-b border-slate-100 bg-slate-50">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Buscar unidad..."
+              className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/10 bg-white text-slate-800"
+              autoFocus
+            />
+          </div>
+          <div className="overflow-y-auto flex-1 max-h-56 p-1 space-y-2 custom-scrollbar bg-white">
+            <button
+              type="button"
+              onClick={() => {
+                onChange('');
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-slate-100 font-medium ${!value ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-slate-700'}`}
+            >
+              (Sin unidad)
+            </button>
+            {filteredGroups.map(group => (
+              <div key={group.label} className="space-y-1">
+                <div className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-3 py-1 bg-slate-50/50 rounded">
+                  {group.label}
+                </div>
+                {group.units.map(u => (
+                  <button
+                    key={u.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(u.value);
+                      setIsOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs rounded-lg hover:bg-slate-100 font-medium flex items-center justify-between ${value === u.value ? 'bg-[var(--primary)]/10 text-[var(--primary)] font-black' : 'text-slate-700'}`}
+                  >
+                    <span className="truncate">{u.label}</span>
+                    {value === u.value && <Check size={12} className="text-[var(--primary)]" />}
+                  </button>
+                ))}
+              </div>
+            ))}
+            {filteredGroups.length === 0 && (
+              <div className="text-center py-4 text-xs text-slate-400">
+                No se encontraron unidades
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- EDITABLE ITEM COMPONENT ---
+const EditableItem = ({ label, field, icon, type = "text", hasUnit = false, isEditing, form, handleChange, options }) => {
+  const parseValueAndUnit = (str) => {
+    if (!str || str === 'N/A') return { val: '', uni: '' };
+    const match = String(str).trim().match(/^([-+]?(?:\d+(?:[.,]\d*)?|[.,]\d+))\s*(.*)$/);
+    if (match) {
+      return {
+        val: match[1].replace(/\./g, ','),
+        uni: match[2] || ''
+      };
+    }
+    return { val: String(str).replace(/\./g, ','), uni: '' };
+  };
+
+  const { val, uni } = (hasUnit && form) ? parseValueAndUnit(form[field]) : { val: '', uni: '' };
+
+  const handleNumericInput = (value) => {
+    let clean = value.replace(/\./g, ','); // Convert dot to comma
+    clean = clean.replace(/[^0-9,-]/g, ''); // Allow only digits, comma, and minus
+    
+    // Keep only first minus sign at start
+    if (clean.includes('-')) {
+      const isNegative = clean.startsWith('-');
+      clean = (isNegative ? '-' : '') + clean.replace(/-/g, '');
+    }
+    
+    // Keep only first comma
+    const parts = clean.split(',');
+    if (parts.length > 2) {
+      clean = parts[0] + ',' + parts.slice(1).join('');
+    }
+    
+    // Limit to 12 digits (excluding sign and comma)
+    let digitsOnly = '';
+    let finalStr = '';
+    if (clean.startsWith('-')) {
+      finalStr += '-';
+    }
+    for (let char of clean) {
+      if (char === '-') continue;
+      if (char === ',') {
+        if (!finalStr.includes(',')) {
+          finalStr += ',';
+        }
+      } else {
+        if (digitsOnly.length < 12) {
+          digitsOnly += char;
+          finalStr += char;
+        }
+      }
+    }
+    return finalStr;
+  };
+
+  const handleUnitSelectChange = (newShortUni) => {
+    const fullLabel = getFullLabel(newShortUni);
+    const combined = val.trim() ? `${val.trim()} ${fullLabel.trim()}`.trim() : 'N/A';
+    handleChange(field, combined);
+  };
+
+  const handleValChange = (newVal) => {
+    const shortUni = getShortSymbol(uni);
+    const fullLabel = getFullLabel(shortUni);
+    const combined = newVal.trim() ? `${newVal.trim()} ${fullLabel.trim()}`.trim() : 'N/A';
+    handleChange(field, combined);
+  };
+
+  return (
+    <div className="flex justify-between items-center py-3 border-b border-[var(--outline-color)]/10 group">
+      <div className="flex-1 min-w-0">
+        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{label}</p>
+        {isEditing ? (
+          hasUnit ? (
+            <div className="flex gap-2 w-full items-center min-w-0">
+              <input 
+                type="text"
+                value={val} 
+                onChange={(e) => handleValChange(handleNumericInput(e.target.value))}
+                className="flex-1 min-w-0 bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all h-[38px]"
+                placeholder="0,0"
+              />
+              <SearchableUnitSelect
+                value={getShortSymbol(uni)}
+                onChange={handleUnitSelectChange}
+              />
+            </div>
+          ) : options ? (
+            <select
+              value={(() => {
+                const val = (form && form[field]) || '';
+                const matched = options.find(o => o.toLowerCase() === val.toLowerCase());
+                return matched || val;
+              })()}
+              onChange={(e) => handleChange(field, e.target.value)}
+              className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all h-[38px] cursor-pointer"
+            >
+              <option value="">(Seleccionar)</option>
+              {options.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+          ) : (
+            <input 
+              type={type}
+              value={(form && form[field]) || ''} 
+              onChange={(e) => handleChange(field, e.target.value)}
+              className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all h-[38px]"
+              autoFocus={field === 'nombre'}
+            />
+          )
+        ) : (
+          <p className="text-sm font-bold text-[var(--text-main)] truncate">{(form && form[field]) || 'N/A'}</p>
+        )}
+      </div>
+      {!isEditing && icon && <div className="text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">{icon}</div>}
+    </div>
+  );
+};
+
 // --- INSTRUMENT DETAILS MODAL (TECHNICAL V3 + EDIT MODE) ---
 const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
   const { tenant } = useAuthStore();
@@ -444,144 +797,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
     }
   };
 
-  const EditableItem = ({ label, field, icon, type = "text", hasUnit = false }) => {
-    const parseValueAndUnit = (str) => {
-      if (!str || str === 'N/A') return { val: '', uni: '' };
-      const match = String(str).trim().match(/^([-+]?(?:\d+(?:\.\d*)?|\.\d+))\s*(.*)$/);
-      if (match) {
-        return {
-          val: match[1],
-          uni: match[2] || ''
-        };
-      }
-      return { val: str, uni: '' };
-    };
 
-    const { val, uni } = hasUnit ? parseValueAndUnit(form[field]) : { val: '', uni: '' };
-
-    const handleUnitFieldChange = (newVal, newUni) => {
-      const combined = newVal.trim() ? `${newVal.trim()} ${newUni.trim()}`.trim() : 'N/A';
-      handleChange(field, combined);
-    };
-
-    return (
-      <div className="flex justify-between items-center py-3 border-b border-[var(--outline-color)]/10 group">
-        <div className="flex-1">
-          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{label}</p>
-          {isEditing ? (
-            hasUnit ? (
-              <div className="flex gap-2 w-full">
-                <input 
-                  type="number"
-                  step="any"
-                  value={val} 
-                  onChange={(e) => handleUnitFieldChange(e.target.value, uni)}
-                  className="flex-[2] bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all"
-                  placeholder="0.0"
-                />
-                <select
-                  value={uni}
-                  onChange={(e) => handleUnitFieldChange(val, e.target.value)}
-                  className="flex-[1] bg-white border border-[var(--primary)]/30 rounded-lg px-2 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all cursor-pointer"
-                >
-                  <option value="">(Sin unidad)</option>
-                  
-                  <optgroup label="Eléctricas (SI)">
-                    <option value="V">V (Voltio)</option>
-                    <option value="mV">mV (miliVoltio)</option>
-                    <option value="kV">kV (kiloVoltio)</option>
-                    <option value="A">A (Amperio)</option>
-                    <option value="mA">mA (miliAmperio)</option>
-                    <option value="µA">µA (microAmperio)</option>
-                    <option value="Ω">Ω (Ohmio)</option>
-                    <option value="kΩ">kΩ (kiloOhmio)</option>
-                    <option value="MΩ">MΩ (MegaOhmio)</option>
-                    <option value="Hz">Hz (Hertzio)</option>
-                    <option value="kHz">kHz (kiloHertzio)</option>
-                    <option value="MHz">MHz (MegaHertzio)</option>
-                    <option value="F">F (Faradio)</option>
-                    <option value="µF">µF (microFaradio)</option>
-                    <option value="nF">nF (nanoFaradio)</option>
-                    <option value="pF">pF (picoFaradio)</option>
-                  </optgroup>
-
-                  <optgroup label="Presión (SI / Imperial / Otros)">
-                    <option value="bar">bar</option>
-                    <option value="mbar">mbar (milibar)</option>
-                    <option value="psi">psi (libras/pulgada²)</option>
-                    <option value="Pa">Pa (Pascal)</option>
-                    <option value="kPa">kPa (kiloPascal)</option>
-                    <option value="MPa">MPa (MegaPascal)</option>
-                    <option value="kg/cm²">kg/cm²</option>
-                    <option value="atm">atm (atmósfera)</option>
-                    <option value="mmHg">mmHg (mm Hg)</option>
-                    <option value="inHg">inHg (pulgada Hg)</option>
-                    <option value="mmH2O">mmH2O (mm H2O)</option>
-                  </optgroup>
-
-                  <optgroup label="Torque (SI / Imperial / Otros)">
-                    <option value="N·m">N·m (Newton metro)</option>
-                    <option value="mN·m">mN·m (miliNewton metro)</option>
-                    <option value="dN·m">dN·m (deciNewton metro)</option>
-                    <option value="lbf·ft">lbf·ft (libra-pie)</option>
-                    <option value="lbf·in">lbf·in (libra-pulgada)</option>
-                    <option value="ozf·in">ozf·in (onza-pulgada)</option>
-                    <option value="kgf·cm">kgf·cm (kg-centímetro)</option>
-                    <option value="kgf·m">kgf·m (kg-metro)</option>
-                  </optgroup>
-
-                  <optgroup label="Masa (SI / Imperial)">
-                    <option value="g">g (gramo)</option>
-                    <option value="kg">kg (kilogramo)</option>
-                    <option value="mg">mg (miligramo)</option>
-                    <option value="lb">lb (libra)</option>
-                    <option value="oz">oz (onza)</option>
-                    <option value="t">t (tonelada)</option>
-                  </optgroup>
-
-                  <optgroup label="Cantidad de Sustancia">
-                    <option value="mol">mol (mol)</option>
-                    <option value="mmol">mmol (milimol)</option>
-                  </optgroup>
-
-                  <optgroup label="Temperatura">
-                    <option value="°C">°C (grados Celsius)</option>
-                    <option value="°F">°F (grados Fahrenheit)</option>
-                    <option value="K">K (Kelvin)</option>
-                  </optgroup>
-
-                  <optgroup label="Longitud / Dimensión">
-                    <option value="mm">mm (milímetro)</option>
-                    <option value="µm">µm (micrómetro / micra)</option>
-                    <option value="cm">cm (centímetro)</option>
-                    <option value="m">m (metro)</option>
-                    <option value="in">in (pulgada)</option>
-                    <option value="ft">ft (pie)</option>
-                  </optgroup>
-
-                  <optgroup label="Relativos / Adimensional">
-                    <option value="%">% (porcentaje)</option>
-                    <option value="ppm">ppm (partes por millón)</option>
-                  </optgroup>
-                </select>
-              </div>
-            ) : (
-              <input 
-                type={type}
-                value={form[field] || ''} 
-                onChange={(e) => handleChange(field, e.target.value)}
-                className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all"
-                autoFocus={field === 'nombre'}
-              />
-            )
-          ) : (
-            <p className="text-sm font-bold text-[var(--text-main)] truncate">{form[field] || 'N/A'}</p>
-          )}
-        </div>
-        {!isEditing && icon && <div className="text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">{icon}</div>}
-      </div>
-    );
-  };
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-10 bg-black/70 backdrop-blur-md animate-in fade-in duration-500">
@@ -721,9 +937,9 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                 <Building2 size={20} className="text-[var(--primary)]"/>
               </div>
               <div className="space-y-2">
-                <EditableItem label="Ubicación Física" field="ubicacion" icon={<MapPin size={14}/>} />
-                <EditableItem label="Magnitud" field="magnitud" icon={<Activity size={14}/>} />
-                <EditableItem label="Estado de Operación" field="estado_funcional" icon={<ShieldCheck size={14}/>} />
+                <EditableItem label="Ubicación Física" field="ubicacion" icon={<MapPin size={14}/>} isEditing={isEditing} form={form} handleChange={handleChange} />
+                <EditableItem label="Magnitud" field="magnitud" icon={<Activity size={14}/>} isEditing={isEditing} form={form} handleChange={handleChange} />
+                <EditableItem label="Estado de Operación" field="estado_funcional" icon={<ShieldCheck size={14}/>} isEditing={isEditing} form={form} handleChange={handleChange} />
               </div>
             </div>
           </div>
@@ -733,27 +949,27 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
                <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Capacidad Operativa</h4>
                <div className="space-y-2">
-                  <EditableItem label="Capacidad Mínima" field="rango_min" hasUnit={true} />
-                  <EditableItem label="Capacidad Máxima" field="rango_max" hasUnit={true} />
-                  <EditableItem label="Resolución" field="resolucion" hasUnit={true} />
+                  <EditableItem label="Capacidad Mínima" field="rango_min" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
+                  <EditableItem label="Capacidad Máxima" field="rango_max" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
+                  <EditableItem label="Resolución" field="resolucion" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
                </div>
             </div>
             <div className="bg-white p-8 rounded-[2.5rem] border border-[var(--outline-color)]/20 shadow-sm relative">
                <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
                <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Parámetros Técnicos</h4>
                <div className="space-y-2">
-                  <EditableItem label="Incertidumbre requerida" field="incertidumbre" hasUnit={true} />
-                  <EditableItem label="Criticidad" field="criticidad" />
-                  <EditableItem label="Tolerancia de proceso" field="tolerancia_proceso" hasUnit={true} />
+                  <EditableItem label="Incertidumbre requerida" field="incertidumbre" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
+                  <EditableItem label="Criticidad" field="criticidad" isEditing={isEditing} form={form} handleChange={handleChange} options={['Alta', 'Media', 'Baja', 'Muy baja']} />
+                  <EditableItem label="Tolerancia de proceso" field="tolerancia_proceso" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
                </div>
             </div>
             <div className="bg-white p-8 rounded-[2.5rem] border border-[var(--outline-color)]/20 shadow-sm relative">
                <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
                <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Control Metrológico</h4>
                <div className="space-y-2">
-                  <EditableItem label="Frecuencia calibración (meses)" field="frecuencia_meses" type="number" />
-                  <EditableItem label="Proceso Vinculado" field="proceso" />
-                  <EditableItem label="Responsable" field="responsable" />
+                  <EditableItem label="Frecuencia calibración (meses)" field="frecuencia_meses" type="number" isEditing={isEditing} form={form} handleChange={handleChange} />
+                  <EditableItem label="Proceso Vinculado" field="proceso" isEditing={isEditing} form={form} handleChange={handleChange} />
+                  <EditableItem label="Responsable" field="responsable" isEditing={isEditing} form={form} handleChange={handleChange} />
                </div>
             </div>
           </div>
