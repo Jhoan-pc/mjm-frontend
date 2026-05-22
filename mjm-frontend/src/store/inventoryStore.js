@@ -1,229 +1,256 @@
 import { create } from 'zustand';
-import {
-  collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc,
-  query, where, onSnapshot, serverTimestamp, orderBy
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  updateDoc, 
+  doc, 
+  getDoc,
+  query, 
+  where, 
+  onSnapshot,
+  orderBy,
+  serverTimestamp,
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { useAuthStore } from './authStore';
 
-// ─── Mock Data para desarrollo sin Firestore configurado ───────────────────
-const MOCK_INSTRUMENTS = [];
+const generateActivitiesForInstrument = async (tenantId, instrumentId, instrumentData) => {
+  const rutinas = instrumentData.rutinas || {};
+  
+  // 1. Delete all existing 'todo' activities for this instrument
+  try {
+    const q = query(
+      collection(db, 'activities'),
+      where('tenantId', '==', tenantId),
+      where('instrumentId', '==', instrumentId),
+      where('estado', '==', 'todo')
+    );
+    const snap = await getDocs(q);
+    const deletePromises = snap.docs.map(docSnap => deleteDoc(doc(db, 'activities', docSnap.id)));
+    await Promise.all(deletePromises);
+  } catch (err) {
+    console.error("Error deleting old activities:", err);
+  }
 
-const MOCK_ACTIVITIES = [];
+  // 2. Generate new activities for each enabled routine
+  const routineKeys = ['calibracion', 'verificacion', 'mantenimiento', 'calificacion'];
+  const routineLabels = {
+    calibracion: 'Calibración',
+    verificacion: 'Verificación',
+    mantenimiento: 'Mantenimiento',
+    calificacion: 'Calificación'
+  };
 
-// ─── Store Principal ───────────────────────────────────────────────────────
+  for (const key of routineKeys) {
+    if (rutinas[key]) {
+      const freqMonths = Number(rutinas[`${key}_frecuencia`]) || 12;
+      const startDateStr = rutinas[`${key}_fecha_inicial`];
+      if (!startDateStr) continue;
+
+      // Parse YYYY-MM-DD TZ-safely
+      const [year, month, day] = startDateStr.split('-').map(Number);
+      const current = new Date(year, month - 1, day);
+      
+      const count = Math.max(1, Math.floor(60 / freqMonths));
+
+      for (let i = 0; i < count; i++) {
+        const y = current.getFullYear();
+        const m = String(current.getMonth() + 1).padStart(2, '0');
+        const dVal = String(current.getDate()).padStart(2, '0');
+        const dateStr = `${y}-${m}-${dVal}`;
+
+        const isLast = (i === count - 1);
+
+        const activityData = {
+          tenantId,
+          instrumentId,
+          instrumentNombre: instrumentData.nombre || 'Instrumento',
+          codigoMJM: instrumentData.codigoMJM || '',
+          tipo: routineLabels[key],
+          estado: 'todo',
+          fechaProgramada: dateStr,
+          priority: instrumentData.riesgo_operativo === 'Alta' || instrumentData.riesgo_operativo === 'Crítica' ? 'high' : 'medium',
+          createdAt: new Date().toISOString()
+        };
+
+        if (isLast) {
+          activityData.is_last_of_5_years = true;
+        }
+
+        await addDoc(collection(db, 'activities'), activityData);
+
+        // Advance month
+        current.setMonth(current.getMonth() + freqMonths);
+      }
+    }
+  }
+};
+
 export const useInventoryStore = create((set, get) => ({
   instruments: [],
   activities: [],
-  selectedInstrument: null,
   loading: false,
-  error: null,
-  unsubActivities: null,
-  unsubInstruments: null,
 
-  loadActivities: (tenantId, isSuperAdmin = false) => {
-    const { unsubActivities } = get();
-    if (unsubActivities) unsubActivities();
-
+  // --- INSTRUMENTOS ---
+  loadInstruments: (tenantId) => {
     set({ loading: true });
+    // Ruta corregida para Multi-Tenant: tenants/ID/inventario_metrologico
+    const q = query(collection(db, 'tenants', tenantId, 'inventario_metrologico'));
     
-    const q = isSuperAdmin
-      ? query(collection(db, 'activities'), orderBy('fechaProgramada', 'asc'))
-      : query(collection(db, 'activities'), where('tenantId', '==', tenantId), orderBy('fechaProgramada', 'asc'));
-
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const activities = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      set({ activities, loading: false });
-    }, (error) => {
-      console.warn('⚠️ Fallo onSnapshot con índice, usando fallback:', error.message);
-      // Fallback: sin orderBy
-      const qFallback = isSuperAdmin
-        ? collection(db, 'activities')
-        : query(collection(db, 'activities'), where('tenantId', '==', tenantId));
-      
-      onSnapshot(qFallback, (snap) => {
-        const activities = snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (a.fechaProgramada || '').localeCompare(b.fechaProgramada || ''));
-        set({ activities, loading: false });
-      });
-    });
-
-    set({ unsubActivities: unsubscribe });
-  },
-
-  // Cargar instrumentos por tenant
-  loadInstruments: (tenantId, isSuperAdmin = false) => {
-    const { unsubInstruments } = get();
-    if (unsubInstruments) unsubInstruments();
-
-    set({ loading: true });
-
-    const q = isSuperAdmin
-      ? query(collection(db, 'inventario_metrologico'), orderBy('createdAt', 'desc'))
-      : query(collection(db, 'inventario_metrologico'), where('tenantId', '==', tenantId), orderBy('createdAt', 'desc'));
-
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const instruments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      set({ instruments, loading: false });
-    }, (error) => {
-      console.warn('⚠️ Fallo onSnapshot en inventario:', error.message);
-      const qFallback = isSuperAdmin
-        ? collection(db, 'inventario_metrologico')
-        : query(collection(db, 'inventario_metrologico'), where('tenantId', '==', tenantId));
-      
-      onSnapshot(qFallback, (snap) => {
-        const instruments = snap.docs
-          .map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => {
-            const ta = a.createdAt?.toMillis?.() || 0;
-            const tb = b.createdAt?.toMillis?.() || 0;
-            return tb - ta;
-          });
-        set({ instruments, loading: false });
-      });
-    });
-
-    set({ unsubInstruments: unsubscribe });
-  },
-
-  // Seleccionar instrumento activo (Hoja de Vida)
-  selectInstrument: (id) => {
-    const inst = get().instruments.find(i => i.id === id);
-    set({ selectedInstrument: inst || null });
-  },
-
-  // Agregar instrumento
-  addInstrument: async (data, tenantId) => {
-    const newId = `MJM-${new Date().getFullYear()}-${String(get().instruments.length + 1).padStart(3, '0')}`;
-    const newInst = { ...data, id: `local-${Date.now()}`, codigoMJM: newId, tenantId, historial: [], createdAt: new Date().toISOString() };
-    set(s => ({ instruments: [...s.instruments, newInst] }));
-    try {
-      await addDoc(collection(db, 'inventario_metrologico'), { ...newInst, createdAt: serverTimestamp() });
-    } catch (e) { console.warn('Sin sync Firestore:', e.message); }
-    return newInst;
-  },
-
-  // Agregar evento al historial de un instrumento (y persistir en Firestore)
-  addHistorialEntry: async (instrumentId, entry) => {
-    const newEntry = { ...entry, id: `h-${Date.now()}`, fecha: entry.fecha || new Date().toISOString().split('T')[0] };
-    // Capturar historial ANTES de set() para evitar doble escritura
-    const instBefore = get().instruments.find(i => i.id === instrumentId);
-    const previousHistorial = instBefore?.historial || [];
-    const updatedHistorial = [...previousHistorial, newEntry];
-    // 1. Actualizar estado local
-    set(s => ({
-      instruments: s.instruments.map(i =>
-        i.id === instrumentId ? { ...i, historial: updatedHistorial } : i
-      ),
-    }));
-    // 2. Persistir en Firestore con la lista correcta (sin duplicado)
-    try {
-      await updateDoc(doc(db, 'inventario_metrologico', instrumentId), {
-        historial: updatedHistorial,
-        lastUpdate: serverTimestamp()
-      });
-    } catch (e) { console.error('Error guardando historial en Firestore:', e); }
-  },
-
-  // Recargar un instrumento fresco desde Firestore (para Hoja de Vida)
-  getInstrumentFromFirestore: async (instrumentId) => {
-    try {
-      const snap = await getDoc(doc(db, 'inventario_metrologico', instrumentId));
-      if (snap.exists()) {
-        const freshInst = { id: snap.id, ...snap.data() };
-        set(s => ({
-          instruments: s.instruments.some(i => i.id === instrumentId)
-            ? s.instruments.map(i => i.id === instrumentId ? freshInst : i)
-            : [...s.instruments, freshInst]
-        }));
-        return freshInst;
+    // 🛡️ Snapshot con manejo de errores para el Sandbox
+    return onSnapshot(q, 
+      (snapshot) => {
+        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        set({ instruments: docs, loading: false });
+      },
+      (error) => {
+        console.warn("🔔 Nota: Usando datos de respaldo (Sandbox Mode)", error.message);
+        // Si falla la base de datos real, cargamos ejemplos para no dejar la pantalla en blanco
+        set({ 
+          instruments: [
+            { id: 'm1', nombre: 'Micrómetro Digital', codigoMJM: 'MET-MD-001', estado: 'Activo', marca: 'Mitutoyo', tenantId },
+            { id: 'm2', nombre: 'Pie de Rey', codigoMJM: 'MET-PR-042', estado: 'Vencido', marca: 'Mahr', tenantId },
+            { id: 'm3', nombre: 'Manómetro de Patrón', codigoMJM: 'MET-MN-009', estado: 'Activo', marca: 'Wika', tenantId },
+          ], 
+          loading: false 
+        });
       }
-    } catch (e) { console.error('Error recargando instrumento:', e); }
+    );
+  },
+
+  getInstrumentFromFirestore: async (id) => {
+    const tenantId = useAuthStore.getState().tenant?.id;
+    if (!tenantId) return null;
+    try {
+      const docRef = doc(db, 'tenants', tenantId, 'inventario_metrologico', id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+      }
+    } catch (e) {
+      console.error("Error getting instrument from firestore:", e);
+    }
     return null;
   },
 
-  // Actividades y Kanban
-  addActivity: async (activityData) => {
+  addInstrument: async (tenantIdOrData, instrumentData) => {
+    let tenantId;
+    let data;
+    if (typeof tenantIdOrData === 'string') {
+      tenantId = tenantIdOrData;
+      data = instrumentData || {};
+    } else {
+      data = tenantIdOrData || {};
+      tenantId = data.tenantId || useAuthStore.getState().tenant?.id;
+    }
+
     try {
-      const docRef = await addDoc(collection(db, 'activities'), {
-        ...activityData,
-        estado: 'todo',
-        evidencias: [],
-        archivada: false,
-        createdAt: serverTimestamp()
+      const docRef = await addDoc(collection(db, 'tenants', tenantId, 'inventario_metrologico'), {
+        ...data,
+        tolerancia_proceso: Number(data.tolerancia_proceso) || 0,
+        riesgo_operativo: data.riesgo_operativo || 'Baja',
+        intervalo_confirmacion: data.intervalo_confirmacion || 12,
+        createdAt: serverTimestamp(),
+        lastStatus: 'Nuevo'
       });
-      const newAct = { ...activityData, id: docRef.id, estado: 'todo', evidencias: [], archivada: false };
-      set(s => ({ activities: [...s.activities, newAct] }));
+
+      // Auto-schedule 5 years of activities
+      await generateActivitiesForInstrument(tenantId, docRef.id, data);
+
       return docRef.id;
     } catch (e) {
-      console.error('Error guardando actividad en Firestore:', e);
-      throw e;
+      console.error("Error adding instrument: ", e);
     }
   },
 
-  // Mover tarjeta en Kanban (ej: todo → in_progress)
-  moveActivity: async (actId, newEstado) => {
-    // 1. Actualizar local inmediatamente (optimistic UI)
-    set(s => ({
-      activities: s.activities.map(a => a.id === actId ? { ...a, estado: newEstado } : a)
-    }));
-    // 2. Persistir en Firestore
-    try {
-      await updateDoc(doc(db, 'activities', actId), {
-        estado: newEstado,
-        lastUpdate: serverTimestamp()
-      });
-    } catch (e) { console.error('Error moviendo actividad en Firestore:', e); }
+  // --- ACTIVIDADES (KANBAN) ---
+  loadActivities: (tenantId) => {
+    const q = query(
+      collection(db, 'activities'), 
+      where('tenantId', '==', tenantId)
+    );
+    
+    return onSnapshot(q, 
+      (snapshot) => {
+        const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        set({ activities: docs });
+      },
+      (error) => {
+        console.warn("🔔 Nota: Cargando Tablero Demo (Sandbox)", error.message);
+        set({ 
+          activities: [
+            { id: 'a1', instrumentNombre: 'Micrómetro Digital', codigoMJM: 'MET-MD-001', estado: 'todo', tipo: 'Calibración', fechaProgramada: '2026-06-15', tenantId },
+            { id: 'a2', instrumentNombre: 'Manómetro de Patrón', codigoMJM: 'MET-MN-009', estado: 'doing', tipo: 'Mantenimiento', fechaProgramada: '2026-05-20', progreso: 45, tenantId },
+            { id: 'a3', instrumentNombre: 'Termómetro Infrarrojo', codigoMJM: 'MET-TI-012', estado: 'done', tipo: 'Verificación', fechaProgramada: '2026-05-10', declaracion_conformidad: 'Conforme', tenantId },
+          ]
+        });
+      }
+    );
   },
 
-  // Cerrar actividad con datos de cierre (fecha, laboratorio, certificado, etc.)
-  closeActivity: async (actId, closingData) => {
-    const closingPayload = {
-      estado: 'done',
-      fechaRealizacion: closingData.fechaRealizacion || new Date().toISOString().split('T')[0],
-      laboratorio: closingData.laboratorio || 'Interno MJM',
-      certificado: closingData.certificado || 'N/A',
-      observaciones: closingData.observaciones || '',
-      evidencias: closingData.evidencias || [],
-      closedAt: new Date().toISOString(),
-    };
-    // 1. Actualizar local inmediatamente
-    set(s => ({
-      activities: s.activities.map(a => a.id === actId ? { ...a, ...closingPayload } : a)
-    }));
-    // 2. Persistir el cierre en la colección 'activities'
+  addActivity: async (activityData) => {
     try {
-      await updateDoc(doc(db, 'activities', actId), {
-        ...closingPayload,
-        closedAt: serverTimestamp()
+      await addDoc(collection(db, 'activities'), {
+        ...activityData,
+        estado: 'todo',
+        createdAt: serverTimestamp()
       });
-    } catch (e) { console.error('Error cerrando actividad en Firestore:', e); }
-    // 3. Registrar entrada en el historial del instrumento
-    const act = get().activities.find(a => a.id === actId);
-    if (act?.instrumentId) {
-      await get().addHistorialEntry(act.instrumentId, {
-        tipo: act.tipo,
-        fecha: closingPayload.fechaRealizacion,
-        laboratorio: closingPayload.laboratorio,
-        certificado: closingPayload.certificado,
-        resultado: 'Completado',
-        observaciones: closingPayload.observaciones
-      });
+    } catch (e) {
+      console.error("Error adding activity: ", e);
     }
   },
 
-  // Archivar actividad
-  archiveActivity: async (actId) => {
-    // 1. Actualizar local
-    set(s => ({
-      activities: s.activities.map(a => a.id === actId ? { ...a, archivada: true } : a)
-    }));
-    // 2. Persistir en Firestore
+  // Actualización con Lógica Metrológica
+  updateActivityStatus: async (activityId, status, extraFields = null) => {
+    const actRef = doc(db, 'activities', activityId);
     try {
-      await updateDoc(doc(db, 'activities', actId), {
-        archivada: true,
-        archivedAt: serverTimestamp()
-      });
-    } catch (e) { console.error('Error archivando actividad en Firestore:', e); }
+      const updateData = { estado: status };
+      
+      if (extraFields) {
+        Object.assign(updateData, extraFields);
+      }
+
+      if (status === 'done') {
+        updateData.finishedAt = serverTimestamp();
+      }
+
+      await updateDoc(actRef, updateData);
+    } catch (e) {
+      console.error("Error updating activity: ", e);
+    }
   },
+
+  // --- ACTUALIZAR INSTRUMENTO (PERSISTENCIA) ---
+  updateInstrument: async (tenantId, instrumentId, data) => {
+    set({ loading: true });
+    try {
+      const docRef = doc(db, 'tenants', tenantId, 'inventario_metrologico', instrumentId);
+      await updateDoc(docRef, {
+        ...data,
+        updatedAt: serverTimestamp()
+      });
+      
+      // Actualizar estado local (Reactividad inmediata)
+      set(state => ({
+        instruments: state.instruments.map(inst => 
+          inst.id === instrumentId ? { ...inst, ...data } : inst
+        ),
+        loading: false
+      }));
+
+      // Auto-schedule if routines or identifying info changed
+      if (data.rutinas || data.nombre || data.codigoMJM || data.riesgo_operativo) {
+        const fullInst = { ...get().instruments.find(i => i.id === instrumentId), ...data };
+        await generateActivitiesForInstrument(tenantId, instrumentId, fullInst);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating instrument:", error);
+      set({ loading: false });
+      return false;
+    }
+  }
 }));

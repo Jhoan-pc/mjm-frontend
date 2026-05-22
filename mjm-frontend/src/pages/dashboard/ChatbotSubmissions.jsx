@@ -28,11 +28,9 @@ export default function ChatbotSubmissions() {
     <div className="space-y-6 pb-20">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-10">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            <MessageSquare className="text-mjm-orange" size={32} />
-            Solicitudes del Chatbot
-          </h1>
-          <p className="text-gray-500 mt-2 font-medium">Gestión de prospectos y programación de entregas capturadas en el landing.</p>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Chatbot Submissions</p>
+           <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Solicitudes <span className="text-[var(--primary)] italic">del Chatbot</span></h1>
+           <p className="text-xs text-[var(--text-muted)] mt-2 font-medium">Gestión de prospectos y programación de entregas capturadas en el landing.</p>
         </div>
         <div className="bg-mjm-navy/5 px-4 py-2 rounded-full border border-mjm-navy/10 flex items-center gap-2">
           <span className="w-2 h-2 bg-mjm-orange rounded-full animate-pulse"></span>
@@ -101,7 +99,7 @@ export default function ChatbotSubmissions() {
                         <Tag size={18} />
                       </div>
                       <div>
-                        <p className="text-[10px] uppercase font-black tracking-widest text-gray-400">Equipo Solicitado</p>
+                        <p className="text-[10px] uppercase font-black tracking-widest text-gray-400">Instrumento Solicitado</p>
                         <p className="text-sm font-bold text-mjm-navy">{sub.brand} {sub.model}</p>
                         <p className="text-xs text-gray-500">{sub.equipment_type}</p>
                       </div>

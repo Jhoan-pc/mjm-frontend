@@ -1,0 +1,43 @@
+  // Agregar instrumento
+  addInstrument: async (data, tenantId) => {
+    set({ loading: true });
+    try {
+      const newMjmId = `MJM-${new Date().getFullYear()}-${String(get().instruments.length + 1).padStart(3, '0')}`;
+      const payload = { 
+        ...data, 
+        codigoMJM: newMjmId, 
+        tenantId, 
+        historial: [], 
+        createdAt: serverTimestamp() 
+      };
+
+      const docRef = await addDoc(collection(db, 'inventario_metrologico'), payload);
+      const newInst = { id: docRef.id, ...data, codigoMJM: newMjmId, tenantId, historial: [], createdAt: new Date().toISOString() };
+      
+      // Actualizar estado local inmediatamente
+      set(s => ({ 
+        instruments: [newInst, ...s.instruments],
+        loading: false 
+      }));
+      
+      return newInst;
+    } catch (e) { 
+      console.error('Error FATAL guardando en Firestore:', e);
+      set({ error: e.message, loading: false });
+      alert(`⚠️ ERROR DE BASE DE DATOS:\n\n${e.message}\n\nEl equipo NO se guardó en la nube.`);
+      throw e;
+    }
+  },
+
+  // Eliminar/Desactivar instrumento
+  deleteInstrument: async (id) => {
+    try {
+      await deleteDoc(doc(db, 'inventario_metrologico', id));
+      set(s => ({
+        instruments: s.instruments.filter(i => i.id !== id)
+      }));
+    } catch (e) {
+      console.error('Error al eliminar instrumento:', e);
+      throw e;
+    }
+  },

@@ -1,32 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .animate-pulse-slow {
-    animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
+:root {
+  /* --- MODO DÍA (CLINICAL LIGHT) --- */
+  --primary: #78B7D0;
+  --secondary: #1A202C;
+  --tertiary: #E3A06D;
+  --neutral: #757779;
   
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1.05); }
-    50% { opacity: 0.9; transform: scale(1.1); }
+  --background: #F8F9FB;
+  --surface: #FFFFFF;
+  --surface-alt: #FAF8FF;
+  --text-main: #1A202C;
+  --text-muted: #757779;
+  --outline-color: rgba(191, 200, 204, 0.3);
+  --sidebar-bg: #1A202C;
+}
+
+.dark {
+  /* --- MODO NOCHE (OBSIDIAN DEEP) --- */
+  --background: #0B1326;
+  --surface: #131B2E;
+  --surface-alt: #171F33;
+  --text-main: #F8F9FB;
+  --text-muted: #94A3B8;
+  --outline-color: rgba(39, 53, 73, 0.6);
+  --sidebar-bg: #070C18;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--background)] text-[var(--text-main)] transition-colors duration-500 antialiased;
+    font-family: 'Inter', sans-serif;
   }
 
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+  .font-data {
+    font-family: 'Roboto Mono', monospace;
   }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(35, 76, 116, 0.05);
+
+  h1, h2, h3 { @apply tracking-tighter; }
+}
+
+@layer components {
+  /* Cards Adaptables */
+  .premium-card {
+    @apply bg-[var(--surface)] rounded-3xl transition-all duration-300;
+    border: 1px solid var(--outline-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
   }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(35, 76, 116, 0.2);
-    border-radius: 10px;
+
+  .dark .premium-card {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #ee8c2c;
+
+  /* Botones M3 */
+  .btn-primary {
+    @apply bg-[var(--primary)] text-[#1A202C] px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#78B7D0]/20;
+  }
+
+  .btn-secondary {
+    @apply bg-[var(--surface-alt)] text-[var(--text-main)] px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest border transition-all hover:brightness-110;
+    border-color: var(--outline-color);
   }
 }
 
-html {
-  scroll-behavior: smooth;
+/* Scrollbar Adaptable - CORREGIDO PARA EVITAR ERROR POSTCSS */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { 
+  background: rgba(117, 119, 121, 0.3); 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { 
+  background: var(--primary); 
 }

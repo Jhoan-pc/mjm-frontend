@@ -36,10 +36,11 @@ export default function HojasDeVida() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 relative">
-      <div className="flex justify-between items-center mb-6 no-print">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 mb-10 no-print">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Consulta de Equipos</h1>
-          <p className="text-gray-500 text-sm">Registro Documental ISO 9001</p>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Quality Log</p>
+           <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Consulta de <span className="text-[var(--primary)] italic">Instrumentos</span></h1>
+           <p className="text-xs text-[var(--text-muted)] mt-2 font-medium">Registro Documental ISO 9001</p>
         </div>
         <div className="flex gap-3">
           <button 
@@ -113,9 +114,9 @@ export default function HojasDeVida() {
           </div>
           <div className="w-2/4 flex flex-col justify-center items-center px-4 border-r-2 border-black text-center">
             <h2 className="font-bold text-xl uppercase font-serif tracking-wide">{tenant?.nombre_empresa || 'MJM'}</h2>
-            <h3 className="font-bold text-lg mt-1 font-sans">HOJA DE VIDA DE EQUIPO</h3>
+            <h3 className="font-bold text-lg mt-1 font-sans">HOJA DE VIDA DE INSTRUMENTO</h3>
           </div>
-          <div className="w-1/4 flex flex-col justify-center text-[10px] sm:text-xs font-mono p-2 space-y-1">
+          <div className="w-1/4 flex flex-col justify-center text-xs font-mono p-2 space-y-1">
              <div className="flex justify-between border-b border-black pb-1"><span>CÓDIGO:</span> <strong>R-MET-01</strong></div>
              <div className="flex justify-between border-b border-black pb-1 pt-1"><span>VERSIÓN:</span> <strong>03</strong></div>
              <div className="flex justify-between pt-1"><span>FECHA:</span> <strong>24/03/2026</strong></div>
@@ -125,7 +126,7 @@ export default function HojasDeVida() {
         {/* Ficha Técnica */}
         <div className="mb-8">
           <div className="bg-gray-100 border-2 border-black p-2 mb-4 flex items-center gap-2 font-bold uppercase text-sm">
-            <Info size={18} /> IDENTIFICACIÓN DEL EQUIPO
+            <Info size={18} /> IDENTIFICACIÓN DEL INSTRUMENTO
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm px-2">
@@ -183,11 +184,11 @@ export default function HojasDeVida() {
               <tbody>
                 {instrumento.historial.map((reg, idx) => (
                   <tr key={idx} className="border-b border-gray-400 hover:bg-gray-50 transition-colors">
-                    <td className="border-r border-black p-2 font-mono text-xs font-semibold">{reg.fecha}</td>
+                    <td className="border-r border-black p-2 font-mono text-sm font-semibold">{reg.fecha}</td>
                     <td className="border-r border-black p-2 font-medium">{reg.tipo}</td>
                     <td className="border-r border-black p-2 text-gray-700">{reg.ejecutor}</td>
-                    <td className="border-r border-black p-2 font-mono text-xs text-gray-600">{reg.certificado}</td>
-                    <td className={`p-2 text-center font-bold text-[10px] uppercase ${reg.resultado === 'PENDIENTE' ? 'text-amber-600' : 'text-gray-900'}`}>
+                    <td className="border-r border-black p-2 font-mono text-sm text-gray-600">{reg.certificado}</td>
+                    <td className={`p-2 text-center font-bold text-xs uppercase ${reg.resultado === 'PENDIENTE' ? 'text-amber-600' : 'text-gray-900'}`}>
                       {reg.resultado}
                     </td>
                   </tr>

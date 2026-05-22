@@ -11,6 +11,8 @@ import KanbanMetrologico from './pages/dashboard/KanbanMetrologico';
 import AsegMetrologico from './pages/dashboard/AsegMetrologico';
 import ChatbotSubmissions from './pages/dashboard/ChatbotSubmissions';
 import Settings from './pages/dashboard/Settings';
+import IAVerificationLab from './pages/dashboard/IAVerificationLab';
+import HojaDeVidaPrint from './pages/dashboard/HojaDeVidaPrint';
 import { useAuthStore } from './store/authStore';
 
 const PrivateRoute = ({ children }) => {
@@ -71,8 +73,19 @@ function AppRoutes() {
 
           {/* Otros módulos */}
           <Route path="solicitudes" element={<ChatbotSubmissions />} />
+          <Route path="ia-lab" element={<IAVerificationLab />} />
           <Route path="settings" element={<Settings />} />
         </Route>
+
+        {/* Ruta de Impresión de Hoja de Vida - FUERA DEL LAYOUT DE DASHBOARD */}
+        <Route 
+          path="/dashboard/inventario/imprimir/:id" 
+          element={
+            <PrivateRoute>
+              <HojaDeVidaPrint />
+            </PrivateRoute>
+          } 
+        />
       </Routes>
     </BrowserRouter>
   );

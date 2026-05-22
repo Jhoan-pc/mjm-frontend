@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Building, Globe, Factory, Layout, Activity, MapPin, Wrench, 
-  ChevronRight, Plus, MoreVertical, RefreshCw, AlertTriangle, Loader2
+  ChevronRight, Plus, MoreVertical, RefreshCw, AlertCircle, Loader2
 } from 'lucide-react';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -248,7 +248,7 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
           </div>
         ) : data.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-300">
-            <AlertTriangle size={48} className="mb-4 opacity-20" />
+            <AlertCircle size={48} className="mb-4 opacity-20" />
             <p className="text-sm font-medium italic">Sin jerarquías registradas.</p>
             <p className="text-[10px] mt-1 uppercase font-bold text-gray-400">Crea tu primer cliente para comenzar</p>
           </div>

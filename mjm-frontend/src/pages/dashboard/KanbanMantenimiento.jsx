@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAuthStore } from '../../store/authStore';
-import { Paperclip, CheckCircle2, AlertTriangle, Clock, UploadCloud, FileCheck } from 'lucide-react';
+import { Paperclip, CheckCircle2, AlertCircle, Clock, UploadCloud, FileCheck } from 'lucide-react';
 
 export default function KanbanMantenimiento() {
   const [tasks, setTasks] = useState([
@@ -48,7 +48,7 @@ export default function KanbanMantenimiento() {
 
   const columns = [
     { id: 'PENDIENTE', title: 'Pendiente', color: 'border-l-gray-400', icon: <Clock size={16}/> },
-    { id: 'EN_EJECUCION', title: 'En Ejecución', color: 'border-l-blue-400', icon: <AlertTriangle size={16}/> },
+    { id: 'EN_EJECUCION', title: 'En Ejecución', color: 'border-l-blue-400', icon: <AlertCircle size={16}/> },
     { id: 'EJECUTADO', title: 'Ejecutado', color: 'border-l-emerald-500', icon: <CheckCircle2 size={16}/> }
   ];
 
@@ -63,10 +63,11 @@ export default function KanbanMantenimiento() {
         accept=".pdf,.jpg,.jpeg,.png"
       />
 
-      <div className="mb-8 flex justify-between items-end">
+      <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-3xl font-black text-mjm-navy tracking-tighter">Plan de Mantenimiento</h1>
-          <p className="text-gray-500 text-sm mt-1 font-bold">Flujo de trabajo para control de instrumentos (Drag & Drop UI)</p>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Maintenance Planner</p>
+           <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Plan de <span className="text-[var(--primary)] italic">Mantenimiento</span></h1>
+           <p className="text-xs text-[var(--text-muted)] mt-2 font-medium">Flujo de trabajo para control de instrumentos (Drag & Drop UI)</p>
         </div>
         <button className="bg-mjm-navy text-white px-6 py-3 font-bold text-xs uppercase tracking-widest rounded shadow-lg hover:bg-gray-800 transition-colors">
           + Nueva Actividad

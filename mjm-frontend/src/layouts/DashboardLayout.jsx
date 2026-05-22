@@ -1,183 +1,210 @@
-import React from 'react';
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
-import {
-  LayoutDashboard, FileText, Kanban, LogOut, Settings,
-  Menu, X, Package, Calendar, MessageSquare, ChevronRight, ShieldCheck, ClipboardCheck
+import { 
+  LayoutDashboard, 
+  Package, 
+  Calendar, 
+  History, 
+  Database,
+  Menu,
+  X,
+  Search,
+  Bell,
+  Sun,
+  Moon,
+  LogOut,
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
+import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
+import mjmLogo from '../assets/mjm-logo-main.jpg';
 
 export default function DashboardLayout() {
-  const { tenant, user, logout, isSuperAdmin, setSuperAdmin } = useAuthStore();
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+  const { user, tenant, logout, isDarkMode, toggleDarkMode } = useAuthStore();
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // MJM Branding Assets
-  const mjmLogo = "https://placehold.co/200x60/050b14/white?text=MJM+METROLOGIA";
-  const mjmName = "MJM Metrología";
-  const mjmColor = "#234c74";
-  const mjmSecondary = "#f7931b";
 
-  // Dynamic Branding Calculation
-  const displayLogo = isSuperAdmin ? mjmLogo : (tenant?.logo_url || "https://via.placeholder.com/150");
-  const displayName = isSuperAdmin ? mjmName : (tenant?.nombre_empresa || "Cliente MJM");
-  const mainColor = isSuperAdmin ? mjmColor : (tenant?.color_institucional_principal || "#234c74");
-  const secondaryColor = isSuperAdmin ? mjmSecondary : (tenant?.color_institucional_secundario || "#f7931b");
+  // 🌙 Sincronizar Modo Oscuro, Colores y Datos en Tiempo Real
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+
+    // Sincronizar datos frescos de la BD si estamos en Sandbox
+    const syncTenant = async () => {
+      if (tenant?.id === 'deltapruebas-sandbox') {
+        const { getDoc, doc } = await import('firebase/firestore');
+        const { db } = await import('../config/firebase');
+        const tDoc = await getDoc(doc(db, 'tenants', 'deltapruebas-sandbox'));
+        if (tDoc.exists()) {
+           // Actualizar el estado global con los datos reales de la BD
+           useAuthStore.setState({ tenant: { id: tDoc.id, ...tDoc.data() } });
+        }
+      }
+    };
+
+    syncTenant();
+
+    if (tenant?.color_institucional_principal) {
+      root.style.setProperty('--primary', tenant.color_institucional_principal);
+    }
+    if (tenant?.color_institucional_secundario) {
+      root.style.setProperty('--secondary', tenant.color_institucional_secundario);
+    }
+  }, [isDarkMode, tenant?.id]);
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
-  // Módulos de Aseguramiento Metrológico
+  const isActive = (path) => {
+    if (path === '/dashboard') return location.pathname === '/dashboard';
+    return location.pathname.startsWith(path);
+  };
+
+  if (!tenant) return (
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+        <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest">Iniciando Laboratorio...</p>
+      </div>
+    </div>
+  );
+
   const navItems = [
-    { name: 'Dashboard KPIs', path: '/dashboard', exact: true, icon: <LayoutDashboard size={18} /> },
-    { name: 'Inventario', path: '/dashboard/inventario', icon: <Package size={18} /> },
-    { name: 'Planificador', path: '/dashboard/calendario', icon: <Calendar size={18} /> },
-    { name: 'Tablero Kanban', path: '/dashboard/kanban', icon: <Kanban size={18} /> },
-    { name: 'Comprobación Metrológica', path: '/dashboard/aseguramiento', icon: <ClipboardCheck size={18} /> },
+    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
+    { name: 'Inventario de Activos', path: '/dashboard/inventario', icon: <Package size={20} /> },
+    { name: 'Planificador', path: '/dashboard/calendario', icon: <Calendar size={20} /> },
+    { name: 'Gestión Operativa', path: '/dashboard/kanban', icon: <History size={20} /> },
+    { name: 'IA Lab (Beta)', path: '/dashboard/ia-lab', icon: <Database size={20} /> },
   ];
-
-  const secondaryItems = [
-    { name: 'Solicitudes', path: '/dashboard/solicitudes', icon: <MessageSquare size={18} /> },
-  ];
-
-  const isActive = (path, exact = false) =>
-    exact ? location.pathname === path : location.pathname.startsWith(path);
-
-  if (!tenant) return null;
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden font-sans text-gray-800 relative">
-
-      {/* OVERLAY para móvil */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm transition-opacity"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* SIDEBAR */}
-      <aside className={`fixed md:static inset-y-0 left-0 w-64 bg-[#050b14] text-gray-300 flex flex-col shadow-2xl z-40 transition-transform duration-300 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-        {/* Logo del cliente */}
-        <div className="h-16 flex items-center justify-center p-4 border-b border-white/10 bg-white/5">
-          <img 
-            src={displayLogo} 
-            alt={displayName} 
-            className="h-8 object-contain"
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'block';
-            }}
-          />
-          <div className="hidden text-white font-black text-xs tracking-widest uppercase">
-            {displayName}
-          </div>
+    <div className="flex h-screen bg-[var(--background)] overflow-hidden transition-colors duration-500 selection:bg-[var(--primary)]/20">
+      
+      {/* --- SIDEBAR (Dark Optimized) --- */}
+      <aside className="hidden lg:flex flex-col w-72 bg-[var(--sidebar-bg)] text-white flex-shrink-0 shadow-2xl z-50 transition-colors duration-500">
+        <div className="p-8 mb-6 border-b border-white/5">
+        {/* BRANDING DEL TENANT */}
+        <div className="flex items-center gap-4">
+           <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center overflow-hidden border border-white/10 shadow-2xl">
+              <img 
+                src={tenant?.logo_url || mjmLogo} 
+                alt="Logo" 
+                className="w-full h-full object-contain p-1" 
+              />
+           </div>
+           <div className="flex-1 min-w-0">
+              <h1 className="font-black text-white text-base tracking-tight uppercase leading-none truncate">
+                {tenant?.nombre_empresa || 'MJM Plataforma'}
+              </h1>
+              <p className="text-[7px] text-[var(--primary)] font-black uppercase tracking-[0.2em] mt-2">
+                Sistema de Gestión
+              </p>
+           </div>
+        </div>
         </div>
 
-        {/* Nav Principal */}
-        <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-          <p className="px-3 text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">Aseguramiento</p>
-          {navItems.map((item) => {
-            const active = isActive(item.path, item.exact);
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                onClick={() => setIsSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-all ${active ? 'text-white shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'}`}
-                style={active ? { backgroundColor: mainColor } : {}}
-              >
+        <nav className="flex-1 px-4 space-y-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
+                isActive(item.path)
+                  ? 'bg-[var(--primary)] text-[#1A202C] shadow-lg shadow-[var(--primary)]/20'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              <span className={`transition-transform duration-300 ${isActive(item.path) ? 'scale-110' : 'group-hover:scale-110'}`}>
                 {item.icon}
-                <span className="flex-1">{item.name}</span>
-                {active && <ChevronRight size={14} className="opacity-60" />}
-              </Link>
-            );
-          })}
-
-          <div className="pt-4">
-            <p className="px-3 text-[9px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">Gestión</p>
-            {secondaryItems.map((item) => {
-              const active = isActive(item.path);
-              return (
-                <Link key={item.name} to={item.path} onClick={() => setIsSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-semibold text-sm transition-all ${active ? 'text-white' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'}`}
-                  style={active ? { backgroundColor: mainColor } : {}}>
-                  {item.icon}<span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
+              </span>
+              <span className="text-[11px] font-black uppercase tracking-widest">{item.name}</span>
+              {isActive(item.path) && <ChevronRight size={14} className="ml-auto opacity-50" />}
+            </Link>
+          ))}
         </nav>
 
-        {/* Footer del Sidebar */}
-        <div className="border-t border-white/10">
-          <Link to="/dashboard/settings" onClick={() => setIsSidebarOpen(false)}
-            className={`flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-all ${isActive('/dashboard/settings') ? 'text-white bg-white/10' : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'}`}>
-            <Settings size={18} /> Configuración
-          </Link>
-          <button onClick={handleLogout} className="w-full flex items-center gap-3 px-5 py-3 text-red-400 hover:bg-red-400/10 transition-colors text-sm font-semibold">
-            <LogOut size={18} /> Cerrar Sesión
-          </button>
-        </div>
-
-        {/* Sello MJM */}
-        <div className="py-5 flex flex-col items-center opacity-30 hover:opacity-100 transition-opacity duration-500">
-          <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">TECNOLOGÍA MJM V2.0</span>
+        {/* --- FOOTER BRANDING --- */}
+        <div className="mt-auto pb-10 flex flex-col items-center">
+           <p className="text-[7px] text-white/20 font-black uppercase tracking-[0.5em] mb-8">
+              Powered by MJM
+           </p>
+           
+           <button 
+             onClick={handleLogout}
+             className="w-full flex items-center justify-center gap-3 px-5 py-4 text-white/40 hover:text-red-400 transition-all duration-300 group"
+           >
+             <LogOut size={16} className="opacity-40 group-hover:rotate-12 transition-transform" />
+             <span className="text-[9px] font-black uppercase tracking-[0.2em]">Cerrar Sesión</span>
+           </button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative w-full">
-        {/* Header */}
-        <header
-          className="h-16 bg-white shadow-sm flex items-center justify-between px-4 md:px-8 border-b-[3px] relative z-20 shrink-0"
-          style={{ borderColor: mainColor }}
-        >
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-gray-100 rounded-lg md:hidden text-gray-600">
-              {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-            <div>
-              <h2 className="text-base font-black text-gray-900 leading-tight">{displayName}</h2>
-              <div className="flex items-center gap-3 mt-0.5">
-                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Sistema de Aseguramiento Metrológico</p>
+      {/* --- CONTENIDO PRINCIPAL --- */}
+      <div className="flex-1 flex flex-col min-w-0">
+        
+        {/* TOPBAR */}
+        <header className="h-24 bg-[var(--surface)] border-b border-[var(--outline-color)] flex items-center justify-between px-10 transition-colors duration-500">
+           <div className="flex items-center gap-6 flex-1">
+              <button className="lg:hidden p-2 text-[var(--text-main)]">
+                 <Menu />
+              </button>
+              <div className="hidden md:flex items-center gap-3 text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest">
+                 <span>Panel de Gestión</span>
+                 <ChevronRight size={12} className="opacity-30" />
+                 <span className="text-[var(--primary)]">{location.pathname.split('/').pop() || 'Overview'}</span>
               </div>
-            </div>
-          </div>
+           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Switch de Súper Admin */}
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
-               <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">Acceso Total</span>
-               <button 
-                onClick={() => setSuperAdmin(!isSuperAdmin)}
-                className={`w-10 h-5 rounded-full transition-all relative ${isSuperAdmin ? 'bg-mjm-orange shadow-inner shadow-orange-900/20' : 'bg-gray-200'}`}
-               >
-                 <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${isSuperAdmin ? 'left-6' : 'left-1'}`} />
-               </button>
-            </div>
+           <div className="flex items-center gap-4">
+              <div className="relative hidden xl:block mr-6">
+                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={16} />
+                 <input 
+                  type="text" 
+                  placeholder="Buscar activos..." 
+                  className="bg-[var(--background)] border border-[var(--outline-color)] rounded-full pl-12 pr-6 py-2.5 text-xs w-72 focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] outline-none transition-all"
+                 />
+              </div>
 
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-gray-800">{user?.email}</p>
-               <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: mainColor }}>
-                 {isSuperAdmin ? '🔥 SÚPER ADMIN' : user?.rol}
-               </p>
-            </div>
-             <div className="w-9 h-9 rounded-full text-white flex items-center justify-center font-black text-sm"
-               style={{ backgroundColor: mainColor }}>
-                {displayName?.substring(0, 1)}
-             </div>
-          </div>
+              <div className="flex items-center gap-2 bg-[var(--background)] p-1.5 rounded-2xl border border-[var(--outline-color)]">
+                 <button 
+                  onClick={toggleDarkMode}
+                  className="p-2.5 rounded-xl transition-all hover:bg-[var(--surface-alt)] text-[var(--text-main)]"
+                 >
+                    {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                 </button>
+                 <button className="p-2.5 rounded-xl transition-all hover:bg-[var(--surface-alt)] text-[var(--text-main)] relative">
+                    <Bell size={18} />
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-[var(--primary)] rounded-full border-2 border-[var(--background)]" />
+                 </button>
+              </div>
+
+              {/* PERFIL DE USUARIO */}
+              <div className="flex items-center gap-4 pl-4 border-l border-neutral-200 dark:border-white/10 group cursor-default">
+                 <div className="flex flex-col items-end transition-all duration-300">
+                    <p className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+                       {user?.nombre || 'MJM Administrator'}
+                    </p>
+                    <p className={`text-[8px] font-black uppercase tracking-[0.3em] transition-all ${isDarkMode ? 'text-[var(--primary)] drop-shadow-[0_0_10px_var(--primary)]' : 'text-slate-500'}`}>
+                       {tenant?.nombre_empresa || 'DeltaSandbox'}
+                    </p>
+                 </div>
+                 <div className="w-10 h-10 rounded-2xl bg-[var(--primary)] flex items-center justify-center text-slate-900 font-black text-sm shadow-lg shadow-[var(--primary)]/20 transition-shadow">
+                    {user?.nombre ? user.nombre.substring(0, 2).toUpperCase() : 'MJ'}
+                 </div>
+              </div>
+           </div>
         </header>
 
-        {/* Contenido */}
-         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50"
-           style={{ '--tenant-main': mainColor, '--tenant-sec': secondaryColor }}>
-          <div className="w-full h-full flex flex-col">
-            <Outlet />
-          </div>
+        {/* CONTENIDO SCROLLABLE */}
+        <main className="flex-1 overflow-y-auto bg-[var(--background)] p-10 lg:p-14 pb-32 lg:pb-12 transition-colors duration-500">
+           <Outlet />
         </main>
       </div>
     </div>

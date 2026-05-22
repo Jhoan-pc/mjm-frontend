@@ -6,7 +6,7 @@ import {
   Filter, 
   Clock, 
   CheckCircle, 
-  AlertTriangle, 
+  AlertCircle, 
   ArrowRight,
   TrendingUp,
   History,
@@ -50,8 +50,8 @@ export default function ComprobacionMetrologica() {
   }, [instruments, activities]);
 
   const filteredInstruments = verifData.instruments.filter(inst => 
-    inst.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    inst.codigoMJM.toLowerCase().includes(searchTerm.toLowerCase())
+    (inst.nombre ? String(inst.nombre).toLowerCase() : '').includes(searchTerm.toLowerCase()) ||
+    (inst.codigoMJM ? String(inst.codigoMJM).toLowerCase() : '').includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (instrumentId) => {
@@ -66,26 +66,19 @@ export default function ComprobacionMetrologica() {
       {/* Header Elite Light */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-6 border-b border-gray-200 pb-10">
         <div>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2.5 bg-mjm-navy rounded-xl border border-mjm-navy shadow-inner">
-              <Activity size={20} className="text-white" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 italic">MJM Calibration Engine</span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-mjm-navy tracking-tighter uppercase italic leading-none">
-            Comprobación <span className="text-gray-300">Metrológica</span>
-          </h1>
-          <p className="text-sm text-gray-500 mt-3 font-medium max-w-xl">
-            Protocolo de comparación táctica con patrones de referencia internos para asegurar la trazabilidad en punto de uso.
-          </p>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Calibration Engine</p>
+           <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Comprobación <span className="text-[var(--primary)] italic">Metrológica</span></h1>
+           <p className="text-xs text-[var(--text-muted)] mt-2 font-medium max-w-xl">
+             Protocolo de comparación táctica con patrones de referencia internos para asegurar la trazabilidad en punto de uso.
+           </p>
         </div>
 
         <div className="flex gap-3">
-          <button className="flex-1 md:flex-none px-8 py-3.5 bg-white border border-gray-200 text-gray-600 font-black text-[10px] uppercase tracking-[0.2em] rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm">
-            <History size={14} /> Log Maestro
+          <button className="flex-1 md:flex-none px-8 py-3.5 bg-white border border-gray-200 text-gray-600 font-black text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2 shadow-sm">
+            <History size={16} /> Log Maestro
           </button>
-          <button className="flex-1 md:flex-none px-8 py-3.5 bg-[#050b14] text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-xl shadow-xl hover:bg-mjm-navy transition-all flex items-center justify-center gap-2">
-            <Plus size={16} /> Nueva Comprobación
+          <button className="flex-1 md:flex-none px-8 py-3.5 bg-[#050b14] text-white font-black text-xs uppercase tracking-[0.2em] rounded-xl shadow-xl hover:bg-mjm-navy transition-all flex items-center justify-center gap-2">
+            <Plus size={18} /> Nueva Comprobación
           </button>
         </div>
       </div>
@@ -93,15 +86,15 @@ export default function ComprobacionMetrologica() {
       {/* KPI Cards Light */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[
-          { icon: ClipboardCheck, label: 'Equipos en Control', val: verifData.totalEnControl, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { icon: ClipboardCheck, label: 'Instrumentos en Control', val: verifData.totalEnControl, color: 'text-blue-600', bg: 'bg-blue-50' },
           { icon: CheckCircle, label: 'Ejecutadas (Mes)', val: verifData.ejecutadasMes, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { icon: TrendingUp, label: 'Desviación Media', val: verifData.desviacionMedia, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { icon: AlertTriangle, label: 'Alertas / Vencidos', val: verifData.alertas, color: 'text-red-500', bg: 'bg-red-50' }
+          { icon: AlertCircle, label: 'Alertas / Vencidos', val: verifData.alertas, color: 'text-red-500', bg: 'bg-red-50' }
         ].map((k, i) => (
           <div key={i} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xl shadow-mjm-navy/5 flex items-center gap-5 group hover:border-mjm-navy/10 transition-all">
-            <div className={`p-4 ${k.bg} rounded-2xl ${k.color} group-hover:scale-110 transition-transform`}><k.icon size={24} /></div>
+            <div className={`p-4 ${k.bg} rounded-2xl ${k.color} group-hover:scale-110 transition-transform`}><k.icon size={26} /></div>
             <div>
-              <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1.5">{k.label}</p>
+              <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] mb-1.5">{k.label}</p>
               <p className="text-3xl font-black text-mjm-navy leading-none tracking-tighter">{k.val}</p>
             </div>
           </div>
@@ -114,14 +107,14 @@ export default function ComprobacionMetrologica() {
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-mjm-navy transition-colors" size={18} />
           <input 
             type="text"
-            placeholder="Buscar por equipo, código MJM o serie..."
+            placeholder="Buscar por instrumento, código MJM o serie..."
             className="w-full pl-16 pr-8 py-5 bg-white border border-gray-100 rounded-3xl focus:outline-none focus:border-mjm-navy/20 transition-all text-gray-800 text-sm font-medium tracking-wide placeholder:text-gray-300 shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="w-full md:w-auto px-10 py-5 bg-white border border-gray-200 text-gray-400 font-black text-[10px] uppercase tracking-[0.4em] rounded-3xl hover:text-mjm-navy hover:border-mjm-navy/30 transition-all flex items-center justify-center gap-3 shadow-sm">
-           <Filter size={14} /> Filtro de Planta
+        <button className="w-full md:w-auto px-10 py-5 bg-white border border-gray-200 text-gray-400 font-black text-xs uppercase tracking-[0.4em] rounded-3xl hover:text-mjm-navy hover:border-mjm-navy/30 transition-all flex items-center justify-center gap-3 shadow-sm">
+           <Filter size={16} /> Filtro de Planta
         </button>
       </div>
 
@@ -141,10 +134,10 @@ export default function ComprobacionMetrologica() {
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8">
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(item.id)}`}>
-                        {verifData.activities.some(a => a.instrumentId === item.id && a.estado === 'todo' && new Date(a.fechaProgramada) < new Date()) ? 'VENCIDO' : 'VIGENTE'}
+                      <span className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest border ${getStatusColor(item.id)}`}>
+                        {verifData.activities.some(a => a.instrumentId === item.id && a.estado === 'todo' && new Date(a.fechaProgramada) < new Date()) ? 'VENCIDO' : 'ACTIVO'}
                       </span>
-                      <span className="px-4 py-1.5 bg-gray-50 text-gray-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-gray-100">
+                      <span className={`px-4 py-1.5 bg-gray-50 text-gray-400 rounded-full text-[11px] font-black uppercase tracking-widest border border-gray-100`}>
                         {item.magnitud || 'Planta'}
                       </span>
                     </div>
@@ -153,10 +146,10 @@ export default function ComprobacionMetrologica() {
                   </div>
                   
                   <div className="flex flex-col items-end gap-2 bg-gray-50 px-6 py-4 rounded-3xl border border-gray-100">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Próxima Comp. en Planta</p>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Próxima Comp. en Planta</p>
                     <div className="flex items-center gap-2 text-mjm-navy">
-                      <Clock size={16} />
-                      <span className="text-lg font-black italic tracking-tighter">{nextVerif?.fechaProgramada || 'Pte. Programar'}</span>
+                      <Clock size={18} />
+                      <span className="text-xl font-black italic tracking-tighter">{nextVerif?.fechaProgramada || 'Pte. Programar'}</span>
                     </div>
                   </div>
                 </div>
@@ -164,30 +157,30 @@ export default function ComprobacionMetrologica() {
                 {/* Technical Comparison Block Light */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
                   <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] mb-3">Patrón de Referencia Interno</p>
+                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] mb-3">Patrón de Referencia Interno</p>
                     <p className="text-sm font-black text-mjm-navy/80">{lastVerif?.laboratorio === 'INTERNO (MJM PLANTA)' ? 'Patrón Maestro PT100 Cal-Ref' : 'No definido'}</p>
-                    <p className="text-[10px] text-gray-400 mt-2 font-mono italic">Certificado: {lastVerif?.certificado || 'N/A'}</p>
+                    <p className="text-xs text-gray-400 mt-2 font-mono italic">Certificado: {lastVerif?.certificado || 'N/A'}</p>
                   </div>
                   <div className="bg-mjm-navy shadow-lg shadow-mjm-navy/20 p-6 rounded-3xl flex justify-between items-center group-hover:bg-[#0a0d14] transition-colors">
                     <div>
-                      <p className="text-[9px] font-black text-mjm-orange uppercase tracking-[0.3em] mb-1.5">Último Error</p>
-                      <p className="text-xl font-black text-white">0.02 {item.unidad_medida || ''}</p>
+                      <p className="text-[11px] font-black text-mjm-orange uppercase tracking-[0.3em] mb-1.5">Último Error</p>
+                      <p className="text-2xl font-black text-white">0.02 {item.unidad_medida || ''}</p>
                     </div>
                     <div className="text-right border-l border-white/10 pl-6">
-                      <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.3em] mb-1.5">MPE (Máx. Perm)</p>
-                      <p className="text-base font-black text-white/20">0.05 {item.unidad_medida || ''}</p>
+                      <p className="text-[11px] font-black text-white/40 uppercase tracking-[0.3em] mb-1.5">MPE (Máx. Perm)</p>
+                      <p className="text-lg font-black text-white/20">0.05 {item.unidad_medida || ''}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Footer Tarjeta Light */}
                 <div className="flex items-center justify-between pt-8 border-t border-gray-100">
-                  <div className="flex items-center gap-3 text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">
-                    <History size={14} />
+                  <div className="flex items-center gap-3 text-xs font-black text-gray-400 uppercase tracking-[0.3em]">
+                    <History size={16} />
                     EJECUCIÓN: {lastVerif?.fechaRealizacion || 'Sin registro'}
                   </div>
-                  <button className="flex items-center gap-3 px-8 py-3.5 bg-mjm-orange text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-orange-200 active:scale-95 group/btn">
-                    Iniciar Comparación <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                  <button className="flex items-center gap-3 px-8 py-3.5 bg-mjm-orange text-white text-xs font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-orange-200 active:scale-95 group/btn">
+                    Iniciar Comparación <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                   </button>
                 </div>
               </div>

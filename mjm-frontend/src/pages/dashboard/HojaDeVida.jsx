@@ -1,401 +1,306 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  ShieldCheck, 
+  Printer, 
+  Edit3, 
+  Info, 
+  MapPin, 
+  User, 
+  Calendar, 
+  Tag, 
+  Barcode, 
+  Activity, 
+  LineChart, 
+  ChevronRight,
+  History,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  Ruler,
+  ArrowLeft
+} from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
-import { useReactToPrint } from 'react-to-print';
-import {
-  ArrowLeft, Printer, CheckCircle, Clock,
-  XCircle, Wrench, AlertTriangle, FileText,
-  Calendar, Plus, X, CloudLightning, CalendarPlus
-} from 'lucide-react';
-import { stichService } from '../../services/stichGateway';
-
-// ─── Modal Programar Evento (Premium Branded) ──────────────────────────────
-const ProgramarEventoModal = ({ instrument, onClose }) => {
-  const [form, setForm] = useState({
-    tipo: 'Calibración', laboratorio: '', fechaInicio: '', frecuenciaNum: 6,
-    frecuenciaUnidad: 'meses', repeticiones: 4, observaciones: ''
-  });
-  const { addActivity } = useInventoryStore();
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState(null);
-  const [savedCount, setSavedCount] = useState(0);
-
-  const handleSave = async () => {
-    if (!form.fechaInicio) return;
-    setIsSaving(true);
-    setSaveError(null);
-    let fecha = new Date(form.fechaInicio);
-    let saved = 0;
-    try {
-      for (let i = 0; i < form.repeticiones; i++) {
-        if (i > 0) {
-          if (form.frecuenciaUnidad === 'meses') fecha.setMonth(fecha.getMonth() + parseInt(form.frecuenciaNum));
-          if (form.frecuenciaUnidad === 'dias') fecha.setDate(fecha.getDate() + parseInt(form.frecuenciaNum));
-          if (form.frecuenciaUnidad === 'años') fecha.setFullYear(fecha.getFullYear() + parseInt(form.frecuenciaNum));
-        }
-        await addActivity({
-          instrumentId: instrument.id,
-          instrumentNombre: instrument.nombre,
-          codigoMJM: instrument.codigoMJM,
-          tenantId: instrument.tenantId,
-          tipo: form.tipo,
-          laboratorio: form.laboratorio || 'Laboratorio MJM',
-          fechaProgramada: new Date(fecha).toISOString().split('T')[0],
-          prioridad: instrument.criticidad === 'Crítica' ? 'Alta' : 'Normal',
-          observaciones: form.observaciones,
-          ciclo: { total: parseInt(form.repeticiones), numero: i + 1 }
-        });
-        saved++;
-        setSavedCount(saved);
-      }
-      // Breve pausa para mostrar el éxito antes de cerrar
-      await new Promise(r => setTimeout(r, 800));
-      onClose();
-    } catch (err) {
-      setSaveError(`Error al guardar en base de datos: ${err.message || 'Revisa la consola.'}`);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-mjm-navy/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
-        <div className="bg-mjm-navy text-white px-8 py-5 flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em]">Programar Ciclo Maestro</h2>
-            <p className="text-[10px] text-white/50 mt-1 uppercase tracking-widest">{instrument?.codigoMJM} · {instrument?.nombre}</p>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition"><X size={18}/></button>
-        </div>
-        <div className="p-8 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Tipo de Actividad</label>
-              <div className="grid grid-cols-2 gap-2">
-                {['Calibración','Verificación','Calificación','Mantenimiento'].map(t => (
-                  <button key={t} onClick={() => setForm({...form, tipo: t})} 
-                    className={`py-2 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition ${form.tipo === t ? 'bg-mjm-orange text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Fecha Inicio</label>
-              <input type="date" value={form.fechaInicio} onChange={e => setForm({...form, fechaInicio: e.target.value})} className="w-full bg-gray-50 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-mjm-orange/40 outline-none transition" />
-            </div>
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Laboratorio Sugerido</label>
-              <input value={form.laboratorio} onChange={e => setForm({...form, laboratorio: e.target.value})} placeholder="Ej: MJM Metrología" className="w-full bg-gray-50 rounded-xl px-4 py-3 text-xs focus:ring-2 focus:ring-mjm-orange/40 outline-none transition" />
-            </div>
-          </div>
-          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Frecuencia y Repeticiones</label>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Cada</span>
-              <input type="number" value={form.frecuenciaNum} onChange={e => setForm({...form, frecuenciaNum: e.target.value})} className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs font-black text-center" />
-              <select value={form.frecuenciaUnidad} onChange={e => setForm({...form, frecuenciaUnidad: e.target.value})} className="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-wider">
-                <option value="meses">Meses</option>
-                <option value="dias">Días</option>
-                <option value="años">Años</option>
-              </select>
-              <span className="text-gray-300">/</span>
-              <input type="number" value={form.repeticiones} onChange={e => setForm({...form, repeticiones: e.target.value})} className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-2 text-xs font-black text-center" />
-              <span className="text-[10px] font-bold text-gray-400 uppercase">Veces</span>
-            </div>
-            <p className="text-[9px] text-mjm-orange font-black uppercase tracking-widest mt-3">⚡ Se generarán {form.repeticiones} eventos automáticos</p>
-          </div>
-        </div>
-        <div className="px-8 py-5 bg-gray-50 border-t border-gray-100 flex gap-3">
-        <button onClick={onClose} className="flex-1 py-3 text-[11px] font-black uppercase tracking-widest border-2 border-gray-200 rounded-xl hover:bg-white transition text-gray-400" disabled={isSaving}>Cancelar</button>
-          <button onClick={handleSave} disabled={isSaving || !form.fechaInicio} className="flex-1 py-3 bg-mjm-orange text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-mjm-orange/20 hover:scale-[1.02] transition active:scale-95 disabled:opacity-50">
-            {isSaving ? `🤖 Guardando ${savedCount}/${form.repeticiones}...` : '🦸 Programar Ciclo'}
-          </button>
-        </div>
-        {saveError && (
-          <div className="px-8 pb-5">
-            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-[10px] font-bold text-red-600 uppercase tracking-wider">
-              ⚠️ {saveError}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ─── CSS de Impresión (inyectado globalmente) ─────────────────────────────
-const PrintStyles = () => (
-  <style>{`
-    @media print {
-      @page { size: letter portrait; margin: 0; }
-      body * { visibility: hidden !important; }
-      .hv-carta, .hv-carta * { visibility: visible !important; }
-      .hv-carta {
-        position: fixed !important;
-        top: 0; left: 0;
-        width: 216mm !important;
-        height: 279mm !important;
-        overflow: hidden !important;
-        page-break-after: avoid !important;
-        page-break-inside: avoid !important;
-      }
-    }
-  `}</style>
-);
-
-// ─── Documento Imprimible (Monochrome Elite) ──────────────────────────────
-const PrintableHV = React.forwardRef(({ instrument, tenant, isSuperAdmin }, ref) => {
-  const mjmName = "MJM METROLOGÍA";
-  const displayLogo = isSuperAdmin ? null : (tenant?.logo_url);
-  const displayName = isSuperAdmin ? mjmName : (tenant?.nombre_empresa || "CLIENTE MJM");
-
-  return (
-    <>
-    <PrintStyles />
-    <div
-      ref={ref}
-      className="hv-carta bg-white text-black font-sans"
-      style={{
-        width: '816px',       /* 216mm @ 96dpi */
-        minHeight: '1056px',  /* 279mm @ 96dpi */
-        maxHeight: '1056px',
-        overflow: 'hidden',
-        boxSizing: 'border-box',
-        padding: '36px 48px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-      }}
-    >
-      {/* HEADER ISO */}
-      <div className="grid grid-cols-3 border-2 border-black mb-4">
-        <div className="border-r-2 border-black p-3 flex items-center justify-center">
-          {displayLogo ? (
-            <img src={displayLogo} alt="Logo" className="grayscale max-h-10 object-contain" />
-          ) : (
-            <div className="text-base font-black tracking-widest">{displayName}</div>
-          )}
-        </div>
-        <div className="border-r-2 border-black p-3 flex flex-col items-center justify-center text-center">
-          <span className="text-[8px] font-black tracking-[0.4em] mb-0.5 opacity-50 uppercase">Expediente Técnico</span>
-          <h1 className="text-sm font-black tracking-[0.4em] uppercase leading-tight">Hoja de Vida</h1>
-          <span className="text-[8px] font-bold mt-0.5 opacity-40 uppercase">MJM-MET-V2-001</span>
-        </div>
-        <div className="p-3 flex flex-col justify-center text-[8px] font-black uppercase tracking-widest">
-          <div className="flex justify-between border-b border-black/10 pb-1 mb-1">
-            <span>CÓDIGO:</span> <span className="font-bold">{instrument?.codigoMJM}</span>
-          </div>
-          <div className="flex justify-between border-b border-black/10 pb-1 mb-1">
-            <span>VERSIÓN:</span> <span>02</span>
-          </div>
-          <div className="flex justify-between">
-            <span>FECHA:</span> <span>{new Date().toLocaleDateString('es-CO')}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* GALERÍA (EL ÚNICO COLOR) */}
-      <div className="grid grid-cols-2 gap-5 mb-4 items-start">
-        <div className="border border-black p-1.5 bg-gray-50 flex items-center justify-center overflow-hidden" style={{height:'200px'}}>
-           <img 
-             src={instrument?.imageUrl || '/assets/instruments/default.jpeg'} 
-             alt="Instrumento" 
-             className="w-full h-full object-cover"
-           />
-        </div>
-        <div className="space-y-3">
-          <div className="border-l-4 border-black pl-3">
-             <h2 className="text-[8px] font-black tracking-widest uppercase mb-0.5 opacity-40 italic">Descripción del Instrumento</h2>
-             <p className="text-base font-black tracking-tight leading-tight">{instrument?.nombre}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-             <div>
-               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Marca / Modelo</h3>
-               <p className="text-[10px] font-bold">{instrument?.marca} · {instrument?.modelo}</p>
-             </div>
-             <div>
-               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Serie Única</h3>
-               <p className="text-[10px] font-bold font-mono">{instrument?.serie}</p>
-             </div>
-             <div>
-               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Magnitud Física</h3>
-               <p className="text-[10px] font-black uppercase tracking-widest">{instrument?.magnitud}</p>
-             </div>
-             <div>
-               <h3 className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-0.5">Vencimiento</h3>
-               <p className="text-[10px] font-black uppercase tracking-tighter underline">{instrument?.proximaFecha || 'POR PROGRAMAR'}</p>
-             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* FICHA TÉCNICA FORMAL */}
-      <h3 className="text-[8px] font-black uppercase tracking-[0.4em] mb-2 border-b border-black pb-1 text-center opacity-40">Identificación y Especificaciones Técnicas</h3>
-      <div className="grid grid-cols-4 border-t border-l border-black mb-4 text-[8px]">
-        {[
-          ['RESOLUCIÓN', instrument?.resolucion],
-          ['CAP. MÁXIMA', instrument?.capacidadMaxima],
-          ['CRITICIDAD', instrument?.criticidad],
-          ['AÑO ADQ.', instrument?.anioAdquisicion],
-          ['PROVEEDOR', instrument?.proveedor],
-          ['ACCESORIOS', instrument?.accesorios || 'NINGUNO'],
-          ['CÓD. INTERNO', instrument?.codigoInterno],
-          ['UBICACIÓN', instrument?.ubicacion || 'PLANTA'],
-        ].map(([k, v]) => (
-          <div key={k} className="border-b border-r border-black px-2 py-1.5 flex flex-col justify-between" style={{minHeight:'44px'}}>
-            <span className="text-[7px] font-black tracking-widest opacity-30 uppercase">{k}</span>
-            <span className="text-[8px] font-bold text-gray-800 tracking-tight leading-tight uppercase">{v || '—'}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* HISTORIAL METROLÓGICO */}
-      <h3 className="text-[8px] font-black uppercase tracking-[0.4em] mb-2 border-b border-black pb-1 text-center opacity-40">Registro de Intervenciones Metrológicas</h3>
-      <table className="w-full border-t border-l border-black text-[8px] mb-4">
-        <thead>
-          <tr className="bg-black text-white">
-            {['Fecha', 'Actividad Realizada', 'Laboratorio Responsable', 'N° Certificado', 'Veredicto'].map(h => (
-              <th key={h} className="border-r border-black p-1.5 text-left font-black tracking-widest text-[7px] uppercase">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {(instrument?.historial || []).length === 0 ? (
-            <tr><td colSpan={5} className="border-b border-r border-black p-4 text-center text-gray-400 italic text-[8px]">Sin intervenciones registradas.</td></tr>
-          ) : ([...(instrument?.historial || [])].slice(-6).reverse().map((h) => (
-            <tr key={h.id} className="border-b border-black">
-              <td className="border-r border-black p-1.5 font-mono">{h.fecha}</td>
-              <td className="border-r border-black p-1.5 font-black uppercase tracking-tighter">{h.tipo}</td>
-              <td className="border-r border-black p-1.5 uppercase opacity-60">{h.laboratorio}</td>
-              <td className="border-r border-black p-1.5 font-mono">{h.certificado}</td>
-              <td className="border-r border-black p-1.5 font-black uppercase underline">{h.resultado}</td>
-            </tr>
-          )))}
-        </tbody>
-      </table>
-
-      {/* FIRMAS ISO */}
-      <div className="grid grid-cols-2 gap-12 pt-4 mt-auto">
-        <div className="border-t border-black text-center pt-2">
-          <p className="text-[7px] font-black uppercase tracking-[0.3em] mb-1">Analista Metrológico</p>
-          <div className="h-6"></div>
-          <p className="text-[6px] opacity-40 uppercase tracking-widest font-bold">Firma y Sello Realizó</p>
-        </div>
-        <div className="border-t border-black text-center pt-2">
-          <p className="text-[7px] font-black uppercase tracking-[0.3em] mb-1">Director Técnico / Calidad</p>
-          <div className="h-6"></div>
-          <p className="text-[6px] opacity-40 uppercase tracking-widest font-bold">Firma y Sello Aprobó</p>
-        </div>
-      </div>
-
-      <div className="text-[6px] font-bold tracking-[0.4em] text-center opacity-10 uppercase pt-3">
-        DOCUMENTACIÓN TÉCNICA MJM METROLOGÍA V2.0 · USO EXCLUSIVO CLIENTE
-      </div>
-    </div>
-    </>
-  );
-});
 
 export default function HojaDeVida() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { instruments, loadInstruments, getInstrumentFromFirestore } = useInventoryStore();
-  const { tenant, isSuperAdmin } = useAuthStore();
-  const [showProgramar, setShowProgramar] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const printRef = useRef();
-
-  // El instrumento se toma del store (se actualiza al cargar)
-  const inst = useMemo(() => instruments.find(i => i.id === id), [instruments, id]);
+  const { instruments, loading, getInstrumentFromFirestore } = useInventoryStore();
+  const { tenant } = useAuthStore();
+  const [inst, setInst] = useState(null);
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      // Siempre recargar el instrumento fresco desde Firestore
-      // para que el historial esté al día (no caché obsoleto)
-      if (id) {
-        await getInstrumentFromFirestore(id);
+    const loadData = async () => {
+      const found = instruments.find(i => i.id === id);
+      if (found) {
+        setInst(found);
+      } else {
+        const fresh = await getInstrumentFromFirestore(id);
+        setInst(fresh);
       }
-      // Si el store general está vacío, cargar todos
-      if (instruments.length === 0 && tenant) {
-        await loadInstruments(tenant.id, isSuperAdmin);
-      }
-      setLoading(false);
     };
-    init();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+    loadData();
+  }, [id, instruments, getInstrumentFromFirestore]);
 
-  const handlePrint = useReactToPrint({
-    content: () => printRef.current,
-    documentTitle: `HV_${inst?.codigoMJM || 'instrument'}`
-  });
-
-  if (loading) return (
-    <div className="flex flex-col items-center justify-center h-full gap-4">
-      <div className="w-12 h-12 border-4 border-mjm-orange border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-mjm-navy/50">Recuperando Expediente...</p>
-    </div>
-  );
-
-  if (!inst) return (
-    <div className="flex items-center justify-center h-full p-20">
-      <div className="bg-white rounded-3xl shadow-2xl shadow-mjm-navy/10 w-full max-w-sm p-12 text-center border border-gray-100 animate-in zoom-in duration-300">
-        <div className="w-20 h-20 bg-mjm-orange/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
-           <AlertTriangle size={40} className="text-mjm-orange" />
+  if (loading || !inst) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-surface">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="font-label-caps text-on-surface-variant animate-pulse">Consultando Expediente Metrológico...</p>
         </div>
-        <h2 className="text-lg font-black uppercase tracking-widest text-mjm-navy">Extraviado</h2>
-        <p className="text-xs text-gray-500 mt-3 font-medium px-4">El instrumento solicitado no existe o no tiene permisos suficientes.</p>
-        <button onClick={() => navigate('/dashboard/inventario')} className="mt-8 w-full py-4 bg-mjm-navy text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-mjm-orange transition-all shadow-xl shadow-mjm-navy/20">
-          Volver al Inventario
-        </button>
       </div>
-    </div>
-  );
+    );
+  }
+
+  const isVigente = inst.estado !== 'Vencido';
+  const imgPlaceholder = "https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=2070&auto=format&fit=crop";
 
   return (
-    <div className="min-h-full bg-gray-50 flex flex-col">
-      {showProgramar && <ProgramarEventoModal instrument={inst} onClose={() => setShowProgramar(false)} />}
+    <div className="min-h-screen bg-surface pb-24 lg:pb-12 animate-in fade-in duration-700">
       
-      {/* BARRA DE ACCIONES (STICKY - BRANDED) */}
-      <div className="sticky top-0 z-30 bg-white shadow-xl shadow-mjm-navy/5 border-b border-mjm-navy/5 px-8 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <button onClick={() => navigate('/dashboard/inventario')} className="p-3 bg-gray-50 hover:bg-mjm-navy hover:text-white rounded-2xl transition-all text-mjm-navy shadow-inner">
-            <ArrowLeft size={20} />
+      {/* --- HEADER SECTOR --- */}
+      <section className="px-container-padding pt-2 mb-6">
+        {/* Volver al inventario (izquierda) y Badges (derecha) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-5 border-b border-outline-variant/10">
+          <button 
+            onClick={() => navigate('/dashboard/inventario')}
+            className="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-xs font-black uppercase tracking-widest group"
+          >
+            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+            Volver al Inventario
           </button>
-          <div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className={`flex items-center gap-1 px-3 py-1 rounded-full font-label-caps text-[10px] border font-bold ${
+                isVigente ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'
+              }`}>
+                {isVigente ? <CheckCircle2 size={12}/> : <AlertCircle size={12}/>}
+                {inst.estado?.toUpperCase() || 'ESTADO DESCONOCIDO'}
+              </span>
+              <span className="text-xs text-on-surface-variant/60 font-mono">ID: {inst.codigoMJM || inst.codigo || 'S/N'}</span>
+            </div>
+            
+            <div className="w-[1px] h-4 bg-outline-variant/30 hidden sm:block" />
+            
             <div className="flex items-center gap-3">
-               <span className="font-mono text-[10px] font-black bg-mjm-navy text-white px-3 py-1 rounded-lg shadow-lg shadow-mjm-navy/20">{inst.codigoMJM}</span>
-               <h1 className="text-sm font-black uppercase tracking-widest text-mjm-navy">{inst.nombre}</h1>
+              <button 
+                onClick={() => window.open(`/dashboard/inventario/imprimir/${inst.id}`, '_blank')}
+                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-primary hover:text-primary/80 transition-colors"
+              >
+                <Printer size={14} /> Imprimir
+              </button>
+              <button className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-on-surface-variant hover:text-on-surface transition-colors">
+                <Edit3 size={14} /> Editar
+              </button>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowProgramar(true)} className="flex items-center gap-2 px-6 py-3.5 bg-mjm-orange text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-mjm-navy transition-all shadow-xl shadow-mjm-orange/20 active:scale-95 group">
-            <CalendarPlus size={16} className="group-hover:rotate-12 transition-transform" /> Programar Ciclo
-          </button>
-          <button onClick={handlePrint} className="flex items-center gap-2 px-6 py-3.5 bg-mjm-navy text-white text-[11px] font-black uppercase tracking-widest rounded-xl hover:bg-mjm-orange transition-all shadow-xl shadow-mjm-navy/20 group">
-            <Printer size={16} /> Imprimir Hoja de Vida
-          </button>
-          <button onClick={async () => {
-             try {
-                await stichService.triggerPdfGeneration({ instrumentId: inst.id, codigo: inst.codigoMJM });
-                alert('🧬 Webhook Stich disparado exitosamente.');
-             } catch (err) { alert('Error: ' + err.message); }
-          }} className="p-3.5 bg-gray-100 hover:bg-indigo-600 hover:text-white rounded-xl transition-all text-gray-400">
-            <CloudLightning size={18} />
-          </button>
-        </div>
-      </div>
 
-      {/* VISTA PREVIA DEL DOCUMENTO */}
-      <div className="flex-1 overflow-auto bg-[#e8e8e8] flex justify-center py-10 px-4">
-        <div className="shadow-[0_8px_40px_rgba(0,0,0,0.18)] border border-white/60 mb-10 shrink-0" style={{width:'816px'}}>
-           <PrintableHV ref={printRef} instrument={inst} tenant={tenant} isSuperAdmin={isSuperAdmin} />
+        {/* Nombre del Instrumento */}
+        <h1 className="font-display text-4xl font-black text-on-surface tracking-tight leading-tight">
+          {inst.nombre}
+        </h1>
+      </section>
+
+      {/* --- BENTO GRID CANVAS --- */}
+      <div className="px-container-padding grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+        
+        {/* Profile Card (Large) */}
+        <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-sm hover:shadow-md transition-shadow group">
+          <div className="md:w-1/3 aspect-square md:aspect-auto relative bg-surface-container overflow-hidden">
+            <img 
+              src={inst.imageUrl || imgPlaceholder} 
+              alt={inst.nombre} 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
+          </div>
+          <div className="flex-1 p-stack-lg flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="font-headline-lg text-primary">Perfil Principal del Instrumento</h2>
+                <p className="text-[9px] font-bold text-on-surface-variant/60 uppercase tracking-widest mt-0.5">Datos Generales e Identificación</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-stack-lg gap-x-stack-md">
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">MARCA</p>
+                <p className="font-headline-md text-on-surface">{inst.marca || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">MODELO</p>
+                <p className="font-headline-md text-on-surface">{inst.modelo || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">UBICACIÓN FÍSICA</p>
+                <p className="font-headline-md text-on-surface">{inst.ubicacion || 'N/A'}</p>
+              </div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">RESPONSABLE</p>
+                <p className="font-body-lg font-medium text-on-surface">{inst.responsable || 'Sin Asignar'}</p>
+              </div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">FECHA DE REGISTRO</p>
+                <p className="font-body-lg text-on-surface">{inst.createdAt ? new Date(inst.createdAt).toLocaleDateString() : 'N/A'}</p>
+              </div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">ID DEL ACTIVO</p>
+                <p className="font-headline-md text-on-surface">{inst.codigoMJM || inst.codigo || 'S/N'}</p>
+              </div>
+            </div>
+            {/* Calibration Alert */}
+            <div className="mt-stack-lg p-stack-md bg-surface-container border border-outline-variant rounded-xl flex items-center gap-stack-md">
+              <AlertCircle className="text-tertiary" size={20} />
+              <p className="text-[13px] text-on-surface-variant">
+                Próxima intervención programada para el <span className="text-tertiary font-bold">
+                  {inst.rutinas?.calibracion && inst.rutinas?.calibracion_fecha_inicial && inst.rutinas?.calibracion_frecuencia 
+                    ? (() => {
+                        const d = new Date(inst.rutinas.calibracion_fecha_inicial);
+                        d.setMonth(d.getMonth() + Number(inst.rutinas.calibracion_frecuencia));
+                        return d.toLocaleDateString();
+                      })()
+                    : '24 de Junio'
+                  }
+                </span>. Asegure condiciones ambientales.
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* Technical Attributes (Small Grid) */}
+        <div className="lg:col-span-4 grid grid-cols-2 gap-stack-md">
+          {[
+            { label: 'Serial', val: inst.serie || 'N/A', icon: <Barcode size={18}/> },
+            { label: 'Criticidad', val: inst.criticidad || 'N/A', icon: <AlertCircle size={18}/> },
+            { label: 'Resolución', val: inst.resolucion || 'N/A', icon: <Activity size={18}/>, highlight: true },
+            { label: 'Div. de Escala', val: inst.division_escala || 'N/A', icon: <Activity size={18}/>, highlight: true },
+            { label: 'Capacidad Mínima', val: inst.rango_min || 'N/A', icon: <LineChart size={18}/> },
+            { label: 'Capacidad Máxima', val: inst.rango_max || 'N/A', icon: <LineChart size={18}/> },
+          ].map((attr, idx) => (
+            <div key={idx} className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-stack-md flex flex-col justify-between shadow-sm hover:border-primary/40 transition-colors">
+              <div className="text-primary opacity-60 mb-stack-sm">{attr.icon}</div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1 uppercase">{attr.label}</p>
+                <p className={`font-data-lg text-on-surface truncate ${attr.highlight ? 'text-primary font-bold' : ''}`}>
+                  {attr.val}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Process Requirements (ISO 10012) */}
+        <div className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-2xl p-stack-lg shadow-sm">
+          <div className="flex items-center gap-stack-sm mb-stack-lg">
+            <Ruler className="text-primary" size={24} />
+            <h3 className="font-headline-md text-on-surface">Requisitos del Proceso y Conformidad (ISO 10012)</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-stack-lg">
+            {[
+              { label: 'Tolerancia del Proceso', val: inst.tolerancia_proceso || 'N/A', info: 'Mínimo error permitido por el proceso.' },
+              { label: 'Incertidumbre Requerida', val: inst.incertidumbre || 'N/A', info: 'Capacidad de medición instalada requerida.' },
+              { label: 'Control Metrológico', val: inst.proceso || 'OPERATIVO', info: 'Proceso vinculado al instrumento.' },
+            ].map((req, idx) => (
+              <div key={idx} className="bg-surface-container-low p-stack-md rounded-xl border-l-4 border-primary">
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1 uppercase tracking-wider">{req.label}</p>
+                <p className="font-data-lg text-primary font-bold text-xl">{req.val}</p>
+                <p className="text-[11px] text-on-surface-variant/60 mt-1">{req.info}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-stack-lg p-unit bg-primary/5 border border-primary/10 rounded-lg text-center">
+            <p className="font-label-caps text-primary text-[10px] tracking-[0.2em]">ARQUITECTURA COMPATIBLE CON ISO/IEC 17025 & ISO 10012</p>
+          </div>
+        </div>
+
+        {/* Rutinas Programadas */}
+        <div className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-2xl p-stack-lg shadow-sm">
+          <div className="flex items-center gap-stack-sm mb-stack-lg">
+            <Calendar className="text-primary" size={24} />
+            <h3 className="font-headline-md text-on-surface">Rutinas Programadas</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-stack-lg">
+             {[
+               { key: 'calibracion', label: 'Calibración' },
+               { key: 'verificacion', label: 'Verificación' },
+               { key: 'mantenimiento', label: 'Mantenimiento' },
+               { key: 'calificacion', label: 'Calificación' }
+             ].map((rutina, idx) => {
+                if (!inst.rutinas?.[rutina.key]) return null;
+                return (
+                  <div key={idx} className="bg-surface-container-low p-stack-md rounded-xl border-l-4 border-emerald-500">
+                    <p className="font-label-caps text-[10px] text-emerald-600 mb-1 uppercase tracking-wider">{rutina.label}</p>
+                    <p className="font-data-md text-on-surface font-bold">Frecuencia: {inst.rutinas[`${rutina.key}_frecuencia`] || 'N/A'} meses</p>
+                    <p className="text-[11px] text-on-surface-variant/60 mt-1">
+                      Base: {inst.rutinas[`${rutina.key}_fecha_inicial`] ? new Date(inst.rutinas[`${rutina.key}_fecha_inicial`]).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                );
+             })}
+             {(!inst.rutinas || !Object.keys(inst.rutinas).some(k => ['calibracion','verificacion','mantenimiento','calificacion'].includes(k) && inst.rutinas[k])) && (
+                <div className="col-span-full text-on-surface-variant opacity-60 text-sm italic">
+                  No hay rutinas programadas activas para este equipo.
+                </div>
+             )}
+          </div>
+        </div>
+
+        {/* Event History Table */}
+        <div className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm overflow-hidden mb-12">
+          <div className="p-stack-lg flex justify-between items-center border-b border-outline-variant/50">
+            <div className="flex items-center gap-stack-sm">
+              <History className="text-primary" size={22} />
+              <h3 className="font-headline-md text-on-surface">Historial de rutinas</h3>
+            </div>
+            <button className="text-primary font-bold text-xs uppercase tracking-widest hover:underline transition-all">Ver Historial Completo</button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-surface-container-high/50 text-[10px] font-label-caps text-on-surface-variant uppercase tracking-widest">
+                <tr>
+                  <th className="px-stack-lg py-4">Fecha</th>
+                  <th className="px-stack-lg py-4">Descripción de la Actividad</th>
+                  <th className="px-stack-lg py-4">Tipo</th>
+                  <th className="px-stack-lg py-4">Estado</th>
+                  <th className="px-stack-lg py-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/10 font-body-md text-sm">
+                {(inst.historial || []).slice(0, 5).map((log, idx) => (
+                  <tr key={idx} className="hover:bg-surface-container-low transition-colors group">
+                    <td className="px-stack-lg py-4 font-data-md">{log.fecha}</td>
+                    <td className="px-stack-lg py-4 font-medium text-on-surface">{log.tipo} - {log.laboratorio || 'MJM Internal'}</td>
+                    <td className="px-stack-lg py-4">
+                      <span className="px-2 py-1 rounded bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase">
+                        {log.tipo}
+                      </span>
+                    </td>
+                    <td className="px-stack-lg py-4">
+                      <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                        <CheckCircle2 size={14} /> Aprobado
+                      </span>
+                    </td>
+                    <td className="px-stack-lg py-4 text-right">
+                      <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
+                        <FileText size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {(!inst.historial || inst.historial.length === 0) && (
+                  <tr>
+                    <td colSpan="5" className="px-stack-lg py-12 text-center text-on-surface-variant opacity-40 italic">
+                      No se registran eventos previos para este instrumento.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );

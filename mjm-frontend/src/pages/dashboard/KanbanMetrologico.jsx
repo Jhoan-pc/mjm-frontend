@@ -1,308 +1,336 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
-import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Archive, CheckCircle, Clock, Eye, X, Upload, Image, ArrowRight } from 'lucide-react';
+import { 
+  Play, 
+  CheckCircle, 
+  AlertCircle, 
+  Clock, 
+  Info, 
+  Calendar,
+  MoreHorizontal,
+  Search,
+  LayoutDashboard,
+  Zap,
+  ShieldCheck,
+  Menu,
+  Bell,
+  Archive,
+  ExternalLink,
+  RefreshCw,
+  Settings,
+  MoreVertical,
+  User,
+  FileUp,
+  X,
+  Scale,
+  Activity,
+  Layers
+} from 'lucide-react';
 
-const TIPOS_COLOR = {
-  'Calibración':  { bg: 'bg-blue-50',   border: 'border-blue-200', text: 'text-blue-700', tag: 'bg-blue-100' },
-  'Verificación': { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', tag: 'bg-purple-100' },
-  'Calificación': { bg: 'bg-teal-50',   border: 'border-teal-200', text: 'text-teal-700', tag: 'bg-teal-100' },
-  'Mantenimiento':{ bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', tag: 'bg-orange-100' },
+// --- MODAL DE CIERRE METROLÓGICO (Capa Freemium -> Premium) ---
+const ClosureModal = ({ activity, onClose, onFinish }) => {
+  const [file, setFile] = useState(null);
+  const [laboratorio, setLaboratorio] = useState('');
+  
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-secondary/60 backdrop-blur-md">
+      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-lg shadow-2xl border border-outline/20 animate-in zoom-in duration-300">
+        <div className="flex justify-between items-start mb-8">
+           <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center">
+                 <CheckCircle size={24} />
+              </div>
+              <div>
+                 <h2 className="text-xl font-black text-secondary uppercase tracking-tight">Cierre de Actividad</h2>
+                 <p className="text-[10px] font-bold text-neutral uppercase tracking-widest">Protocolo de Finalización Metrológica</p>
+              </div>
+           </div>
+           <button onClick={onClose} className="text-neutral hover:text-secondary"><X size={24} /></button>
+        </div>
+
+        <div className="space-y-6">
+           <div className="bg-surface p-4 rounded-2xl border border-outline/10">
+              <p className="text-[10px] font-black text-neutral uppercase mb-1">Activo a Intervenir</p>
+              <p className="text-sm font-bold text-secondary">{activity.instrumentNombre}</p>
+              <p className="text-[10px] font-data text-primary mt-1">{activity.codigoMJM}</p>
+           </div>
+
+           <div>
+              <label className="label-sm text-neutral mb-2 block">Laboratorio Ejecutor</label>
+              <input 
+                value={laboratorio} 
+                onChange={e => setLaboratorio(e.target.value)}
+                placeholder="Ej: Metrología Avanzada S.A.S" 
+                className="input-metrology w-full" 
+              />
+           </div>
+
+           {/* DROPZONE PARA CERTIFICADO */}
+           <div className="border-2 border-dashed border-outline/30 rounded-3xl p-8 text-center hover:border-primary/50 transition-all cursor-pointer bg-surface/50 group">
+              <input type="file" className="hidden" id="cert-upload" onChange={e => setFile(e.target.files[0])} />
+              <label htmlFor="cert-upload" className="cursor-pointer">
+                 <FileUp size={40} className="mx-auto text-neutral group-hover:text-primary mb-4 transition-colors" />
+                 {file ? (
+                   <p className="text-xs font-bold text-emerald-600 truncate">{file.name}</p>
+                 ) : (
+                   <>
+                    <p className="text-xs font-bold text-secondary">Cargar Certificado de Calibración</p>
+                    <p className="text-[10px] text-neutral mt-1 uppercase tracking-widest">Formatos PDF, JPG (Max 10MB)</p>
+                   </>
+                 )}
+              </label>
+           </div>
+
+           <div className="flex gap-4 pt-4">
+              <button onClick={onClose} className="flex-1 btn-secondary py-4">Cancelar</button>
+              <button 
+                onClick={() => onFinish({ file, laboratorio })}
+                disabled={!file || !laboratorio}
+                className="flex-2 btn-primary py-4 px-10 shadow-xl shadow-primary/20 disabled:opacity-50"
+              >
+                FINALIZAR Y VALIDAR IA
+              </button>
+           </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const PRIORIDAD_COLOR = {
-  'Crítica': 'bg-red-100 text-red-700',
-  'Alta':    'bg-orange-100 text-orange-700',
-  'Normal':  'bg-gray-100 text-gray-600',
-  'Baja':    'bg-green-100 text-green-700',
+const ActivityCard = ({ act, column, onStart, onFinish }) => {
+  const isCritical = act.priority === 'high' || act.criticidad === 'Crítica' || act.criticidad === 'Alta';
+  const progress = act.progreso || (act.estado === 'doing' ? 65 : 0);
+  
+  return (
+    <article 
+      draggable
+      onDragStart={(e) => e.dataTransfer.setData('activityId', act.id)}
+      className={`bg-[var(--surface)] border border-[var(--outline-color)] rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-[var(--primary)]/50 transition-all duration-300 cursor-grab active:cursor-grabbing ${column === 'done' ? 'opacity-80' : column === 'archived' ? 'opacity-60 grayscale' : ''}`}
+    >
+      {isCritical && <div className="absolute top-0 right-0 w-1.5 h-full bg-red-500" />}
+      
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center gap-2">
+          <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded bg-[var(--surface-alt)] border border-[var(--outline-color)] ${column === 'vencidos' ? 'text-red-500' : column === 'doing' ? 'text-[var(--tertiary)]' : 'text-[var(--primary)]'}`}>
+            {act.tipo || 'INTERVENCIÓN'}
+          </span>
+          {act.estado === 'doing' && <span className="w-1.5 h-1.5 rounded-full bg-[var(--tertiary)] animate-pulse" />}
+        </div>
+        <MoreVertical size={14} className="text-[var(--text-muted)] opacity-40 group-hover:opacity-100 transition-opacity" />
+      </div>
+
+      <h4 className="font-bold text-[var(--text-main)] text-sm mb-1 leading-tight">{act.instrumentNombre || 'Instrumento Sin Nombre'}</h4>
+      <p className="font-data text-[10px] text-[var(--text-muted)] tracking-tighter mb-4">ID: {act.codigoMJM || 'MET-ID-000'}</p>
+
+      {act.declaracion_conformidad && (
+        <div className={`mb-4 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20`}>
+          <ShieldCheck size={12}/>
+          {act.declaracion_conformidad}
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[var(--outline-color)]">
+        <div className="flex items-center gap-2">
+           <div className="w-6 h-6 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+              <User size={12} />
+           </div>
+           {act.estado === 'doing' && <span className="text-[10px] text-[var(--primary)] font-black">{progress}%</span>}
+        </div>
+        <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
+          <Clock size={12} />
+          <span className="font-data text-[10px]">{act.fechaProgramada}</span>
+        </div>
+      </div>
+      
+      {act.estado === 'todo' && (
+        <button 
+          onClick={() => onStart(act.id)}
+          className="mt-4 w-full py-2.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)] hover:text-[#1A202C] text-[var(--primary)] rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-[var(--primary)]/20"
+        >
+          <Play size={10} fill="currentColor" /> Iniciar Actividad
+        </button>
+      )}
+
+      {act.estado === 'doing' && (
+        <button 
+          onClick={() => onFinish(act)}
+          className="mt-4 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-500 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-emerald-500/20"
+        >
+          <CheckCircle size={10} /> Finalizar Actividad
+        </button>
+      )}
+      
+      {act.estado === 'doing' && (
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-surface-variant">
+           <div className="h-full bg-[var(--tertiary)] transition-all duration-500" style={{ width: `${progress}%` }} />
+        </div>
+      )}
+    </article>
+  );
 };
 
-// ─── Modal de Cierre de Actividad ─────────────────────────────────────────
-const CierreModal = ({ activity, onClose, onSave }) => {
-  const [form, setForm] = useState({
-    fechaRealizacion: new Date().toISOString().split('T')[0],
-    laboratorio: '', certificado: '', observaciones: '', evidencias: []
-  });
-  const [isSaving, setIsSaving] = useState(false);
-  const setField = (f, v) => setForm(p => ({...p, [f]: v}));
+export default function KanbanMetrologico() {
+  const { activities, loading, updateActivityStatus, loadActivities } = useInventoryStore();
+  const { tenant } = useAuthStore();
+  const [search, setSearch] = useState('');
+  const [closureAct, setClosureAct] = useState(null);
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files).slice(0, 3 - form.evidencias.length);
-    const readers = files.map(file => new Promise(res => {
-      const reader = new FileReader();
-      reader.onload = ev => res({ name: file.name, dataUrl: ev.target.result });
-      reader.readAsDataURL(file);
-    }));
-    Promise.all(readers).then(imgs => setForm(f => ({ ...f, evidencias: [...f.evidencias, ...imgs].slice(0,3) })));
+  useEffect(() => {
+    if (tenant?.id) {
+      const unsubscribe = loadActivities(tenant.id);
+      return () => unsubscribe && unsubscribe();
+    }
+  }, [tenant?.id, loadActivities]);
+
+  const todayStr = useMemo(() => {
+    return new Date().toISOString().split('T')[0];
+  }, []);
+
+  const weekRange = useMemo(() => {
+    const now = new Date();
+    const day = now.getDay(); // 0 (Sun) to 6 (Sat)
+    
+    // Start of current week (Sunday)
+    const sundayStart = new Date(now);
+    sundayStart.setDate(now.getDate() - day);
+    sundayStart.setHours(0,0,0,0);
+    
+    // End of current week (Next Sunday)
+    const sundayEnd = new Date(sundayStart);
+    sundayEnd.setDate(sundayStart.getDate() + 7);
+    sundayEnd.setHours(23,59,59,999);
+    
+    return {
+      startStr: sundayStart.toISOString().split('T')[0],
+      endStr: sundayEnd.toISOString().split('T')[0]
+    };
+  }, []);
+
+  const next30DaysStr = useMemo(() => {
+    const now = new Date();
+    const next30 = new Date(now);
+    next30.setDate(now.getDate() + 30);
+    return next30.toISOString().split('T')[0];
+  }, []);
+
+  const columns = [
+    { id: 'por_gestionar', label: 'Por Gestionar', color: 'text-primary', icon: <Calendar size={14}/> },
+    { id: 'en_proceso', label: 'En Proceso', color: 'text-[var(--tertiary)]', icon: <Clock size={14}/> },
+    { id: 'doing', label: 'Doing', color: 'text-emerald-600', icon: <Play size={14}/> },
+    { id: 'vencidos', label: 'Vencidos', color: 'text-red-500', icon: <AlertCircle size={14}/> },
+  ];
+
+  const grouped = useMemo(() => {
+    const s = search.toLowerCase();
+    const matchesSearch = (a) => (a.instrumentNombre?.toLowerCase().includes(s) || a.codigoMJM?.toLowerCase().includes(s));
+    
+    return {
+      por_gestionar: activities.filter(a => a.estado === 'todo' && a.fechaProgramada > weekRange.endStr && a.fechaProgramada <= next30DaysStr && matchesSearch(a)),
+      en_proceso: activities.filter(a => a.estado === 'todo' && a.fechaProgramada >= todayStr && a.fechaProgramada <= weekRange.endStr && matchesSearch(a)),
+      doing: activities.filter(a => a.estado === 'doing' && matchesSearch(a)),
+      vencidos: activities.filter(a => a.estado === 'todo' && a.fechaProgramada < todayStr && matchesSearch(a))
+    };
+  }, [activities, search, todayStr, weekRange, next30DaysStr]);
+
+  const handleDrop = (e, columnId) => {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('activityId');
+    if (columnId === 'doing') {
+      updateActivityStatus(id, 'doing');
+    } else if (columnId === 'vencidos' || columnId === 'en_proceso' || columnId === 'por_gestionar') {
+      updateActivityStatus(id, 'todo');
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="sticky top-0 bg-[#050b14] text-white px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
-          <div>
-            <div className="text-[10px] text-white/50 font-black uppercase tracking-wider">Cerrar Actividad</div>
-            <h2 className="text-sm font-black mt-0.5">{activity?.instrumentNombre}</h2>
-          </div>
-          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg"><X size={16}/></button>
-        </div>
-        <div className="p-6 space-y-5">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Fecha de Realización</label>
-              <input type="date" value={form.fechaRealizacion} onChange={e => setField('fechaRealizacion', e.target.value)} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
-            </div>
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Laboratorio</label>
-              <input value={form.laboratorio} onChange={e => setField('laboratorio', e.target.value)} placeholder="Ej: CERTLAB SAS" className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
-            </div>
-          </div>
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">N° Certificado / Informe</label>
-            <input value={form.certificado} onChange={e => setField('certificado', e.target.value)} placeholder="Opcional" className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40"/>
-          </div>
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Observaciones y Resultados</label>
-            <textarea value={form.observaciones} onChange={e => setField('observaciones', e.target.value)} rows={3} className="w-full bg-gray-50 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400/40" placeholder="Describe el resultado de la actividad..." />
-          </div>
-          {/* Carga de Evidencias */}
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-wider text-gray-400 mb-2">Evidencia Fotográfica (máx. 3 fotos)</label>
-            <div className="grid grid-cols-3 gap-2">
-              {form.evidencias.map((ev, i) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
-                  <img src={ev.dataUrl} alt={ev.name} className="w-full h-full object-cover" />
-                  <button onClick={() => setForm(f => ({...f, evidencias: f.evidencias.filter((_,j) => j!==i)}))}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition"><X size={10}/></button>
-                </div>
-              ))}
-              {form.evidencias.length < 3 && (
-                <label className="aspect-square rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-orange-300 hover:bg-orange-50 transition">
-                  <Image size={20} className="text-gray-300 mb-1" />
-                  <span className="text-[10px] text-gray-400 font-bold">Agregar</span>
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
-                </label>
-              )}
-            </div>
-            {form.evidencias.length > 0 && <p className="text-[10px] text-gray-400 mt-1">{form.evidencias.length}/3 fotos cargadas</p>}
-          </div>
-        </div>
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3">
-          <button onClick={onClose} disabled={isSaving} className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded-lg disabled:opacity-50">Cancelar</button>
-          <button
-            disabled={isSaving}
-            onClick={async () => {
-              setIsSaving(true);
-              await onSave(form);
-              setIsSaving(false);
-              onClose();
-            }}
-            className="px-6 py-2 text-sm font-black uppercase tracking-wider bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition shadow-md shadow-emerald-200 disabled:opacity-50"
-          >
-            <div className="flex items-center gap-2">
-              <CheckCircle size={14}/>
-              {isSaving ? 'Guardando...' : 'Completar'}
-            </div>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── Tarjeta Kanban ─────────────────────────────────────────────────────────
-const KanbanCard = ({ activity, onMove, onClose, onArchive, navigate }) => {
-  const c = TIPOS_COLOR[activity.tipo] || TIPOS_COLOR['Calibración'];
-  const isVencida = new Date(activity.fechaProgramada) < new Date() && activity.estado !== 'done';
-  return (
-    <div className={`bg-white rounded-xl border shadow-sm p-4 space-y-3 hover:shadow-md transition-shadow ${isVencida ? 'border-red-200' : 'border-gray-100'}`}>
-      {isVencida && (
-        <div className="flex items-center gap-1.5 text-[10px] font-black text-red-500 uppercase tracking-wider">
-          <AlertTriangle size={11}/> Vencida
-        </div>
-      )}
-      <div className="flex items-start justify-between gap-2">
-        <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${c.tag} ${c.text}`}>{activity.tipo}</span>
-        <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded ${PRIORIDAD_COLOR[activity.prioridad] || PRIORIDAD_COLOR['Normal']}`}>{activity.prioridad}</span>
-      </div>
-      <div>
-        <p className="text-sm font-black text-gray-900 leading-tight">{activity.instrumentNombre}</p>
-        <p className="text-[11px] font-mono text-gray-400 mt-0.5">{activity.codigoMJM}</p>
-      </div>
-      <div className="flex items-center gap-2">
-        <Clock size={11} className="text-gray-400" />
-        <span className="text-[11px] text-gray-500 font-mono">{activity.fechaProgramada}</span>
-      </div>
-      {activity.observaciones && (
-        <p className="text-[11px] text-gray-400 line-clamp-2">{activity.observaciones}</p>
-      )}
-      {/* Evidencias */}
-      {activity.evidencias?.length > 0 && (
-        <div className="flex gap-1">
-          {activity.evidencias.map((ev, i) => (
-            <img key={i} src={ev.dataUrl || ev} alt="Evidencia" className="w-10 h-10 rounded object-cover border border-gray-100" />
-          ))}
-        </div>
-      )}
-      {/* Acciones */}
-      <div className="flex items-center gap-2 pt-1 border-t border-gray-50">
-        <button onClick={() => navigate(`/dashboard/inventario/${activity.instrumentId}`)}
-          className="flex items-center gap-1 text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-wider transition">
-          <Eye size={11}/> HV
-        </button>
-        {activity.estado === 'todo' && (
-          <button onClick={() => onMove(activity.id, 'doing')} className="flex items-center gap-1 ml-auto text-[10px] font-black text-blue-500 hover:text-blue-700 uppercase tracking-wider transition">
-            Iniciar <ArrowRight size={11}/>
-          </button>
-        )}
-        {activity.estado === 'doing' && (
-          <button onClick={() => onClose(activity)} className="flex items-center gap-1 ml-auto text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-wider transition">
-            Completar <CheckCircle size={11}/>
-          </button>
-        )}
-        {activity.estado === 'done' && !activity.archivada && (
-          <button onClick={() => onArchive(activity.id)} className="flex items-center gap-1 ml-auto text-[10px] font-black text-gray-400 hover:text-gray-600 uppercase tracking-wider transition">
-            Archivar <Archive size={11}/>
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ─── Columna Kanban ─────────────────────────────────────────────────────────
-const KanbanColumn = ({ title, activities, color, count, children, icon: Icon }) => (
-  <div className="flex flex-col bg-gray-50 rounded-xl flex-1 min-w-0 min-h-0">
-    <div className="p-4 border-b border-gray-200">
-      <div className="flex items-center gap-3">
-        <div className={`w-3 h-3 rounded-sm ${color}`}></div>
-        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-700 flex-1">{title}</h3>
-        <span className="bg-white text-gray-600 text-[11px] font-black px-2 py-0.5 rounded-full shadow-sm">{count}</span>
-      </div>
-    </div>
-    <div className="p-3 space-y-3 overflow-y-auto flex-1">
-      {children}
-      {count === 0 && (
-        <div className="text-center py-12 text-gray-300">
-          <div className="text-3xl mb-2">○</div>
-          <p className="text-xs font-bold uppercase tracking-wider">Sin actividades</p>
-        </div>
-      )}
-    </div>
-  </div>
-);
-
-// ─── Página Principal Kanban ───────────────────────────────────────────────
-export default function KanbanMetrologico() {
-  const navigate = useNavigate();
-  const { activities, moveActivity, closeActivity, archiveActivity, loadActivities } = useInventoryStore();
-  const { tenant, isSuperAdmin } = useAuthStore();
-  const [closingActivity, setClosingActivity] = useState(null);
-
-  // Siempre cargar actividades frescas desde Firestore al montar
-  useEffect(() => {
-    if (tenant) loadActivities(tenant.id, isSuperAdmin);
-  }, [tenant, isSuperAdmin, loadActivities]);
-
-  const today = new Date();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay());
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-
-  const active = activities.filter(a => !a.archivada);
-  const archived = activities.filter(a => a.archivada);
-
-  // Filtro real por "Este Mes" para la primera columna
-  const todo = active.filter(a => {
-    if (a.estado !== 'todo') return false;
-    const d = new Date(a.fechaProgramada);
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-  });
-
-  const doing = active.filter(a => a.estado === 'doing');
-  const done = active.filter(a => a.estado === 'done');
-
-  return (
-    <div className="flex flex-col gap-8 h-full p-6 lg:p-10 w-full min-h-screen">
-      {closingActivity && (
-        <CierreModal activity={closingActivity} onClose={() => setClosingActivity(null)}
-          onSave={(data) => closeActivity(closingActivity.id, data)} />
-      )}
-
-      {/* Header */}
-      <div className="flex items-center justify-between shrink-0">
+    <div className="flex flex-col h-full animate-in fade-in duration-500">
+      
+      {/* --- HEADER BOARD --- */}
+      <section className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Tablero de Actividades</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Gestión operacional de rutinas metrológicas</p>
+           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Operational Engine</p>
+           <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Tablero de <span className="text-[var(--primary)] italic">Control</span></h1>
         </div>
-        <div className="flex items-center gap-4 text-sm">
-          <div className="bg-white rounded-lg px-4 py-2 shadow-sm text-center">
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Pendientes</p>
-            <p className="text-xl font-black text-gray-900">{todo.length}</p>
-          </div>
-          <div className="bg-white rounded-lg px-4 py-2 shadow-sm text-center">
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">En Curso</p>
-            <p className="text-xl font-black text-blue-600">{doing.length}</p>
-          </div>
-          <div className="bg-white rounded-lg px-4 py-2 shadow-sm text-center">
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Completadas</p>
-            <p className="text-xl font-black text-emerald-600">{done.length}</p>
-          </div>
-          <div className="bg-white rounded-lg px-4 py-2 shadow-sm text-center">
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Archivadas</p>
-            <p className="text-xl font-black text-gray-400">{archived.length}</p>
-          </div>
+        
+        <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
+           {/* Buscador Premium */}
+           <div className="relative flex-1 md:w-80 group">
+              <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+              <input 
+                value={search} 
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Filtrar por equipo o ID..." 
+                className="w-full h-14 pl-14 pr-6 bg-[var(--surface-alt)] border border-[var(--outline-color)] rounded-2xl outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/5 transition-all text-[var(--text-main)] font-medium placeholder:text-[var(--text-muted)]/50"
+              />
+           </div>
+           
+           <button className="h-14 px-8 bg-[var(--primary)] text-[#1A202C] rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-[var(--primary)]/20 hover:brightness-110 active:scale-95 transition-all flex items-center gap-3">
+              <RefreshCw size={18} /> Sincronizar
+           </button>
         </div>
-      </div>
+      </section>
 
-      {/* Tablero */}
-      <div className="flex gap-5 flex-1 min-h-0">
-        {/* TO DO - Actividades del Mes */}
-        <KanbanColumn title="Por Hacer · Este Mes" color="bg-gray-400" count={todo.length}>
-          {todo.map(a => (
-            <KanbanCard key={a.id} activity={a} onMove={moveActivity} onClose={setClosingActivity} onArchive={archiveActivity} navigate={navigate} />
-          ))}
-        </KanbanColumn>
-
-        {/* DOING - Esta semana */}
-        <KanbanColumn title="En Progreso · Esta Semana" color="bg-blue-500" count={doing.length}>
-          {doing.map(a => (
-            <KanbanCard key={a.id} activity={a} onMove={moveActivity} onClose={setClosingActivity} onArchive={archiveActivity} navigate={navigate} />
-          ))}
-        </KanbanColumn>
-
-        {/* DONE */}
-        <KanbanColumn title="Completadas" color="bg-emerald-500" count={done.length}>
-          {done.map(a => (
-            <KanbanCard key={a.id} activity={a} onMove={moveActivity} onClose={setClosingActivity} onArchive={archiveActivity} navigate={navigate} />
-          ))}
-        </KanbanColumn>
-      </div>
-
-      {/* Archivadas */}
-      {archived.length > 0 && (
-        <div className="shrink-0">
-          <details className="bg-white rounded-xl shadow-sm">
-            <summary className="px-5 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 cursor-pointer flex items-center gap-2 hover:text-gray-600 transition">
-              <Archive size={12}/> {archived.length} actividades archivadas
-            </summary>
-            <div className="px-5 pb-4 grid grid-cols-4 gap-3">
-              {archived.map(a => (
-                <div key={a.id} className="bg-gray-50 rounded-lg p-3 opacity-60">
-                  <p className="text-[10px] font-black text-gray-500 uppercase tracking-wider">{a.tipo} · {a.fechaRealizacion || a.fechaProgramada}</p>
-                  <p className="text-sm font-bold text-gray-700 mt-0.5 truncate">{a.instrumentNombre}</p>
+      {/* --- KANBAN BOARD --- */}
+      <main className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar bg-background/50 rounded-[2.5rem] p-2">
+        <div className="flex gap-gutter h-full">
+          {columns.map(col => (
+            <section 
+              key={col.id} 
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => handleDrop(e, col.id)}
+              className="flex-shrink-0 w-[300px] lg:w-[320px] flex flex-col h-full bg-surface-alt rounded-3xl p-4 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-6 px-2">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${col.id === 'doing' ? 'bg-[var(--tertiary)]' : col.id === 'vencidos' ? 'bg-red-500' : 'bg-primary'}`}></div>
+                  <h3 className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-[0.2em]">{col.label}</h3>
+                  <span className="bg-[var(--surface)] px-2.5 py-0.5 rounded-full text-[10px] font-black border border-[var(--outline-color)] text-[var(--primary)] shadow-sm">
+                    {grouped[col.id]?.length || 0}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </details>
+                <button className="p-1.5 hover:bg-white rounded-lg text-neutral"><MoreHorizontal size={14} /></button>
+              </div>
+
+              <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-1 pb-20">
+                 {grouped[col.id]?.map(act => (
+                   <ActivityCard 
+                     key={act.id} 
+                     act={act} 
+                     column={col.id} 
+                     onStart={(id) => updateActivityStatus(id, 'doing')}
+                     onFinish={(act) => setClosureAct(act)}
+                   />
+                 ))}
+                 
+                 {(!grouped[col.id] || grouped[col.id].length === 0) && (
+                   <div className="py-12 text-center text-neutral opacity-20 flex flex-col items-center gap-2">
+                       <Layers size={32} />
+                       <span className="text-[9px] font-bold uppercase tracking-widest">Columna Vacía</span>
+                   </div>
+                 )}
+              </div>
+            </section>
+          ))}
         </div>
+      </main>
+
+      {/* --- MODAL DE CIERRE --- */}
+      {closureAct && (
+        <ClosureModal 
+          activity={closureAct} 
+          onClose={() => setClosureAct(null)} 
+          onFinish={(data) => {
+            updateActivityStatus(closureAct.id, 'done', {
+               error_encontrado: 0.0001,
+               incertidumbre_medicion: 0.0002,
+               declaracion_conformidad: 'Conforme'
+            });
+            setClosureAct(null);
+          }}
+        />
       )}
+
     </div>
   );
 }

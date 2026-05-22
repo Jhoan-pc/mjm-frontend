@@ -9,8 +9,10 @@ export const useAuthStore = create((set) => ({
   tenant: null,
   loading: true,
   isSuperAdmin: true,
+  isDarkMode: false,
 
   setSuperAdmin: (val) => set({ isSuperAdmin: val }),
+  toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
 
   // Escucha cambios de Firebase en tiempo real
   initializeAuth: () => {
@@ -68,7 +70,33 @@ export const useAuthStore = create((set) => ({
   
   login: async (email, password) => {
     try {
-      // Login de Emergencia/Simulado temporal (Por si aún no habilitan Auth)
+      // --- BYPASS DE DESARROLLO: DELTAPRUEBAS SANDBOX ---
+      if (email === "prueba@prueba.com" && password === "mjmmetrologia") {
+          const { getDoc, doc } = await import('firebase/firestore');
+          const { db } = await import('../config/firebase');
+          
+          const mockUser = { id: 'sandbox-dev-001', email, rol: 'admin', nombre: 'MJM Administrator' };
+          
+          // Consultar la BD real para el nombre y colores
+          const tenantDoc = await getDoc(doc(db, 'tenants', 'deltapruebas-sandbox'));
+          let tenantData = {
+            id: 'deltapruebas-sandbox',
+            nombre_empresa: 'DeltaPruebas Sandbox', // Fallback
+            logo_url: 'https://firebasestorage.googleapis.com/v0/b/mjm-core-bd.firebasestorage.app/o/Logo%20final%20sin%20fondo.png?alt=media&token=34da8b1b-994a-4a37-8f3a-0fcbe1ab9eaf'.replace(/ /g, '%20'),
+            color_institucional_principal: '#78B7D0',
+            color_institucional_secundario: '#1A202C'
+          };
+
+          if (tenantDoc.exists()) {
+            tenantData = { id: tenantDoc.id, ...tenantDoc.data() };
+          }
+
+          localStorage.setItem('mjm_mock_session', JSON.stringify({ user: mockUser, tenant: tenantData }));
+          set({ isAuthenticated: true, user: mockUser, tenant: tenantData, loading: false });
+          return true;
+      }
+
+      // Login de Emergencia/Simulado temporal
       if (email === "admin@industrias.com" && password === "123456") {
           const mockUser = { id: 'mock1', email, rol: 'admin' };
           const mockTenant = {
