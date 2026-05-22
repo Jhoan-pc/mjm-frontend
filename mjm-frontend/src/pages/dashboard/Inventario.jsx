@@ -444,25 +444,144 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
     }
   };
 
-  const EditableItem = ({ label, field, icon, type = "text" }) => (
-    <div className="flex justify-between items-center py-3 border-b border-[var(--outline-color)]/10 group">
-      <div className="flex-1">
-        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{label}</p>
-        {isEditing ? (
-          <input 
-            type={type}
-            value={form[field] || ''} 
-            onChange={(e) => handleChange(field, e.target.value)}
-            className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all"
-            autoFocus={field === 'nombre'}
-          />
-        ) : (
-          <p className="text-sm font-bold text-[var(--text-main)] truncate">{form[field] || 'N/A'}</p>
-        )}
+  const EditableItem = ({ label, field, icon, type = "text", hasUnit = false }) => {
+    const parseValueAndUnit = (str) => {
+      if (!str || str === 'N/A') return { val: '', uni: '' };
+      const match = String(str).trim().match(/^([-+]?(?:\d+(?:\.\d*)?|\.\d+))\s*(.*)$/);
+      if (match) {
+        return {
+          val: match[1],
+          uni: match[2] || ''
+        };
+      }
+      return { val: str, uni: '' };
+    };
+
+    const { val, uni } = hasUnit ? parseValueAndUnit(form[field]) : { val: '', uni: '' };
+
+    const handleUnitFieldChange = (newVal, newUni) => {
+      const combined = newVal.trim() ? `${newVal.trim()} ${newUni.trim()}`.trim() : 'N/A';
+      handleChange(field, combined);
+    };
+
+    return (
+      <div className="flex justify-between items-center py-3 border-b border-[var(--outline-color)]/10 group">
+        <div className="flex-1">
+          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{label}</p>
+          {isEditing ? (
+            hasUnit ? (
+              <div className="flex gap-2 w-full">
+                <input 
+                  type="number"
+                  step="any"
+                  value={val} 
+                  onChange={(e) => handleUnitFieldChange(e.target.value, uni)}
+                  className="flex-[2] bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all"
+                  placeholder="0.0"
+                />
+                <select
+                  value={uni}
+                  onChange={(e) => handleUnitFieldChange(val, e.target.value)}
+                  className="flex-[1] bg-white border border-[var(--primary)]/30 rounded-lg px-2 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all cursor-pointer"
+                >
+                  <option value="">(Sin unidad)</option>
+                  
+                  <optgroup label="Eléctricas (SI)">
+                    <option value="V">V (Voltio)</option>
+                    <option value="mV">mV (miliVoltio)</option>
+                    <option value="kV">kV (kiloVoltio)</option>
+                    <option value="A">A (Amperio)</option>
+                    <option value="mA">mA (miliAmperio)</option>
+                    <option value="µA">µA (microAmperio)</option>
+                    <option value="Ω">Ω (Ohmio)</option>
+                    <option value="kΩ">kΩ (kiloOhmio)</option>
+                    <option value="MΩ">MΩ (MegaOhmio)</option>
+                    <option value="Hz">Hz (Hertzio)</option>
+                    <option value="kHz">kHz (kiloHertzio)</option>
+                    <option value="MHz">MHz (MegaHertzio)</option>
+                    <option value="F">F (Faradio)</option>
+                    <option value="µF">µF (microFaradio)</option>
+                    <option value="nF">nF (nanoFaradio)</option>
+                    <option value="pF">pF (picoFaradio)</option>
+                  </optgroup>
+
+                  <optgroup label="Presión (SI / Imperial / Otros)">
+                    <option value="bar">bar</option>
+                    <option value="mbar">mbar (milibar)</option>
+                    <option value="psi">psi (libras/pulgada²)</option>
+                    <option value="Pa">Pa (Pascal)</option>
+                    <option value="kPa">kPa (kiloPascal)</option>
+                    <option value="MPa">MPa (MegaPascal)</option>
+                    <option value="kg/cm²">kg/cm²</option>
+                    <option value="atm">atm (atmósfera)</option>
+                    <option value="mmHg">mmHg (mm Hg)</option>
+                    <option value="inHg">inHg (pulgada Hg)</option>
+                    <option value="mmH2O">mmH2O (mm H2O)</option>
+                  </optgroup>
+
+                  <optgroup label="Torque (SI / Imperial / Otros)">
+                    <option value="N·m">N·m (Newton metro)</option>
+                    <option value="mN·m">mN·m (miliNewton metro)</option>
+                    <option value="dN·m">dN·m (deciNewton metro)</option>
+                    <option value="lbf·ft">lbf·ft (libra-pie)</option>
+                    <option value="lbf·in">lbf·in (libra-pulgada)</option>
+                    <option value="ozf·in">ozf·in (onza-pulgada)</option>
+                    <option value="kgf·cm">kgf·cm (kg-centímetro)</option>
+                    <option value="kgf·m">kgf·m (kg-metro)</option>
+                  </optgroup>
+
+                  <optgroup label="Masa (SI / Imperial)">
+                    <option value="g">g (gramo)</option>
+                    <option value="kg">kg (kilogramo)</option>
+                    <option value="mg">mg (miligramo)</option>
+                    <option value="lb">lb (libra)</option>
+                    <option value="oz">oz (onza)</option>
+                    <option value="t">t (tonelada)</option>
+                  </optgroup>
+
+                  <optgroup label="Cantidad de Sustancia">
+                    <option value="mol">mol (mol)</option>
+                    <option value="mmol">mmol (milimol)</option>
+                  </optgroup>
+
+                  <optgroup label="Temperatura">
+                    <option value="°C">°C (grados Celsius)</option>
+                    <option value="°F">°F (grados Fahrenheit)</option>
+                    <option value="K">K (Kelvin)</option>
+                  </optgroup>
+
+                  <optgroup label="Longitud / Dimensión">
+                    <option value="mm">mm (milímetro)</option>
+                    <option value="µm">µm (micrómetro / micra)</option>
+                    <option value="cm">cm (centímetro)</option>
+                    <option value="m">m (metro)</option>
+                    <option value="in">in (pulgada)</option>
+                    <option value="ft">ft (pie)</option>
+                  </optgroup>
+
+                  <optgroup label="Relativos / Adimensional">
+                    <option value="%">% (porcentaje)</option>
+                    <option value="ppm">ppm (partes por millón)</option>
+                  </optgroup>
+                </select>
+              </div>
+            ) : (
+              <input 
+                type={type}
+                value={form[field] || ''} 
+                onChange={(e) => handleChange(field, e.target.value)}
+                className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-3 py-2 text-xs font-bold text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 outline-none transition-all"
+                autoFocus={field === 'nombre'}
+              />
+            )
+          ) : (
+            <p className="text-sm font-bold text-[var(--text-main)] truncate">{form[field] || 'N/A'}</p>
+          )}
+        </div>
+        {!isEditing && icon && <div className="text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">{icon}</div>}
       </div>
-      {!isEditing && icon && <div className="text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">{icon}</div>}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-10 bg-black/70 backdrop-blur-md animate-in fade-in duration-500">
@@ -614,18 +733,18 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
                <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Capacidad Operativa</h4>
                <div className="space-y-2">
-                  <EditableItem label="Capacidad Mínima" field="rango_min" />
-                  <EditableItem label="Capacidad Máxima" field="rango_max" />
-                  <EditableItem label="Resolución" field="resolucion" />
+                  <EditableItem label="Capacidad Mínima" field="rango_min" hasUnit={true} />
+                  <EditableItem label="Capacidad Máxima" field="rango_max" hasUnit={true} />
+                  <EditableItem label="Resolución" field="resolucion" hasUnit={true} />
                </div>
             </div>
             <div className="bg-white p-8 rounded-[2.5rem] border border-[var(--outline-color)]/20 shadow-sm relative">
                <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
                <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Parámetros Técnicos</h4>
                <div className="space-y-2">
-                  <EditableItem label="Incertidumbre requerida" field="incertidumbre" />
+                  <EditableItem label="Incertidumbre requerida" field="incertidumbre" hasUnit={true} />
                   <EditableItem label="Criticidad" field="criticidad" />
-                  <EditableItem label="Tolerancia de proceso" field="tolerancia_proceso" />
+                  <EditableItem label="Tolerancia de proceso" field="tolerancia_proceso" hasUnit={true} />
                </div>
             </div>
             <div className="bg-white p-8 rounded-[2.5rem] border border-[var(--outline-color)]/20 shadow-sm relative">
