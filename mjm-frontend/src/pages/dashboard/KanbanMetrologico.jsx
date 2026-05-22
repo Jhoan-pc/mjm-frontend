@@ -373,9 +373,9 @@ export default function KanbanMetrologico() {
             >
               <div className="flex items-center justify-between mb-6 px-2">
                 <div className="flex items-center gap-2.5">
-                  <div className={`w-2.5 h-2.5 rounded-full ${col.dotColor}`}></div>
-                  <h3 className="text-xs md:text-sm font-black text-[var(--text-main)] uppercase tracking-[0.15em]">{col.label}</h3>
-                  <span className={`bg-[var(--surface)] px-2.5 py-0.5 rounded-full text-xs font-black border border-[var(--outline-color)] ${col.textColor} shadow-sm`}>
+                  <div className={`w-3 h-3 rounded-full ${col.dotColor}`}></div>
+                  <h3 className="text-sm md:text-base font-black text-[var(--text-main)] uppercase tracking-[0.15em]">{col.label}</h3>
+                  <span className={`bg-[var(--surface)] px-2.5 py-0.5 rounded-full text-xs md:text-sm font-black border border-[var(--outline-color)] ${col.textColor} shadow-sm`}>
                     {grouped[col.id]?.length || 0}
                   </span>
                 </div>
