@@ -681,7 +681,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                         <div className="space-y-3">
                           {/* Row 1: Última Vez (Fecha de Inicio) */}
                           <div>
-                            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Última Vez</label>
+                            <label className="text-[6px] font-bold text-[var(--text-muted)] uppercase tracking-normal block mb-1 text-center whitespace-nowrap">Última Vez</label>
                             {isEditing ? (
                               <input 
                                 type="date" 
@@ -698,7 +698,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                           {/* Row 2: Meses & Años */}
                           <div className="flex gap-2">
                             <div className="flex-1">
-                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Frecuencia (meses)</label>
+                              <label className="text-[6px] font-bold text-[var(--text-muted)] uppercase tracking-normal block mb-1 text-center whitespace-nowrap">Frecuencia (meses)</label>
                               {isEditing ? (
                                 <input 
                                   type="number" 
@@ -713,7 +713,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                               )}
                             </div>
                             <div className="flex-1">
-                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Duración (años)</label>
+                              <label className="text-[6px] font-bold text-[var(--text-muted)] uppercase tracking-normal block mb-1 text-center whitespace-nowrap">Duración (años)</label>
                               {isEditing ? (
                                 <input 
                                   type="number" 
