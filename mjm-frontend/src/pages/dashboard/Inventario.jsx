@@ -678,23 +678,9 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                      
                      {/* Inputs Frecuencia + Fecha Inicial + Años */}
                      <div className={`mt-3 pt-3 border-t border-[var(--outline-color)]/30 transition-all ${form.rutinas?.[rutina.key] ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Meses</label>
-                            {isEditing ? (
-                              <input 
-                                type="number" 
-                                min="1"
-                                value={form.rutinas?.[`${rutina.key}_frecuencia`] || ''}
-                                onChange={(e) => handleChangeRutinaFrecuencia(rutina.key, 'frecuencia', e.target.value)}
-                                className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-2 py-1.5 text-xs font-black text-[var(--text-main)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 shadow-sm text-center"
-                                placeholder="12"
-                              />
-                            ) : (
-                              <p className="text-xs font-black text-[var(--text-main)] text-center">{form.rutinas?.[`${rutina.key}_frecuencia`] || 'N/A'}</p>
-                            )}
-                          </div>
-                          <div className="flex-[1.5]">
+                        <div className="space-y-3">
+                          {/* Row 1: Última Vez (Fecha de Inicio) */}
+                          <div>
                             <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Última Vez</label>
                             {isEditing ? (
                               <input 
@@ -708,22 +694,41 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                               <p className="text-xs font-black text-[var(--text-main)] text-center">{form.rutinas?.[`${rutina.key}_fecha_inicial`] ? new Date(form.rutinas[`${rutina.key}_fecha_inicial`]).toISOString().split('T')[0] : 'N/A'}</p>
                             )}
                           </div>
-                          <div className="flex-1">
-                             <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Años</label>
-                             {isEditing ? (
-                               <input 
-                                 type="number" 
-                                 min="1"
-                                 max="20"
-                                 value={form.rutinas?.[`${rutina.key}_anos`] || '5'}
-                                 onChange={(e) => handleChangeRutinaFrecuencia(rutina.key, 'anos', e.target.value)}
-                                 className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-2 py-1.5 text-xs font-black text-[var(--text-main)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 shadow-sm text-center"
-                                 placeholder="5"
-                               />
-                             ) : (
-                               <p className="text-xs font-black text-[var(--text-main)] text-center">{form.rutinas?.[`${rutina.key}_anos`] || '5'}</p>
-                             )}
-                           </div>
+                          
+                          {/* Row 2: Meses & Años */}
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Meses</label>
+                              {isEditing ? (
+                                <input 
+                                  type="number" 
+                                  min="1"
+                                  value={form.rutinas?.[`${rutina.key}_frecuencia`] || ''}
+                                  onChange={(e) => handleChangeRutinaFrecuencia(rutina.key, 'frecuencia', e.target.value)}
+                                  className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-2 py-1.5 text-xs font-black text-[var(--text-main)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 shadow-sm text-center"
+                                  placeholder="12"
+                                />
+                              ) : (
+                                <p className="text-xs font-black text-[var(--text-main)] text-center">{form.rutinas?.[`${rutina.key}_frecuencia`] || 'N/A'}</p>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Años</label>
+                              {isEditing ? (
+                                <input 
+                                  type="number" 
+                                  min="1"
+                                  max="20"
+                                  value={form.rutinas?.[`${rutina.key}_anos`] || '5'}
+                                  onChange={(e) => handleChangeRutinaFrecuencia(rutina.key, 'anos', e.target.value)}
+                                  className="w-full bg-white border border-[var(--primary)]/30 rounded-lg px-2 py-1.5 text-xs font-black text-[var(--text-main)] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20 shadow-sm text-center"
+                                  placeholder="5"
+                                />
+                              ) : (
+                                <p className="text-xs font-black text-[var(--text-main)] text-center">{form.rutinas?.[`${rutina.key}_anos`] || '5'}</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                      </div>
                    </div>
