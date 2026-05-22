@@ -9,7 +9,6 @@ import {
   Info, 
   Calendar,
   MoreHorizontal,
-  Search,
   LayoutDashboard,
   Zap,
   ShieldCheck,
@@ -100,7 +99,6 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
 
 const ActivityCard = ({ act, column, onStart, onFinish }) => {
   const isCritical = act.priority === 'high' || act.criticidad === 'Crítica' || act.criticidad === 'Alta';
-  const progress = act.progreso || (act.estado === 'doing' ? 65 : 0);
   
   return (
     <article 
@@ -108,14 +106,25 @@ const ActivityCard = ({ act, column, onStart, onFinish }) => {
       onDragStart={(e) => e.dataTransfer.setData('activityId', act.id)}
       className={`bg-[var(--surface)] border border-[var(--outline-color)] rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:border-[var(--primary)]/50 transition-all duration-300 cursor-grab active:cursor-grabbing ${column === 'done' ? 'opacity-80' : column === 'archived' ? 'opacity-60 grayscale' : ''}`}
     >
+      <div className={`absolute top-0 left-0 w-1 h-full ${
+        column === 'vencidos' ? 'bg-red-500' : 
+        column === 'doing' ? 'bg-emerald-500' : 
+        column === 'en_proceso' ? 'bg-orange-500' : 
+        'bg-amber-500'
+      }`} />
       {isCritical && <div className="absolute top-0 right-0 w-1.5 h-full bg-red-500" />}
       
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2">
-          <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded bg-[var(--surface-alt)] border border-[var(--outline-color)] ${column === 'vencidos' ? 'text-red-500' : column === 'doing' ? 'text-[var(--tertiary)]' : 'text-[var(--primary)]'}`}>
+          <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded bg-[var(--surface-alt)] border border-[var(--outline-color)] ${
+            column === 'vencidos' ? 'text-red-500' : 
+            column === 'doing' ? 'text-emerald-500' : 
+            column === 'en_proceso' ? 'text-orange-500' : 
+            'text-amber-500'
+          }`}>
             {act.tipo || 'INTERVENCIÓN'}
           </span>
-          {act.estado === 'doing' && <span className="w-1.5 h-1.5 rounded-full bg-[var(--tertiary)] animate-pulse" />}
+          {act.estado === 'doing' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
         </div>
         <MoreVertical size={14} className="text-[var(--text-muted)] opacity-40 group-hover:opacity-100 transition-opacity" />
       </div>
@@ -130,42 +139,38 @@ const ActivityCard = ({ act, column, onStart, onFinish }) => {
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-auto pt-4 border-t border-[var(--outline-color)]">
-        <div className="flex items-center gap-2">
-           <div className="w-6 h-6 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
-              <User size={12} />
-           </div>
-           {act.estado === 'doing' && <span className="text-[10px] text-[var(--primary)] font-black">{progress}%</span>}
+      {/* Altura #2 (Oculto por defecto en desktop, visible al hacer hover) */}
+      <div className="transition-all duration-300 ease-in-out xl:max-h-0 xl:opacity-0 xl:overflow-hidden xl:group-hover:max-h-60 xl:group-hover:opacity-100 xl:group-hover:mt-4">
+        <div className="flex items-center justify-between pt-4 border-t border-[var(--outline-color)]">
+          <div className="flex items-center gap-2">
+             <div className="w-6 h-6 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
+                <User size={12} />
+             </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
+            <Clock size={12} />
+            <span className="font-data text-[10px]">{act.fechaProgramada}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-          <Clock size={12} />
-          <span className="font-data text-[10px]">{act.fechaProgramada}</span>
-        </div>
-      </div>
-      
-      {act.estado === 'todo' && (
-        <button 
-          onClick={() => onStart(act.id)}
-          className="mt-4 w-full py-2.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)] hover:text-[#1A202C] text-[var(--primary)] rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-[var(--primary)]/20"
-        >
-          <Play size={10} fill="currentColor" /> Iniciar Actividad
-        </button>
-      )}
+        
+        {act.estado === 'todo' && (
+          <button 
+            onClick={() => onStart(act.id)}
+            className="mt-4 w-full py-2.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)] hover:text-[#1A202C] text-[var(--primary)] rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-[var(--primary)]/20"
+          >
+            <Play size={10} fill="currentColor" /> Iniciar Actividad
+          </button>
+        )}
 
-      {act.estado === 'doing' && (
-        <button 
-          onClick={() => onFinish(act)}
-          className="mt-4 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-500 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-emerald-500/20"
-        >
-          <CheckCircle size={10} /> Finalizar Actividad
-        </button>
-      )}
-      
-      {act.estado === 'doing' && (
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-surface-variant">
-           <div className="h-full bg-[var(--tertiary)] transition-all duration-500" style={{ width: `${progress}%` }} />
-        </div>
-      )}
+        {act.estado === 'doing' && (
+          <button 
+            onClick={() => onFinish(act)}
+            className="mt-4 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-500 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-emerald-500/20"
+          >
+            <CheckCircle size={10} /> Finalizar Actividad
+          </button>
+        )}
+      </div>
     </article>
   );
 };
@@ -175,6 +180,62 @@ export default function KanbanMetrologico() {
   const { tenant } = useAuthStore();
   const [search, setSearch] = useState('');
   const [closureAct, setClosureAct] = useState(null);
+  const [activeTab, setActiveTab] = useState('por_gestionar');
+  const boardRef = React.useRef(null);
+
+  // Dynamic layout parent scroll prevention & padding adjustment
+  useEffect(() => {
+    const mainEl = document.querySelector('main.flex-1.overflow-y-auto');
+    if (mainEl) {
+      const originalOverflow = mainEl.style.overflow || '';
+      const originalHeight = mainEl.style.height || '';
+      const originalPadding = mainEl.style.padding || '';
+      
+      mainEl.style.overflow = 'hidden';
+      mainEl.style.height = '100%';
+      
+      const handleResize = () => {
+        if (window.innerWidth < 768) {
+          mainEl.style.padding = '12px';
+        } else if (window.innerWidth < 1024) {
+          mainEl.style.padding = '24px';
+        } else {
+          mainEl.style.padding = '32px';
+        }
+      };
+      
+      window.addEventListener('resize', handleResize);
+      handleResize();
+      
+      return () => {
+        mainEl.style.overflow = originalOverflow;
+        mainEl.style.height = originalHeight;
+        mainEl.style.padding = originalPadding;
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, []);
+
+  const handleBoardScroll = (e) => {
+    if (window.innerWidth >= 1280) return;
+    const scrollLeft = e.target.scrollLeft;
+    const clientWidth = e.target.clientWidth;
+    if (clientWidth === 0) return;
+    const activeIndex = Math.round(scrollLeft / clientWidth);
+    const colIds = ['por_gestionar', 'en_proceso', 'doing', 'vencidos'];
+    if (colIds[activeIndex] && colIds[activeIndex] !== activeTab) {
+      setActiveTab(colIds[activeIndex]);
+    }
+  };
+
+  const handleTabClick = (colId) => {
+    setActiveTab(colId);
+    const el = document.getElementById(`kanban-col-${colId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  };
+
 
   useEffect(() => {
     if (tenant?.id) {
@@ -215,10 +276,10 @@ export default function KanbanMetrologico() {
   }, []);
 
   const columns = [
-    { id: 'por_gestionar', label: 'Por Gestionar', color: 'text-primary', icon: <Calendar size={14}/> },
-    { id: 'en_proceso', label: 'En Proceso', color: 'text-[var(--tertiary)]', icon: <Clock size={14}/> },
-    { id: 'doing', label: 'Doing', color: 'text-emerald-600', icon: <Play size={14}/> },
-    { id: 'vencidos', label: 'Vencidos', color: 'text-red-500', icon: <AlertCircle size={14}/> },
+    { id: 'por_gestionar', label: 'Por Gestionar', color: 'text-amber-500', dotColor: 'bg-amber-500', textColor: 'text-amber-500', activeTabClass: 'bg-amber-500 text-slate-900', icon: <Calendar size={14}/> },
+    { id: 'en_proceso', label: 'Priorizar', color: 'text-orange-500', dotColor: 'bg-orange-500', textColor: 'text-orange-500', activeTabClass: 'bg-orange-500 text-white', icon: <Clock size={14}/> },
+    { id: 'doing', label: 'En Proceso', color: 'text-emerald-500', dotColor: 'bg-emerald-500', textColor: 'text-emerald-500', activeTabClass: 'bg-emerald-500 text-white', icon: <Play size={14}/> },
+    { id: 'vencidos', label: 'Vencidos', color: 'text-red-500', dotColor: 'bg-red-500', textColor: 'text-red-500', activeTabClass: 'bg-red-500 text-white', icon: <AlertCircle size={14}/> },
   ];
 
   const grouped = useMemo(() => {
@@ -247,45 +308,74 @@ export default function KanbanMetrologico() {
     <div className="flex flex-col h-full animate-in fade-in duration-500">
       
       {/* --- HEADER BOARD --- */}
-      <section className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-12">
+      <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 mb-4 md:mb-6 shrink-0">
         <div>
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Operational Engine</p>
-           <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Tablero de <span className="text-[var(--primary)] italic">Control</span></h1>
+           <h1 className="font-black text-[var(--text-main)] text-2xl md:text-4xl tracking-tighter uppercase">Tablero de <span className="text-[var(--primary)] italic">Control</span></h1>
         </div>
         
-        <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
-           {/* Buscador Premium */}
-           <div className="relative flex-1 md:w-80 group">
-              <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-              <input 
-                value={search} 
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Filtrar por equipo o ID..." 
-                className="w-full h-14 pl-14 pr-6 bg-[var(--surface-alt)] border border-[var(--outline-color)] rounded-2xl outline-none focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/5 transition-all text-[var(--text-main)] font-medium placeholder:text-[var(--text-muted)]/50"
-              />
-           </div>
-           
-           <button className="h-14 px-8 bg-[var(--primary)] text-[#1A202C] rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-[var(--primary)]/20 hover:brightness-110 active:scale-95 transition-all flex items-center gap-3">
-              <RefreshCw size={18} /> Sincronizar
+        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+           <button className="h-12 w-12 md:h-14 md:w-52 bg-[var(--primary)] text-[#1A202C] rounded-xl md:rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-[var(--primary)]/20 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center shrink-0">
+              <RefreshCw size={16} className="md:mr-2" /> <span className="hidden md:inline">Sincronizar</span>
            </button>
         </div>
       </section>
 
+      {/* --- MOBILE TABS (visible only on mobile) --- */}
+      <div className="flex xl:hidden bg-[var(--surface-alt)] border border-[var(--outline-color)] rounded-2xl p-1 mb-4 justify-between items-center shrink-0">
+        {columns.map(col => {
+          const count = grouped[col.id]?.length || 0;
+          const isActive = activeTab === col.id;
+          const mobileLabels = {
+            por_gestionar: 'Pendientes',
+            en_proceso: 'Priorizar',
+            doing: 'Proceso',
+            vencidos: 'Vencidos'
+          };
+          return (
+            <button
+              key={col.id}
+              onClick={() => handleTabClick(col.id)}
+              className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all relative ${
+                isActive 
+                  ? `${col.activeTabClass} font-black shadow-md` 
+                  : 'text-[var(--text-muted)]'
+              }`}
+            >
+              <span className="text-[9px] font-black uppercase tracking-widest text-center truncate w-full px-1">
+                {mobileLabels[col.id]}
+              </span>
+              <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full mt-1 border ${
+                isActive 
+                  ? 'bg-white/30 border-transparent text-current' 
+                  : `bg-[var(--surface)] border-[var(--outline-color)] ${col.textColor}`
+              }`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* --- KANBAN BOARD --- */}
-      <main className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar bg-background/50 rounded-[2.5rem] p-2">
-        <div className="flex gap-gutter h-full">
+      <main 
+        ref={boardRef}
+        onScroll={handleBoardScroll}
+        className="flex-1 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth bg-background/50 rounded-[2.5rem] p-2"
+      >
+        <div className="flex gap-4 md:gap-gutter h-full">
           {columns.map(col => (
             <section 
               key={col.id} 
+              id={`kanban-col-${col.id}`}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => handleDrop(e, col.id)}
-              className="flex-shrink-0 w-[300px] lg:w-[320px] flex flex-col h-full bg-surface-alt rounded-3xl p-4 transition-colors"
+              className="flex-shrink-0 w-full xl:flex-1 xl:min-w-[240px] snap-center xl:snap-align-none flex flex-col h-full bg-surface-alt rounded-3xl p-4 transition-colors"
             >
               <div className="flex items-center justify-between mb-6 px-2">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${col.id === 'doing' ? 'bg-[var(--tertiary)]' : col.id === 'vencidos' ? 'bg-red-500' : 'bg-primary'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${col.dotColor}`}></div>
                   <h3 className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-[0.2em]">{col.label}</h3>
-                  <span className="bg-[var(--surface)] px-2.5 py-0.5 rounded-full text-[10px] font-black border border-[var(--outline-color)] text-[var(--primary)] shadow-sm">
+                  <span className={`bg-[var(--surface)] px-2.5 py-0.5 rounded-full text-[10px] font-black border border-[var(--outline-color)] ${col.textColor} shadow-sm`}>
                     {grouped[col.id]?.length || 0}
                   </span>
                 </div>
