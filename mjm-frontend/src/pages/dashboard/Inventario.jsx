@@ -698,7 +698,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                           {/* Row 2: Meses & Años */}
                           <div className="flex gap-2">
                             <div className="flex-1">
-                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Meses</label>
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Frecuencia (meses)</label>
                               {isEditing ? (
                                 <input 
                                   type="number" 
@@ -713,7 +713,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                               )}
                             </div>
                             <div className="flex-1">
-                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Años</label>
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest block mb-1 text-center">Duración (años)</label>
                               {isEditing ? (
                                 <input 
                                   type="number" 
