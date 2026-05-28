@@ -953,9 +953,9 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                 {/* IMAGEN PRINCIPAL (CLIC PARA SUBIR) */}
                 <div 
                   onClick={handlePhotoClick}
-                  className={`flex-shrink-0 w-56 h-56 bg-white rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#D4AF37]/35 overflow-hidden relative group/img transition-all ${isEditing ? 'cursor-pointer hover:border-[var(--primary)] hover:scale-105' : ''}`}
+                  className={`flex-shrink-0 w-52 h-52 bg-white rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#D4AF37]/35 overflow-hidden relative group/img transition-all flex items-center justify-center ${isEditing ? 'cursor-pointer hover:border-[var(--primary)] hover:scale-105' : ''}`}
                 >
-                  <img className="w-full h-full object-contain mix-blend-multiply" src={form.imageUrl || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500"} alt="Inst" />
+                  <img className="max-w-full max-h-full object-contain mix-blend-multiply" src={form.imageUrl || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500"} alt="Inst" />
                   {isEditing && (
                     <div className="absolute inset-0 bg-[#0B1326]/75 flex flex-col items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity">
                        <ImageIcon size={28} className="text-[#D4AF37] mb-2" />
