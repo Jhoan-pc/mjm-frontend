@@ -898,11 +898,11 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                 }}
               />
 
-              <div className="absolute inset-0 z-20 flex items-center justify-between px-12 gap-8">
+              <div className="absolute inset-0 z-20 flex items-center justify-between px-10 gap-6">
                 <div className="flex-1">
                   <div className="inline-flex items-center gap-2 text-[#D4AF37] mb-3 bg-[#D4AF37]/10 backdrop-blur-xl px-4 py-2 rounded-full border border-[#D4AF37]/20">
-                    <ShieldCheck size={14}/>
-                    <span className="font-black text-[8px] uppercase tracking-[0.3em]">PROCESO: {form.proceso || 'OPERATIVO'}</span>
+                     <ShieldCheck size={14}/>
+                     <span className="font-black text-[8px] uppercase tracking-[0.3em]">PROCESO: {form.proceso || 'OPERATIVO'}</span>
                   </div>
                   
                   <h3 className="font-black text-white text-3xl uppercase tracking-tighter mb-2 leading-none">
@@ -912,7 +912,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                     Historial de rutinas
                   </p>
                   
-                  <div className="grid grid-cols-2 gap-4 max-w-sm">
+                  <div className="grid grid-cols-2 gap-3 max-w-[320px]">
                     <div className="bg-[#1A202C]/65 border border-white/5 backdrop-blur-md p-4 rounded-2xl">
                       <p className="text-[8px] font-black text-slate-400 mb-1 uppercase tracking-widest">Marca</p>
                       {isEditing ? (
@@ -953,7 +953,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                 {/* IMAGEN PRINCIPAL (CLIC PARA SUBIR) */}
                 <div 
                   onClick={handlePhotoClick}
-                  className={`flex-shrink-0 w-52 h-52 bg-white rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#D4AF37]/35 overflow-hidden relative group/img transition-all flex items-center justify-center ${isEditing ? 'cursor-pointer hover:border-[var(--primary)] hover:scale-105' : ''}`}
+                  className={`flex-shrink-0 w-44 h-44 bg-white rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#D4AF37]/35 overflow-hidden relative group/img transition-all flex items-center justify-center ${isEditing ? 'cursor-pointer hover:border-[var(--primary)] hover:scale-105' : ''}`}
                 >
                   <img className="max-w-full max-h-full object-contain mix-blend-multiply" src={form.imageUrl || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500"} alt="Inst" />
                   {isEditing && (
