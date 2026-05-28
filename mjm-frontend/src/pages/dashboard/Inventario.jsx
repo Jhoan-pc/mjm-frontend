@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const cleanText = (text) => {
   if (!text) return '';
@@ -19,7 +20,7 @@ import { useAuthStore } from '../../store/authStore';
 import heroImage from '../../assets/login-hero.png';
 import {
   Search, Plus, ChevronRight, ChevronDown, Eye,
-  CheckCircle, Clock, AlertCircle, X, Building2, MapPin,
+  CheckCircle, Clock, AlertCircle, X, Building2, MapPin, Globe,
   Cpu, Layers, Wrench, ShieldCheck, Barcode, Tag,
   Activity, ArrowLeft, Image as ImageIcon, Check,
   AlertTriangle, Filter, Loader2, Archive
@@ -630,7 +631,16 @@ const EditableItem = ({ label, field, icon, type = "text", hasUnit = false, isEd
             />
           )
         ) : (
-          <p className="text-sm font-bold text-[var(--text-main)] truncate">{(form && form[field]) || 'N/A'}</p>
+          <p className="text-sm font-bold text-[var(--text-main)] truncate">
+            {(() => {
+              const raw = (form && form[field]) || 'N/A';
+              if (raw === 'N/A') return 'N/A';
+              if (hasUnit) {
+                return String(raw).replace(/\s*\([^)]*\)/g, '').trim();
+              }
+              return raw;
+            })()}
+          </p>
         )}
       </div>
       {!isEditing && icon && <div className="text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">{icon}</div>}
@@ -640,11 +650,13 @@ const EditableItem = ({ label, field, icon, type = "text", hasUnit = false, isEd
 
 // --- INSTRUMENT DETAILS MODAL (TECHNICAL V3 + EDIT MODE) ---
 const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
+  const navigate = useNavigate();
   const { tenant } = useAuthStore();
   const { instruments, updateInstrument } = useInventoryStore();
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
 
   const [showGallery, setShowGallery] = useState(false);
@@ -672,13 +684,25 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
 
   const handleToggleRutina = (rutinaKey) => {
     if (!isEditing) return;
-    setForm(prev => ({
-      ...prev,
-      rutinas: {
+    setForm(prev => {
+      const isCurrentlyOn = prev.rutinas?.[rutinaKey];
+      const willBeOn = !isCurrentlyOn;
+      const today = new Date().toISOString().split('T')[0];
+      
+      const updatedRutinas = {
         ...(prev.rutinas || {}),
-        [rutinaKey]: !(prev.rutinas?.[rutinaKey])
+        [rutinaKey]: willBeOn
+      };
+      
+      if (willBeOn && !updatedRutinas[`${rutinaKey}_fecha_inicial`]) {
+        updatedRutinas[`${rutinaKey}_fecha_inicial`] = today;
       }
-    }));
+      
+      return {
+        ...prev,
+        rutinas: updatedRutinas
+      };
+    });
   };
 
   const handleChangeRutinaFrecuencia = (rutinaKey, field, value) => {
@@ -763,10 +787,12 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
 
   const handleSave = async () => {
     if (!tenant) return;
+    setSaving(true);
     const success = await updateInstrument(tenant.id, instrumentId, form);
     if (success) {
       setIsEditing(false);
     }
+    setSaving(false);
   };
 
   const handlePhotoClick = () => {
@@ -810,30 +836,37 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
         <header className="flex items-center justify-between px-10 py-6 border-b border-[var(--outline-color)]/20 bg-white/80 backdrop-blur-md z-20">
           <div className="flex flex-col">
             <div className="flex items-center gap-3 mb-3.5">
-              <span className="px-3 py-1 bg-[var(--primary)] text-white font-black text-[9px] rounded-lg uppercase tracking-widest shadow-lg">
-                {inst.codigo}
-              </span>
               <span className="text-[var(--text-muted)] font-black text-[9px] uppercase tracking-[0.2em]">Último Cambio: {new Date().toLocaleDateString()}</span>
             </div>
             {isEditing ? (
-              <input 
-                value={form.nombre} 
-                onChange={(e) => handleChange('nombre', e.target.value)}
-                placeholder="Nombre del Instrumento"
-                className="font-black text-[var(--text-main)] text-3xl uppercase tracking-tighter bg-white border-2 border-[var(--primary)]/20 rounded-xl px-4 py-1 outline-none focus:border-[var(--primary)]"
-              />
+              <div className="flex items-center gap-4 flex-wrap">
+                <input 
+                  value={form.nombre} 
+                  onChange={(e) => handleChange('nombre', e.target.value)}
+                  placeholder="Nombre del Instrumento"
+                  className="font-black text-[var(--text-main)] text-3xl uppercase tracking-tighter bg-white border-2 border-[var(--primary)]/20 rounded-xl px-4 py-1 outline-none focus:border-[var(--primary)] max-w-md"
+                />
+                <span className="px-4 py-2 bg-[#1A202C] text-[var(--primary)] border border-[var(--primary)]/30 font-black text-sm rounded-xl uppercase tracking-[0.2em] shadow-lg">
+                  {form.codigo || inst.codigo}
+                </span>
+              </div>
             ) : (
-              <h1 className="font-black text-[var(--text-main)] text-3xl uppercase tracking-tighter">{form.nombre}</h1>
+              <div className="flex items-center gap-4 flex-wrap">
+                <h1 className="font-black text-[var(--text-main)] text-3xl uppercase tracking-tighter leading-none">{form.nombre}</h1>
+                <span className="px-4 py-2 bg-[#1A202C] text-[var(--primary)] border border-[var(--primary)]/30 font-black text-sm rounded-xl uppercase tracking-[0.2em] shadow-lg">
+                  {form.codigo || inst.codigo}
+                </span>
+              </div>
             )}
           </div>
           <div className="flex items-center gap-6">
             <button 
               onClick={isEditing ? handleSave : () => setIsEditing(true)}
-              disabled={uploading}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${isEditing ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-[var(--surface-alt)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--outline-color)]/30'}`}
+              disabled={uploading || saving}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${isEditing ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-[var(--surface-alt)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--outline-color)]/30'} ${(uploading || saving) ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {uploading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : (isEditing ? <Check size={18}/> : <Wrench size={18}/>)}
-              {isEditing ? 'Confirmar y Guardar' : 'Editar Ficha'}
+              {(uploading || saving) ? <Loader2 size={18} className="animate-spin" /> : (isEditing ? <Check size={18}/> : <Wrench size={18}/>)}
+              {saving ? 'Guardando...' : (isEditing ? 'Confirmar y Guardar' : 'Editar Ficha')}
             </button>
             <div className="h-8 w-px bg-[var(--outline-color)]/30"></div>
             <button onClick={onClose} className="p-3 hover:bg-error/10 hover:text-error rounded-2xl transition-all text-[var(--text-muted)]">
@@ -846,7 +879,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
         <div className="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-10">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 relative overflow-hidden rounded-[2.5rem] h-[360px] group shadow-2xl bg-[#0B1326]">
+            <div className="lg:col-span-7 relative overflow-hidden rounded-[2.5rem] h-[360px] group shadow-2xl bg-[#0B1326]">
               {/* IMAGEN DE FONDO DE LOGIN (NÍTIDA CON AJUSTE DE MEZCLA PARA ALTO CONTRASTE) */}
               <div className="absolute inset-0 z-0">
                 <img 
@@ -909,7 +942,9 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                       {isEditing ? (
                         <input value={form.division_escala} onChange={e => handleChange('division_escala', e.target.value)} className="bg-transparent border-b border-[var(--primary)] text-white text-xs outline-none w-full" />
                       ) : (
-                        <p className="text-xs font-black text-white uppercase truncate">{form.division_escala || 'N/A'}</p>
+                        <p className="text-xs font-black text-white uppercase truncate">
+                          {form.division_escala ? String(form.division_escala).replace(/\s*\([^)]*\)/g, '').trim() : 'N/A'}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -931,12 +966,15 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
               </div>
             </div>
 
-            <div className="lg:col-span-4 bg-white rounded-[2.5rem] p-8 border border-[var(--outline-color)]/30 flex flex-col shadow-xl">
-              <div className="flex items-center justify-between mb-8">
+            <div className="lg:col-span-5 bg-white rounded-[2.5rem] p-8 border border-[var(--outline-color)]/30 flex flex-col shadow-xl">
+              <div className="flex items-center justify-between mb-6">
                 <h4 className="font-black text-xl text-[var(--text-main)] uppercase tracking-tighter">Gestión de activo</h4>
                 <Building2 size={20} className="text-[var(--primary)]"/>
               </div>
-              <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+                <EditableItem label="País" field="jerarquia_pais" isEditing={false} form={{ jerarquia_pais: form.jerarquia?.pais || 'Colombia' }} icon={<Globe size={14}/>} />
+                <EditableItem label="Planta" field="jerarquia_planta" isEditing={false} form={{ jerarquia_planta: form.jerarquia?.planta || 'Planta Principal' }} icon={<Building2 size={14}/>} />
+                <EditableItem label="Área / Sección" field="jerarquia_area" isEditing={false} form={{ jerarquia_area: form.jerarquia?.area || 'Área General' }} icon={<Layers size={14}/>} />
                 <EditableItem label="Ubicación Física" field="ubicacion" icon={<MapPin size={14}/>} isEditing={isEditing} form={form} handleChange={handleChange} />
                 <EditableItem label="Magnitud" field="magnitud" icon={<Activity size={14}/>} isEditing={isEditing} form={form} handleChange={handleChange} />
                 <EditableItem label="Estado de Operación" field="estado_funcional" icon={<ShieldCheck size={14}/>} isEditing={isEditing} form={form} handleChange={handleChange} />
@@ -1077,7 +1115,10 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
         <footer className="bg-white px-10 py-6 border-t border-[var(--outline-color)]/20 flex items-center justify-between z-20">
           <div className="flex gap-4">
             <button 
-              onClick={() => window.open(`/dashboard/inventario/${instrumentId}`, '_blank')}
+              onClick={() => {
+                navigate(`/dashboard/inventario/${instrumentId}`);
+                onClose();
+              }}
               className="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-[#1A202C] rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-md"
             >
               <Eye size={18}/> Ver Expediente Completo

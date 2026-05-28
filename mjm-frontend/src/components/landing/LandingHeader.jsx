@@ -54,13 +54,13 @@ const LandingHeader = () => {
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex space-x-10 items-center">
+          <nav className="hidden md:flex space-x-8 items-center">
             {['#inicio', '#nosotros', '#servicios'].map((href, i) => (
-              <a key={i} href={href} className="hover:text-mjm-orange font-bold transition-all uppercase text-[13px] tracking-tight py-1">
+              <a key={i} href={href} className="text-current hover:text-mjm-orange font-semibold transition-all duration-300 ease-in-out uppercase text-[12px] tracking-wider py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-mjm-orange hover:after:w-full after:transition-all after:duration-300">
                 {['Inicio', 'Nosotros', 'Servicios'][i]}
               </a>
             ))}
-            <Link to="/login" className="bg-mjm-orange text-white px-8 py-3 rounded-md font-black hover:bg-orange-600 transition-all shadow-[0_4px_14px_0_rgba(238,140,44,0.39)] uppercase text-xs tracking-widest">
+            <Link to="/login" className="bg-mjm-orange text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-all duration-300 shadow-[0_4px_20px_0_rgba(238,140,44,0.25)] hover:shadow-[0_6px_24px_0_rgba(238,140,44,0.4)] uppercase text-[11px] tracking-widest hover:scale-[1.02] active:scale-95">
               Portal de Clientes
             </Link>
           </nav>

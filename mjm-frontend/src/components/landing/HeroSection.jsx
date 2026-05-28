@@ -39,17 +39,17 @@ const HeroSection = ({ title, subtitle }) => {
               initial={{ opacity: 0, x: -40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="text-5xl md:text-8xl font-black text-white leading-[0.9] mb-8"
+              className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white leading-[1.05] tracking-tight mb-8 font-display"
             >
               {titlePart1} <br />
-              <span className="text-mjm-orange">{titlePart2}</span>
+              <span className="text-mjm-orange font-black">{titlePart2}</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, x: -40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="text-xl md:text-2xl text-white/90 mb-12 leading-relaxed font-bold max-w-xl"
+              className="text-lg md:text-xl text-white/80 mb-10 leading-relaxed font-light max-w-xl"
             >
               {subtitle}
             </motion.p>
@@ -61,10 +61,10 @@ const HeroSection = ({ title, subtitle }) => {
             >
               <a
                 href="#servicios"
-                className="inline-flex items-center gap-3 bg-mjm-orange hover:bg-orange-600 text-white px-12 py-5 rounded-md font-black uppercase text-[13px] transition-all shadow-[0_10px_30px_-5px_rgba(238,140,44,0.6)] hover:scale-105 active:scale-95 tracking-widest group"
+                className="inline-flex items-center gap-3 bg-mjm-orange hover:bg-orange-600 text-white px-12 py-5 rounded-xl font-bold uppercase text-sm transition-all shadow-[0_10px_35px_rgba(238,140,44,0.25)] hover:shadow-[0_15px_40px_rgba(238,140,44,0.4)] hover:scale-[1.02] active:scale-95 tracking-wider group"
               >
                 NUESTROS SERVICIOS
-                <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
               </a>
             </motion.div>
           </div>
@@ -78,17 +78,17 @@ const HeroSection = ({ title, subtitle }) => {
           >
             <button
               onClick={() => setIsCertModalOpen(true)}
-              className="bg-[#fbfcff] rounded-2xl border-2 border-mjm-orange/30 shadow-[0_10px_30px_rgba(0,0,0,0.15)] p-4 pr-6 flex items-center gap-4 hover:scale-105 hover:shadow-[0_15px_40px_rgba(238,140,44,0.3)] hover:border-mjm-orange transition-all group outline-none"
+              className="glass-premium rounded-2xl border border-white/40 shadow-[0_10px_40px_rgba(0,0,0,0.08)] p-4 pr-6 flex items-center gap-4 hover:scale-[1.02] hover:shadow-[0_15px_50px_rgba(238,140,44,0.2)] hover:border-mjm-orange/40 transition-premium group outline-none"
             >
               <img
                 src="https://asesoriasintegralesmjm.com/ui/icontec.png"
                 alt="Logo Icontec ISO 9001"
-                className="h-[4.5rem] w-auto drop-shadow-sm group-hover:drop-shadow-md transition-all"
+                className="h-[4.5rem] w-auto drop-shadow-sm group-hover:drop-shadow-md transition-all duration-500"
                 loading="lazy"
               />
               <div className="flex flex-col text-left justify-center">
-                <span className="text-mjm-navy font-black text-2xl leading-none tracking-tight mb-0.5">Certificación</span>
-                <span className="text-mjm-orange font-black text-[28px] leading-none tracking-tight">ISO 9001</span>
+                <span className="text-mjm-navy font-bold text-xl leading-none tracking-tight mb-1">Certificación</span>
+                <span className="text-mjm-orange font-extrabold text-2xl leading-none tracking-tight">ISO 9001</span>
               </div>
             </button>
           </motion.div>

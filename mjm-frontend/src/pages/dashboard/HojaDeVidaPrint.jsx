@@ -4,6 +4,11 @@ import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
 import { ShieldCheck, Clock, MapPin, Activity, AlertTriangle, Building2, Smartphone as ImageIcon } from 'lucide-react';
 
+const cleanUnitDisplay = (val) => {
+  if (!val || val === 'N/A') return 'N/A';
+  return String(val).replace(/\s*\([^)]*\)/g, '').trim();
+};
+
 const HojaDeVidaPrint = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -123,30 +128,52 @@ const HojaDeVidaPrint = () => {
                 <span className="text-xs font-mono font-bold text-slate-800 uppercase">{inst.serie || 'N/A'}</span>
               </div>
               <div className="p-3 flex flex-col justify-center">
-                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Ubicación Física</span>
-                <span className="text-xs font-bold text-slate-800 uppercase">{inst.ubicacion || 'N/A'}</span>
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">País</span>
+                <span className="text-xs font-bold text-slate-800 uppercase">{inst.jerarquia?.pais || 'Colombia'}</span>
               </div>
             </div>
 
             <div className="grid grid-cols-2 divide-x divide-slate-200 flex-1">
+              <div className="p-3 flex flex-col justify-center">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Planta</span>
+                <span className="text-xs font-bold text-slate-800 uppercase">{inst.jerarquia?.planta || 'Planta Principal'}</span>
+              </div>
+              <div className="p-3 flex flex-col justify-center">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Área / Sección</span>
+                <span className="text-xs font-bold text-slate-800 uppercase">{inst.jerarquia?.area || 'Área General'}</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 divide-x divide-slate-200 flex-1">
+              <div className="p-3 flex flex-col justify-center">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Ubicación Física</span>
+                <span className="text-xs font-bold text-slate-800 uppercase">{inst.jerarquia?.ubicacion || inst.ubicacion || 'N/A'}</span>
+              </div>
               <div className="p-3 flex flex-col justify-center">
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Criticidad</span>
                 <span className="text-xs font-bold text-amber-600 uppercase font-mono">{inst.criticidad || 'N/A'}</span>
               </div>
-              <div className="p-3 flex flex-col justify-center">
-                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Div. de Escala</span>
-                <span className="text-xs font-bold text-slate-800 uppercase font-mono">{inst.division_escala || 'N/A'}</span>
-              </div>
             </div>
 
             <div className="grid grid-cols-2 divide-x divide-slate-200 flex-1">
               <div className="p-3 flex flex-col justify-center">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Div. de Escala</span>
+                <span className="text-xs font-bold text-slate-800 uppercase font-mono">{cleanUnitDisplay(inst.division_escala || 'N/A')}</span>
+              </div>
+              <div className="p-3 flex flex-col justify-center">
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Responsable</span>
                 <span className="text-xs font-bold text-slate-800 uppercase font-mono">{inst.responsable || 'Sin Asignar'}</span>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 divide-x divide-slate-200 flex-1">
               <div className="p-3 bg-slate-50/20 flex flex-col justify-center">
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">Control Metrológico</span>
                 <span className="text-xs font-bold text-slate-800 uppercase font-mono">{inst.proceso || 'N/A'}</span>
+              </div>
+              <div className="p-3 flex flex-col justify-center">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest font-mono block mb-0.5">ID del Activo</span>
+                <span className="text-xs font-black text-slate-800 font-mono tracking-wider">{inst.codigoMJM || inst.codigo || 'S/N'}</span>
               </div>
             </div>
           </div>
@@ -159,19 +186,19 @@ const HojaDeVidaPrint = () => {
              <div className="bg-slate-50/50 border border-slate-200 p-4 rounded-xl flex flex-col items-center text-center">
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1 font-mono">Capacidad Mín / Máx</span>
                 <p className="text-xl font-black text-slate-800 tracking-tight">
-                  {inst.rango_min || '0'} / {inst.rango_max || 'N/A'}
+                  {cleanUnitDisplay(inst.rango_min || '0')} / {cleanUnitDisplay(inst.rango_max || 'N/A')}
                 </p>
              </div>
              <div className="bg-slate-50/50 border border-slate-200 p-4 rounded-xl flex flex-col items-center text-center">
                 <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1 font-mono">Resolución</span>
                 <p className="text-xl font-black text-slate-800 tracking-tight">
-                  {inst.resolucion || 'N/A'}
+                  {cleanUnitDisplay(inst.resolucion || 'N/A')}
                 </p>
              </div>
              <div className="bg-emerald-50/30 border border-emerald-200 p-4 rounded-xl flex flex-col items-center text-center">
                 <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest mb-1 font-mono">Tolerancia de Proceso</span>
                 <p className="text-xl font-black text-emerald-700 tracking-tight">
-                   {inst.tolerancia_proceso || 'N/A'}
+                   {cleanUnitDisplay(inst.tolerancia_proceso || 'N/A')}
                 </p>
              </div>
           </div>

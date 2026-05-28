@@ -13,6 +13,7 @@ import ChatbotSubmissions from './pages/dashboard/ChatbotSubmissions';
 import Settings from './pages/dashboard/Settings';
 import IAVerificationLab from './pages/dashboard/IAVerificationLab';
 import HojaDeVidaPrint from './pages/dashboard/HojaDeVidaPrint';
+import Cotizador from './pages/dashboard/Cotizador';
 import { useAuthStore } from './store/authStore';
 
 const PrivateRoute = ({ children }) => {
@@ -74,6 +75,7 @@ function AppRoutes() {
           {/* Otros módulos */}
           <Route path="solicitudes" element={<ChatbotSubmissions />} />
           <Route path="ia-lab" element={<IAVerificationLab />} />
+          <Route path="cotizador" element={<Cotizador />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 

@@ -23,6 +23,36 @@ import {
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
 
+const cleanUnitDisplay = (val) => {
+  if (!val || val === 'N/A') return 'N/A';
+  return String(val).replace(/\s*\([^)]*\)/g, '').trim();
+};
+
+const formatDateYYYYMMDD = (dateVal) => {
+  if (!dateVal || dateVal === 'N/A') return 'N/A';
+  try {
+    if (typeof dateVal === 'string') {
+      const match = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        return `${match[1]}-${match[2]}-${match[3]}`;
+      }
+    }
+    let d;
+    if (dateVal && typeof dateVal === 'object' && typeof dateVal.seconds === 'number') {
+      d = new Date(dateVal.seconds * 1000);
+    } else {
+      d = new Date(dateVal);
+    }
+    if (isNaN(d.getTime())) return String(dateVal);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    return String(dateVal);
+  }
+};
+
 export default function HojaDeVida() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -134,20 +164,32 @@ export default function HojaDeVida() {
                 <p className="font-headline-md text-on-surface">{inst.modelo || 'N/A'}</p>
               </div>
               <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">PAÍS</p>
+                <p className="font-headline-md text-on-surface">{inst.jerarquia?.pais || 'Colombia'}</p>
+              </div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">PLANTA</p>
+                <p className="font-headline-md text-on-surface">{inst.jerarquia?.planta || 'Planta Principal'}</p>
+              </div>
+              <div>
+                <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">ÁREA / SECCIÓN</p>
+                <p className="font-headline-md text-on-surface">{inst.jerarquia?.area || 'Área General'}</p>
+              </div>
+              <div>
                 <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">UBICACIÓN FÍSICA</p>
-                <p className="font-headline-md text-on-surface">{inst.ubicacion || 'N/A'}</p>
+                <p className="font-headline-md text-on-surface">{inst.jerarquia?.ubicacion || inst.ubicacion || 'N/A'}</p>
               </div>
               <div>
                 <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">RESPONSABLE</p>
-                <p className="font-body-lg font-medium text-on-surface">{inst.responsable || 'Sin Asignar'}</p>
+                <p className="font-headline-md text-on-surface uppercase">{inst.responsable || 'Sin Asignar'}</p>
               </div>
               <div>
                 <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">FECHA DE REGISTRO</p>
-                <p className="font-body-lg text-on-surface">{inst.createdAt ? new Date(inst.createdAt).toLocaleDateString() : 'N/A'}</p>
+                <p className="font-headline-md text-on-surface">{formatDateYYYYMMDD(inst.createdAt)}</p>
               </div>
               <div>
                 <p className="font-label-caps text-[10px] text-on-surface-variant mb-1">ID DEL ACTIVO</p>
-                <p className="font-headline-md text-on-surface">{inst.codigoMJM || inst.codigo || 'S/N'}</p>
+                <p className="font-headline-md text-primary font-black tracking-wider">{inst.codigoMJM || inst.codigo || 'S/N'}</p>
               </div>
             </div>
             {/* Calibration Alert */}
@@ -157,11 +199,19 @@ export default function HojaDeVida() {
                 Próxima intervención programada para el <span className="text-tertiary font-bold">
                   {inst.rutinas?.calibracion && inst.rutinas?.calibracion_fecha_inicial && inst.rutinas?.calibracion_frecuencia 
                     ? (() => {
+                        const parts = String(inst.rutinas.calibracion_fecha_inicial).split('-');
+                        if (parts.length === 3) {
+                          const year = Number(parts[0]);
+                          const month = Number(parts[1]) - 1;
+                          const day = Number(parts[2]);
+                          const d = new Date(year, month + Number(inst.rutinas.calibracion_frecuencia), day);
+                          return formatDateYYYYMMDD(d);
+                        }
                         const d = new Date(inst.rutinas.calibracion_fecha_inicial);
                         d.setMonth(d.getMonth() + Number(inst.rutinas.calibracion_frecuencia));
-                        return d.toLocaleDateString();
+                        return formatDateYYYYMMDD(d);
                       })()
-                    : '24 de Junio'
+                    : 'N/A'
                   }
                 </span>. Asegure condiciones ambientales.
               </p>
@@ -174,10 +224,10 @@ export default function HojaDeVida() {
           {[
             { label: 'Serial', val: inst.serie || 'N/A', icon: <Barcode size={18}/> },
             { label: 'Criticidad', val: inst.criticidad || 'N/A', icon: <AlertCircle size={18}/> },
-            { label: 'Resolución', val: inst.resolucion || 'N/A', icon: <Activity size={18}/>, highlight: true },
-            { label: 'Div. de Escala', val: inst.division_escala || 'N/A', icon: <Activity size={18}/>, highlight: true },
-            { label: 'Capacidad Mínima', val: inst.rango_min || 'N/A', icon: <LineChart size={18}/> },
-            { label: 'Capacidad Máxima', val: inst.rango_max || 'N/A', icon: <LineChart size={18}/> },
+            { label: 'Resolución', val: cleanUnitDisplay(inst.resolucion || 'N/A'), icon: <Activity size={18}/>, highlight: true },
+            { label: 'Div. de Escala', val: cleanUnitDisplay(inst.division_escala || 'N/A'), icon: <Activity size={18}/>, highlight: true },
+            { label: 'Capacidad Mínima', val: cleanUnitDisplay(inst.rango_min || 'N/A'), icon: <LineChart size={18}/> },
+            { label: 'Capacidad Máxima', val: cleanUnitDisplay(inst.rango_max || 'N/A'), icon: <LineChart size={18}/> },
           ].map((attr, idx) => (
             <div key={idx} className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-stack-md flex flex-col justify-between shadow-sm hover:border-primary/40 transition-colors">
               <div className="text-primary opacity-60 mb-stack-sm">{attr.icon}</div>
@@ -199,8 +249,8 @@ export default function HojaDeVida() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-stack-lg">
             {[
-              { label: 'Tolerancia del Proceso', val: inst.tolerancia_proceso || 'N/A', info: 'Mínimo error permitido por el proceso.' },
-              { label: 'Incertidumbre Requerida', val: inst.incertidumbre || 'N/A', info: 'Capacidad de medición instalada requerida.' },
+              { label: 'Tolerancia del Proceso', val: cleanUnitDisplay(inst.tolerancia_proceso || 'N/A'), info: 'Mínimo error permitido por el proceso.' },
+              { label: 'Incertidumbre Requerida', val: cleanUnitDisplay(inst.incertidumbre || 'N/A'), info: 'Capacidad de medición instalada requerida.' },
               { label: 'Control Metrológico', val: inst.proceso || 'OPERATIVO', info: 'Proceso vinculado al instrumento.' },
             ].map((req, idx) => (
               <div key={idx} className="bg-surface-container-low p-stack-md rounded-xl border-l-4 border-primary">
@@ -234,7 +284,7 @@ export default function HojaDeVida() {
                     <p className="font-label-caps text-[10px] text-emerald-600 mb-1 uppercase tracking-wider">{rutina.label}</p>
                     <p className="font-data-md text-on-surface font-bold">Frecuencia: {inst.rutinas[`${rutina.key}_frecuencia`] || 'N/A'} meses</p>
                     <p className="text-[11px] text-on-surface-variant/60 mt-1">
-                      Base: {inst.rutinas[`${rutina.key}_fecha_inicial`] ? new Date(inst.rutinas[`${rutina.key}_fecha_inicial`]).toLocaleDateString() : 'N/A'}
+                      Base: {formatDateYYYYMMDD(inst.rutinas[`${rutina.key}_fecha_inicial`])}
                     </p>
                   </div>
                 );
@@ -270,7 +320,7 @@ export default function HojaDeVida() {
               <tbody className="divide-y divide-outline-variant/10 font-body-md text-sm">
                 {(inst.historial || []).slice(0, 5).map((log, idx) => (
                   <tr key={idx} className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-stack-lg py-4 font-data-md">{log.fecha}</td>
+                    <td className="px-stack-lg py-4 font-data-md">{formatDateYYYYMMDD(log.fecha)}</td>
                     <td className="px-stack-lg py-4 font-medium text-on-surface">{log.tipo} - {log.laboratorio || 'MJM Internal'}</td>
                     <td className="px-stack-lg py-4">
                       <span className="px-2 py-1 rounded bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase">

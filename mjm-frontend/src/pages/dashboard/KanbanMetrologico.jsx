@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../config/firebase';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
 import { 
@@ -31,10 +33,42 @@ import {
 const ClosureModal = ({ activity, onClose, onFinish }) => {
   const [file, setFile] = useState(null);
   const [laboratorio, setLaboratorio] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   
+  const getColombiaDate = () => {
+    const d = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Bogota"}));
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const todayStr = getColombiaDate();
+  const isVencida = activity.fechaProgramada < todayStr;
+  const [fechaEjecucion, setFechaEjecucion] = useState(todayStr);
+
+  const handleFinish = async () => {
+    setIsUploading(true);
+    let certificado_url = null;
+    
+    if (file) {
+      try {
+        const tenantId = activity.tenantId || useAuthStore.getState().tenant?.id;
+        const fileRef = ref(storage, `tenants/${tenantId}/actividades/${activity.id}/certificados/${file.name}`);
+        await uploadBytes(fileRef, file);
+        certificado_url = await getDownloadURL(fileRef);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
+    }
+    
+    onFinish({ laboratorio, fecha_ejecucion: fechaEjecucion, certificado_url });
+    setIsUploading(false);
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-secondary/60 backdrop-blur-md">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-lg shadow-2xl border border-outline/20 animate-in zoom-in duration-300">
+      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-xl shadow-2xl border border-outline/20 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start mb-8">
            <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center">
@@ -42,39 +76,63 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
               </div>
               <div>
                  <h2 className="text-xl font-black text-secondary uppercase tracking-tight">Cierre de Actividad</h2>
-                 <p className="text-[10px] font-bold text-neutral uppercase tracking-widest">Protocolo de Finalización Metrológica</p>
               </div>
            </div>
            <button onClick={onClose} className="text-neutral hover:text-secondary"><X size={24} /></button>
         </div>
 
         <div className="space-y-6">
-           <div className="bg-surface p-4 rounded-2xl border border-outline/10">
+           <div className="bg-surface p-5 rounded-2xl border border-outline/10">
               <p className="text-[10px] font-black text-neutral uppercase mb-1">Activo a Intervenir</p>
-              <p className="text-sm font-bold text-secondary">{activity.instrumentNombre}</p>
-              <p className="text-[10px] font-data text-primary mt-1">{activity.codigoMJM}</p>
+              <p className="text-base font-bold text-secondary mb-1">{activity.instrumentNombre}</p>
+              <p className="inline-block mt-2 px-3 py-1 bg-[var(--primary)]/10 text-[var(--primary)] text-xs font-black rounded-lg border border-[var(--primary)]/20">
+                ID: {activity.codigo || activity.codigoMJM || 'Sin Código'}
+              </p>
            </div>
 
-           <div>
-              <label className="label-sm text-neutral mb-2 block">Laboratorio Ejecutor</label>
-              <input 
-                value={laboratorio} 
-                onChange={e => setLaboratorio(e.target.value)}
-                placeholder="Ej: Metrología Avanzada S.A.S" 
-                className="input-metrology w-full" 
-              />
+           {isVencida && (
+             <div className="bg-red-50 p-4 rounded-2xl border border-red-200 flex items-start gap-3">
+                <AlertCircle className="text-red-500 shrink-0" size={20} />
+                <div>
+                   <p className="text-xs font-black text-red-700 uppercase tracking-widest">Novedad: Tarea Vencida</p>
+                   <p className="text-xs text-red-600 mt-1">Esta actividad expiró. La fecha de ejecución se ha fijado obligatoriamente a la fecha de hoy para reflejar el cierre tardío.</p>
+                </div>
+             </div>
+           )}
+
+           <div className="grid grid-cols-2 gap-4">
+               <div>
+                  <label className="label-sm text-neutral mb-2 block">Fecha de Ejecución</label>
+                  <input 
+                    type="text"
+                    placeholder="AAAA-MM-DD"
+                    value={fechaEjecucion}
+                    onChange={e => setFechaEjecucion(e.target.value)}
+                    disabled={isVencida}
+                    className={`input-metrology w-full font-data tracking-wider ${isVencida ? 'opacity-60 cursor-not-allowed bg-neutral-100' : ''}`}
+                  />
+               </div>
+               <div>
+                  <label className="label-sm text-neutral mb-2 block">Ejecutó</label>
+                  <input 
+                    value={laboratorio} 
+                    onChange={e => setLaboratorio(e.target.value)}
+                    placeholder="Ej: Metrología Avanzada" 
+                    className="input-metrology w-full" 
+                  />
+               </div>
            </div>
 
            {/* DROPZONE PARA CERTIFICADO */}
            <div className="border-2 border-dashed border-outline/30 rounded-3xl p-8 text-center hover:border-primary/50 transition-all cursor-pointer bg-surface/50 group">
               <input type="file" className="hidden" id="cert-upload" onChange={e => setFile(e.target.files[0])} />
-              <label htmlFor="cert-upload" className="cursor-pointer">
-                 <FileUp size={40} className="mx-auto text-neutral group-hover:text-primary mb-4 transition-colors" />
+              <label htmlFor="cert-upload" className="cursor-pointer flex flex-col items-center">
+                 <FileUp size={40} className="text-neutral group-hover:text-primary mb-4 transition-colors" />
                  {file ? (
                    <p className="text-xs font-bold text-emerald-600 truncate">{file.name}</p>
                  ) : (
                    <>
-                    <p className="text-xs font-bold text-secondary">Cargar Certificado de Calibración</p>
+                    <p className="text-xs font-bold text-secondary">Cargar Soporte Documental</p>
                     <p className="text-[10px] text-neutral mt-1 uppercase tracking-widest">Formatos PDF, JPG (Max 10MB)</p>
                    </>
                  )}
@@ -82,13 +140,17 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
            </div>
 
            <div className="flex gap-4 pt-4">
-              <button onClick={onClose} className="flex-1 btn-secondary py-4">Cancelar</button>
+              <button onClick={onClose} className="flex-1 btn-secondary py-4" disabled={isUploading}>Cancelar</button>
               <button 
-                onClick={() => onFinish({ file, laboratorio })}
-                disabled={!file || !laboratorio}
-                className="flex-2 btn-primary py-4 px-10 shadow-xl shadow-primary/20 disabled:opacity-50"
+                onClick={handleFinish}
+                disabled={!file || !laboratorio || isUploading}
+                className="flex-2 btn-primary py-4 px-10 shadow-xl shadow-primary/20 disabled:opacity-50 flex justify-center items-center gap-2"
               >
-                FINALIZAR Y VALIDAR IA
+                {isUploading ? (
+                  <><RefreshCw size={18} className="animate-spin" /> SUBIENDO...</>
+                ) : (
+                  'FINALIZAR'
+                )}
               </button>
            </div>
         </div>
@@ -129,34 +191,29 @@ const ActivityCard = ({ act, column, onStart, onFinish }) => {
         <MoreVertical size={14} className="text-[var(--text-muted)] opacity-40 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <h4 className="font-bold text-[var(--text-main)] text-sm mb-1 leading-tight">{act.instrumentNombre || 'Instrumento Sin Nombre'}</h4>
-      <p className="font-data text-[10px] text-[var(--text-muted)] tracking-tighter mb-4">ID: {act.codigoMJM || 'MET-ID-000'}</p>
+      <h4 className="font-bold text-[var(--text-main)] text-sm mb-1.5 leading-tight">{act.instrumentNombre || 'Instrumento Sin Nombre'}</h4>
+      
+      <div className="flex justify-between items-center text-xs font-black text-slate-800 dark:text-slate-100 mb-3">
+        <span className="flex items-center gap-1.5 bg-[var(--primary)]/15 text-slate-800 dark:text-slate-100 px-2.5 py-1 rounded-lg border border-[var(--primary)]/30">
+          <Clock size={14} className="text-[var(--primary)]" />
+          <span>Vence: {act.fechaProgramada}</span>
+        </span>
+        <span>ID: {act.codigo || act.codigoMJM || 'Sin Código'}</span>
+      </div>
 
       {act.declaracion_conformidad && (
-        <div className={`mb-4 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20`}>
-          <ShieldCheck size={12}/>
+        <div className={`mb-3 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20`}>
+          <ShieldCheck size={10}/>
           {act.declaracion_conformidad}
         </div>
       )}
 
       {/* Altura #2 (Oculto por defecto en desktop, visible al hacer hover) */}
-      <div className="transition-all duration-300 ease-in-out xl:max-h-0 xl:opacity-0 xl:overflow-hidden xl:group-hover:max-h-60 xl:group-hover:opacity-100 xl:group-hover:mt-4">
-        <div className="flex items-center justify-between pt-4 border-t border-[var(--outline-color)]">
-          <div className="flex items-center gap-2">
-             <div className="w-6 h-6 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center">
-                <User size={12} />
-             </div>
-          </div>
-          <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
-            <Clock size={12} />
-            <span className="font-data text-[10px]">{act.fechaProgramada}</span>
-          </div>
-        </div>
-        
+      <div className="transition-all duration-300 ease-in-out mt-3 xl:mt-0 xl:max-h-0 xl:opacity-0 xl:overflow-hidden xl:group-hover:max-h-20 xl:group-hover:opacity-100 xl:group-hover:mt-3">
         {act.estado === 'todo' && (
           <button 
             onClick={() => onStart(act.id)}
-            className="mt-4 w-full py-2.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)] hover:text-[#1A202C] text-[var(--primary)] rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-[var(--primary)]/20"
+            className="w-full py-2.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)] hover:text-[#1A202C] text-[var(--primary)] rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-[var(--primary)]/20"
           >
             <Play size={10} fill="currentColor" /> Iniciar Actividad
           </button>
@@ -165,7 +222,7 @@ const ActivityCard = ({ act, column, onStart, onFinish }) => {
         {act.estado === 'doing' && (
           <button 
             onClick={() => onFinish(act)}
-            className="mt-4 w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-500 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-emerald-500/20"
+            className="w-full py-2.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-500 rounded-xl font-black text-[9px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 border border-emerald-500/20"
           >
             <CheckCircle size={10} /> Finalizar Actividad
           </button>
@@ -245,34 +302,45 @@ export default function KanbanMetrologico() {
   }, [tenant?.id, loadActivities]);
 
   const todayStr = useMemo(() => {
-    return new Date().toISOString().split('T')[0];
+    const d = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Bogota"}));
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }, []);
 
   const weekRange = useMemo(() => {
-    const now = new Date();
+    const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Bogota"}));
     const day = now.getDay(); // 0 (Sun) to 6 (Sat)
+    const diffToMonday = day === 0 ? -6 : 1 - day;
     
-    // Start of current week (Sunday)
-    const sundayStart = new Date(now);
-    sundayStart.setDate(now.getDate() - day);
-    sundayStart.setHours(0,0,0,0);
+    const mondayStart = new Date(now);
+    mondayStart.setDate(now.getDate() + diffToMonday);
     
-    // End of current week (Next Sunday)
-    const sundayEnd = new Date(sundayStart);
-    sundayEnd.setDate(sundayStart.getDate() + 7);
-    sundayEnd.setHours(23,59,59,999);
+    const sundayEnd = new Date(mondayStart);
+    sundayEnd.setDate(mondayStart.getDate() + 6);
     
     return {
-      startStr: sundayStart.toISOString().split('T')[0],
+      startStr: mondayStart.toISOString().split('T')[0],
       endStr: sundayEnd.toISOString().split('T')[0]
     };
   }, []);
 
-  const next30DaysStr = useMemo(() => {
-    const now = new Date();
-    const next30 = new Date(now);
-    next30.setDate(now.getDate() + 30);
-    return next30.toISOString().split('T')[0];
+  const nextManageRange = useMemo(() => {
+    const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Bogota"}));
+    const day = now.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    
+    const nextMonday = new Date(now);
+    nextMonday.setDate(now.getDate() + diffToMonday + 7);
+    
+    const end30Days = new Date(nextMonday);
+    end30Days.setDate(nextMonday.getDate() + 30);
+    
+    return {
+      startStr: nextMonday.toISOString().split('T')[0],
+      endStr: end30Days.toISOString().split('T')[0]
+    };
   }, []);
 
   const columns = [
@@ -287,20 +355,39 @@ export default function KanbanMetrologico() {
     const matchesSearch = (a) => (a.instrumentNombre?.toLowerCase().includes(s) || a.codigoMJM?.toLowerCase().includes(s));
     
     return {
-      por_gestionar: activities.filter(a => a.estado === 'todo' && a.fechaProgramada > weekRange.endStr && a.fechaProgramada <= next30DaysStr && matchesSearch(a)),
-      en_proceso: activities.filter(a => a.estado === 'todo' && a.fechaProgramada >= todayStr && a.fechaProgramada <= weekRange.endStr && matchesSearch(a)),
-      doing: activities.filter(a => a.estado === 'doing' && matchesSearch(a)),
-      vencidos: activities.filter(a => a.estado === 'todo' && a.fechaProgramada < todayStr && matchesSearch(a))
+      por_gestionar: activities
+         .filter(a => a.estado === 'todo' && a.fechaProgramada >= nextManageRange.startStr && a.fechaProgramada <= nextManageRange.endStr && matchesSearch(a))
+         .sort((a,b) => a.fechaProgramada.localeCompare(b.fechaProgramada)),
+      en_proceso: activities
+         .filter(a => a.estado === 'todo' && a.fechaProgramada >= weekRange.startStr && a.fechaProgramada <= weekRange.endStr && matchesSearch(a))
+         .sort((a,b) => a.fechaProgramada.localeCompare(b.fechaProgramada)),
+      doing: activities
+         .filter(a => a.estado === 'doing' && matchesSearch(a))
+         .sort((a,b) => a.fechaProgramada.localeCompare(b.fechaProgramada)),
+      vencidos: activities
+         .filter(a => a.estado === 'todo' && a.fechaProgramada < todayStr && matchesSearch(a)) // Cambiado de weekRange.startStr a todayStr para reflejar vencimiento hoy a medianoche
+         .sort((a,b) => a.fechaProgramada.localeCompare(b.fechaProgramada))
     };
-  }, [activities, search, todayStr, weekRange, next30DaysStr]);
+  }, [activities, search, todayStr, weekRange, nextManageRange]);
 
   const handleDrop = (e, columnId) => {
     e.preventDefault();
     const id = e.dataTransfer.getData('activityId');
+    const act = activities.find(a => a.id === id);
+    if (!act) return;
+
     if (columnId === 'doing') {
       updateActivityStatus(id, 'doing');
-    } else if (columnId === 'vencidos' || columnId === 'en_proceso' || columnId === 'por_gestionar') {
-      updateActivityStatus(id, 'todo');
+    } else {
+      // Solo permitimos moverla de vuelta a su columna de origen lógica (para no confundir al usuario)
+      let correctCol = '';
+      if (act.fechaProgramada < weekRange.startStr) correctCol = 'vencidos';
+      else if (act.fechaProgramada >= weekRange.startStr && act.fechaProgramada <= weekRange.endStr) correctCol = 'en_proceso';
+      else if (act.fechaProgramada >= nextManageRange.startStr && act.fechaProgramada <= nextManageRange.endStr) correctCol = 'por_gestionar';
+      
+      if (columnId === correctCol && act.estado === 'doing') {
+         updateActivityStatus(id, 'todo');
+      }
     }
   };
 
@@ -311,12 +398,6 @@ export default function KanbanMetrologico() {
       <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6 mb-4 md:mb-6 shrink-0">
         <div>
            <h1 className="font-black text-[var(--text-main)] text-2xl md:text-4xl tracking-tighter uppercase">Tablero de <span className="text-[var(--primary)] italic">Control</span></h1>
-        </div>
-        
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-           <button className="h-12 w-12 md:h-14 md:w-52 bg-[var(--primary)] text-[#1A202C] rounded-xl md:rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-[var(--primary)]/20 hover:brightness-110 active:scale-95 transition-all flex items-center justify-center shrink-0">
-              <RefreshCw size={16} className="md:mr-2" /> <span className="hidden md:inline">Sincronizar</span>
-           </button>
         </div>
       </section>
 
@@ -379,7 +460,17 @@ export default function KanbanMetrologico() {
                     {grouped[col.id]?.length || 0}
                   </span>
                 </div>
-                <button className="p-1.5 hover:bg-white rounded-lg text-neutral"><MoreHorizontal size={14} /></button>
+                <div className="relative group/tooltip">
+                  <button className="p-1.5 hover:bg-white rounded-lg text-neutral/40 hover:text-[var(--primary)] transition-colors">
+                     <Info size={16} />
+                  </button>
+                  <div className="absolute right-0 top-8 w-72 bg-[var(--sidebar-bg)] text-white text-xs p-4 rounded-xl opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-white/20 font-bold leading-relaxed">
+                     {col.id === 'por_gestionar' && 'Actividades programadas desde el Lunes próximo hasta +30 días hacia el futuro.'}
+                     {col.id === 'en_proceso' && 'El sprint actual: Actividades que deben ejecutarse esta semana (Lunes a Domingo).'}
+                     {col.id === 'doing' && 'Actividades que has movido manualmente y se están ejecutando en este momento.'}
+                     {col.id === 'vencidos' && 'Actividades que expiraron porque su fecha programada quedó en el pasado.'}
+                  </div>
+                </div>
               </div>
 
               <div className="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-1 pb-20">
@@ -414,7 +505,10 @@ export default function KanbanMetrologico() {
             updateActivityStatus(closureAct.id, 'done', {
                error_encontrado: 0.0001,
                incertidumbre_medicion: 0.0002,
-               declaracion_conformidad: 'Conforme'
+               declaracion_conformidad: 'Conforme',
+               fecha_ejecucion: data.fecha_ejecucion,
+               laboratorio_ejecutor: data.laboratorio,
+               certificado_url: data.certificado_url
             });
             setClosureAct(null);
           }}

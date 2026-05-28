@@ -19,22 +19,23 @@ import { useAuthStore } from './authStore';
 const generateActivitiesForInstrument = async (tenantId, instrumentId, instrumentData) => {
   const rutinas = instrumentData.rutinas || {};
   
-  // 1. Delete all existing 'todo' activities for this instrument
+  // 1. Fetch all existing 'todo' activities for this instrument (by instrumentId to avoid composite index errors)
+  let existingActivities = [];
   try {
     const q = query(
       collection(db, 'activities'),
-      where('tenantId', '==', tenantId),
-      where('instrumentId', '==', instrumentId),
-      where('estado', '==', 'todo')
+      where('instrumentId', '==', instrumentId)
     );
     const snap = await getDocs(q);
-    const deletePromises = snap.docs.map(docSnap => deleteDoc(doc(db, 'activities', docSnap.id)));
-    await Promise.all(deletePromises);
+    existingActivities = snap.docs
+      .filter(docSnap => docSnap.data().estado === 'todo' && docSnap.data().tenantId === tenantId)
+      .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
   } catch (err) {
-    console.error("Error deleting old activities:", err);
+    console.error("Error fetching old activities (sync aborted to prevent duplicates):", err);
+    return;
   }
 
-  // 2. Generate new activities for each enabled routine
+  // 2. Generate expected activities based on current routines
   const routineKeys = ['calibracion', 'verificacion', 'mantenimiento', 'calificacion'];
   const routineLabels = {
     calibracion: 'Calibración',
@@ -43,13 +44,14 @@ const generateActivitiesForInstrument = async (tenantId, instrumentId, instrumen
     calificacion: 'Calificación'
   };
 
+  const expectedActivities = [];
+
   for (const key of routineKeys) {
     if (rutinas[key]) {
       const freqMonths = Number(rutinas[`${key}_frecuencia`]) || 12;
       const startDateStr = rutinas[`${key}_fecha_inicial`];
       if (!startDateStr) continue;
 
-      // Parse YYYY-MM-DD TZ-safely
       const [year, month, day] = startDateStr.split('-').map(Number);
       const current = new Date(year, month - 1, day);
       
@@ -68,24 +70,69 @@ const generateActivitiesForInstrument = async (tenantId, instrumentId, instrumen
           tenantId,
           instrumentId,
           instrumentNombre: instrumentData.nombre || 'Instrumento',
-          codigoMJM: instrumentData.codigoMJM || '',
+          codigoMJM: instrumentData.codigo || instrumentData.codigoMJM || '',
           tipo: routineLabels[key],
           estado: 'todo',
           fechaProgramada: dateStr,
           priority: instrumentData.riesgo_operativo === 'Alta' || instrumentData.riesgo_operativo === 'Crítica' ? 'high' : 'medium',
-          createdAt: new Date().toISOString()
         };
 
         if (isLast) {
           activityData.is_last_of_5_years = true;
         }
 
-        await addDoc(collection(db, 'activities'), activityData);
+        expectedActivities.push(activityData);
 
-        // Advance month
-        current.setMonth(current.getMonth() + freqMonths);
+        // Safe Date increment to handle month overflow and leap years
+        const expectedMonth = current.getMonth() + freqMonths;
+        const targetDate = new Date(year, month - 1, day);
+        targetDate.setMonth(expectedMonth);
+        // If date overflowed (e.g., March 31 + 1 month became May 1), snap back to end of correct month
+        if (targetDate.getMonth() % 12 !== (expectedMonth % 12 + 12) % 12) {
+          targetDate.setDate(0); // set to last day of previous month
+        }
+        current.setTime(targetDate.getTime());
       }
     }
+  }
+
+  // 3. Sync Logic (Create new, update existing, delete obsolete)
+  try {
+    const promises = [];
+    
+    for (const expected of expectedActivities) {
+      // Find matching existing activity
+      const matchIndex = existingActivities.findIndex(act => 
+        act.tipo === expected.tipo && act.fechaProgramada === expected.fechaProgramada
+      );
+
+      if (matchIndex >= 0) {
+        // Update existing to sync names/IDs just in case they changed
+        const actId = existingActivities[matchIndex].id;
+        promises.push(updateDoc(doc(db, 'activities', actId), {
+          instrumentNombre: expected.instrumentNombre,
+          codigoMJM: expected.codigoMJM,
+          priority: expected.priority
+        }));
+        // Remove from list so it doesn't get deleted
+        existingActivities.splice(matchIndex, 1);
+      } else {
+        // Create new
+        promises.push(addDoc(collection(db, 'activities'), {
+          ...expected,
+          createdAt: new Date().toISOString()
+        }));
+      }
+    }
+
+    // 4. Delete remaining 'todo' activities that are no longer expected
+    for (const leftover of existingActivities) {
+      promises.push(deleteDoc(doc(db, 'activities', leftover.id)));
+    }
+
+    await Promise.all(promises);
+  } catch (err) {
+    console.error("Error during activities sync:", err);
   }
 };
 
@@ -242,9 +289,11 @@ export const useInventoryStore = create((set, get) => ({
       }));
 
       // Auto-schedule if routines or identifying info changed
-      if (data.rutinas || data.nombre || data.codigoMJM || data.riesgo_operativo) {
-        const fullInst = { ...get().instruments.find(i => i.id === instrumentId), ...data };
-        await generateActivitiesForInstrument(tenantId, instrumentId, fullInst);
+      if (data.rutinas || data.nombre || data.codigoMJM || data.codigo || data.riesgo_operativo) {
+        const fullInst = await get().getInstrumentFromFirestore(instrumentId);
+        if (fullInst) {
+          await generateActivitiesForInstrument(tenantId, instrumentId, fullInst);
+        }
       }
       
       return true;

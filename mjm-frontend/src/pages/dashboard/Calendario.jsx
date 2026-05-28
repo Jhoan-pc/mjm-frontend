@@ -10,7 +10,9 @@ import {
   MoreVertical,
   CheckCircle2,
   Settings,
-  RefreshCw
+  RefreshCw,
+  X,
+  Menu
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
@@ -19,6 +21,8 @@ export default function Calendario() {
   const { activities, loadActivities } = useInventoryStore();
   const { tenant } = useAuthStore();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
     if (tenant?.id) {
@@ -28,7 +32,7 @@ export default function Calendario() {
   }, [tenant?.id, loadActivities]);
 
   const days = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'DO'];
-  const monthName = currentDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+  const monthStrOnly = currentDate.toLocaleString('es-ES', { month: 'long' });
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -90,87 +94,137 @@ export default function Calendario() {
     return { vencidos, hoy, enProceso };
   }, [activities, todayStr]);
 
+  const handleDateClick = (dateStr) => {
+    setSelectedDate(dateStr);
+    setIsSidebarOpen(true);
+  };
+
+  const handleOpenGlobalSidebar = () => {
+    setSelectedDate(null);
+    setIsSidebarOpen(true);
+  };
+
   return (
-    <div className="flex flex-col lg:flex-row h-full gap-gutter animate-in fade-in duration-500">
+    <div className="relative flex flex-col h-full animate-in fade-in duration-500">
       
+      {/* --- FLOATING BUTTON PARA ABRIR SIDEBAR --- */}
+      <button 
+        onClick={handleOpenGlobalSidebar}
+        className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[var(--primary)] text-[#1A202C] p-3 pl-4 rounded-l-2xl shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] hover:pr-6 transition-all duration-300 flex flex-col items-center gap-3 group border border-l-white/20 border-y-white/20 animate-pulse"
+      >
+        <div className="bg-black/10 rounded-full p-1 animate-bounce mt-2 group-hover:animate-none">
+           <ChevronLeft size={16} />
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+          Ver Detalles
+        </span>
+      </button>
+
       {/* --- MAIN CALENDAR VIEW --- */}
-      <div className="flex-1 space-y-8">
+      <div className="flex-1 space-y-8 w-full max-w-7xl mx-auto pb-10">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Metrology Planner</p>
-            <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Planificador</h1>
-          </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <button 
-              onClick={handleToday}
-              className="flex-1 md:flex-none btn-secondary py-3 px-6 flex items-center justify-center gap-2"
-            >
-              <CalendarIcon size={16} /> VER HOY
-            </button>
-            <button className="flex-1 md:flex-none btn-primary py-3 px-8 flex items-center justify-center gap-2 shadow-xl shadow-[var(--primary)]/20">
-              <Plus size={16} /> NUEVA CITA
-            </button>
+            <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Cronograma</h1>
           </div>
         </header>
 
         <section className="premium-card p-8 bg-[var(--surface)]">
-          <div className="flex justify-between items-center mb-10">
-            <h3 className="font-black text-[var(--text-main)] text-xl capitalize tracking-tight flex items-center gap-3">
-              {monthName} <ChevronDown size={18} className="text-[var(--primary)]" />
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 pb-4 border-b border-[var(--outline-color)]/20 gap-4">
+            <h3 className="font-black text-[var(--text-main)] text-2xl uppercase tracking-tight flex items-center gap-2">
+              {monthStrOnly} <span className="text-[var(--text-muted)] font-medium">{year}</span>
             </h3>
-            <div className="flex gap-2">
+            
+            <div className="flex items-center gap-1 bg-[var(--background)] p-1.5 rounded-xl border border-[var(--outline-color)]/30 shadow-inner">
               <button 
                 onClick={handlePrevMonth}
-                className="p-2 hover:bg-[var(--background)] rounded-lg border border-[var(--outline-color)] text-[var(--text-muted)] transition-colors"
+                className="p-2 hover:bg-[var(--surface)] hover:shadow-sm rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all"
+                title="Mes Anterior"
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
+              </button>
+              <button 
+                onClick={handleToday}
+                className="px-5 py-2 text-[10px] font-black uppercase tracking-wider text-[var(--text-main)] hover:bg-[var(--surface)] hover:shadow-sm rounded-lg transition-all"
+              >
+                Hoy
               </button>
               <button 
                 onClick={handleNextMonth}
-                className="p-2 hover:bg-[var(--background)] rounded-lg border border-[var(--outline-color)] text-[var(--text-muted)] transition-colors"
+                className="p-2 hover:bg-[var(--surface)] hover:shadow-sm rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all"
+                title="Mes Siguiente"
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={18} />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-px bg-[var(--outline-color)]/20 border border-[var(--outline-color)]/20 rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-7 gap-3">
             {days.map(day => (
-              <div key={day} className="bg-[var(--surface-alt)] py-4 text-center text-[10px] font-black text-[var(--text-muted)] tracking-[0.2em]">
+              <div key={day} className="py-2 text-center text-[10px] font-black text-[var(--text-muted)] tracking-[0.2em] opacity-60">
                 {day}
               </div>
             ))}
             {gridCells.map((cell) => {
               if (cell.day === null) {
                 return (
-                  <div key={cell.key} className="bg-[var(--surface-alt)]/20 min-h-[120px] p-4 border border-[var(--outline-color)]/10" />
+                  <div key={cell.key} className="bg-transparent min-h-[120px]" />
                 );
               }
 
               const dayActivities = activities.filter(act => act.fechaProgramada === cell.dateStr);
+              const isToday = cell.dateStr === todayStr;
+              const isSelected = selectedDate === cell.dateStr;
 
               return (
-                <div key={cell.key} className="bg-[var(--surface)] min-h-[120px] p-4 group hover:bg-[var(--surface-alt)] transition-colors cursor-pointer relative border border-[var(--outline-color)]/10 flex flex-col justify-between">
-                  <span className="text-xs font-black text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors">{cell.day}</span>
+                <div 
+                  key={cell.key} 
+                  onClick={() => handleDateClick(cell.dateStr)}
+                  className={`min-h-[120px] p-3 rounded-2xl group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col justify-between border ${
+                    isToday 
+                      ? 'bg-[var(--primary)]/5 border-[var(--primary)]/30 ring-1 ring-[var(--primary)]/20' 
+                      : isSelected
+                      ? 'bg-[var(--surface-alt)] border-[var(--primary)] shadow-md'
+                      : 'bg-[var(--surface)] border-[var(--outline-color)]/20 hover:border-[var(--outline-color)]'
+                  }`}
+                >
+                  <div className="flex justify-end mb-2">
+                    <span className={`text-xs font-black transition-colors flex items-center justify-center w-7 h-7 rounded-full ${
+                      isToday
+                        ? 'bg-[var(--primary)] text-[#1A202C] shadow-md'
+                        : isSelected
+                        ? 'bg-[var(--text-main)] text-[var(--surface)]'
+                        : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'
+                    }`}>
+                      {cell.day}
+                    </span>
+                  </div>
                   
-                  <div className="mt-2 space-y-1 overflow-y-auto max-h-[80px] no-scrollbar">
+                  <div className="space-y-1.5 overflow-y-auto flex-1 no-scrollbar flex flex-col justify-end">
                     {dayActivities.map(act => {
                       const vencido = act.estado === 'todo' && act.fechaProgramada < todayStr;
+                      
+                      let dotColor = 'bg-[var(--primary)]';
+                      let bgColor = 'bg-[var(--primary)]/10 text-[var(--text-main)]';
+                      
+                      if (act.estado === 'done') {
+                         dotColor = 'bg-emerald-500';
+                         bgColor = 'bg-emerald-500/10 text-emerald-600';
+                      } else if (act.estado === 'doing') {
+                         dotColor = 'bg-[var(--tertiary)]';
+                         bgColor = 'bg-[var(--tertiary)]/10 text-[var(--tertiary)]';
+                      } else if (vencido) {
+                         dotColor = 'bg-red-500';
+                         bgColor = 'bg-red-500/10 text-red-500';
+                      }
+
                       return (
                         <div 
                           key={act.id} 
-                          className={`p-1.5 rounded text-[9px] font-bold leading-tight border-l-2 truncate ${
-                            act.estado === 'done' 
-                              ? 'bg-emerald-500/10 border-emerald-500 text-emerald-600' 
-                              : act.estado === 'doing'
-                              ? 'bg-[var(--tertiary)]/10 border-[var(--tertiary)] text-[var(--tertiary)]'
-                              : vencido
-                              ? 'bg-red-500/10 border-red-500 text-red-500'
-                              : 'bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--text-main)]'
-                          }`}
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-bold leading-tight truncate border border-transparent hover:border-current/20 transition-colors ${bgColor}`}
                           title={`${act.instrumentNombre} (${act.codigoMJM}) - ${act.tipo}`}
                         >
-                          {act.codigoMJM || act.tipo}
+                          <span className={`w-1.5 h-1.5 rounded-full ${dotColor} flex-shrink-0`} />
+                          <span className="truncate">{act.codigoMJM || act.codigo || 'MJM-001'} • {act.tipo}</span>
                         </div>
                       );
                     })}
@@ -182,86 +236,96 @@ export default function Calendario() {
         </section>
       </div>
 
-      {/* --- SIDEBAR: PRÓXIMOS EVENTOS --- */}
-      <aside className="w-full lg:w-96 space-y-6">
-        <div className="premium-card p-8 bg-[var(--surface)] sticky top-0">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="font-black text-[var(--text-main)] text-sm uppercase tracking-widest">Próximos 5 Eventos</h3>
-            <button className="text-[10px] font-black text-[var(--primary)] uppercase hover:underline">Ver Todo</button>
-          </div>
+      {/* --- SIDEBAR OVERLAY (DRAWER) --- */}
+      {/* Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
-          <div className="space-y-6">
-            {upcomingEvents.length === 0 ? (
-              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center py-6">No hay próximos eventos</p>
-            ) : (
-              upcomingEvents.map((act) => {
-                const parts = act.fechaProgramada.split('-');
-                let dayNum = '--';
-                let monthAbbr = '---';
-                if (parts.length === 3) {
-                  const [y, m, d] = parts.map(Number);
-                  const dateObj = new Date(y, m - 1, d);
-                  dayNum = String(d).padStart(2, '0');
-                  monthAbbr = dateObj.toLocaleString('es-ES', { month: 'short' }).toUpperCase().replace('.', '');
-                }
+      {/* Sidebar Panel */}
+      <aside className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[var(--surface)] shadow-2xl z-50 transform transition-transform duration-500 flex flex-col ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        
+        <div className="flex justify-between items-center p-6 border-b border-[var(--outline-color)]/20">
+          <h3 className="font-black text-[var(--text-main)] text-2xl uppercase tracking-tighter flex items-center gap-2">
+            <CalendarIcon size={24} className="text-[var(--primary)]" />
+            {selectedDate ? `Eventos del ${selectedDate.split('-')[2]}/${selectedDate.split('-')[1]}` : 'Próximos 5 Eventos'}
+          </h3>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-2 hover:bg-[var(--background)] rounded-full text-[var(--text-muted)] transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-                return (
-                  <div key={act.id} className="flex gap-4 group cursor-pointer">
-                    <div className="flex-shrink-0 w-12 h-12 bg-[var(--background)] border border-[var(--outline-color)] rounded-2xl flex flex-col items-center justify-center group-hover:border-[var(--primary)] transition-colors">
-                      <span className="text-[10px] font-black text-[var(--primary)] leading-none">{dayNum}</span>
-                      <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase">{monthAbbr}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-black text-[var(--text-main)] truncate uppercase tracking-tight">{act.instrumentNombre}</h4>
-                      <p className="text-[9px] font-bold text-[var(--text-muted)] flex items-center gap-1 mt-1">
-                        <Clock size={10} /> {act.tipo} • {act.codigoMJM}
-                      </p>
-                    </div>
-                    <button className="text-[var(--text-muted)] hover:text-[var(--primary)]"><MoreVertical size={16} /></button>
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+          {(() => {
+            const eventsToShow = selectedDate 
+              ? activities.filter(act => act.fechaProgramada === selectedDate)
+              : upcomingEvents;
+
+            if (eventsToShow.length === 0) {
+              return <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center py-6">No hay eventos para mostrar</p>;
+            }
+
+            return eventsToShow.map((act) => {
+              const parts = act.fechaProgramada.split('-');
+              let dayNum = '--';
+              let monthAbbr = '---';
+              if (parts.length === 3) {
+                const [y, m, d] = parts.map(Number);
+                const dateObj = new Date(y, m - 1, d);
+                dayNum = String(d).padStart(2, '0');
+                monthAbbr = dateObj.toLocaleString('es-ES', { month: 'short' }).toUpperCase().replace('.', '');
+              }
+
+              return (
+                <div key={act.id} className="flex gap-4 group cursor-pointer p-3 rounded-2xl hover:bg-[var(--background)] transition-colors border border-transparent hover:border-[var(--outline-color)]/30 items-center">
+                  <div className="flex-shrink-0 w-14 h-14 bg-[var(--background)] border border-[var(--outline-color)] rounded-2xl flex flex-col items-center justify-center group-hover:border-[var(--primary)] transition-colors shadow-sm bg-white">
+                    <span className="text-sm font-black text-[var(--primary)] leading-none">{dayNum}</span>
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase mt-0.5">{monthAbbr}</span>
                   </div>
-                );
-              })
-            )}
-          </div>
-
-          <div className="mt-10 pt-8 border-t border-[var(--outline-color)]/30 space-y-6">
-             <div className="flex items-center gap-4 text-[var(--text-muted)]">
-                <div className="w-10 h-10 bg-[var(--background)] rounded-xl flex items-center justify-center">
-                   <RefreshCw size={18} className="opacity-40" />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-black text-[var(--text-main)] truncate uppercase tracking-tight">{act.instrumentNombre}</h4>
+                    <div className="flex items-center gap-3 mt-1.5">
+                       <p className="text-xs font-bold text-[var(--text-muted)] flex items-center gap-1.5">
+                         <Clock size={12} className="opacity-50" /> {act.tipo}
+                       </p>
+                       <span className="px-2 py-0.5 bg-[var(--background)] text-[var(--text-main)] opacity-70 text-[9px] font-black rounded border border-[var(--outline-color)]/30">
+                          {act.codigoMJM || act.codigo || 'MJM-001'}
+                       </span>
+                    </div>
+                  </div>
+                  <button className="text-[var(--text-muted)] hover:text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-opacity"><MoreVertical size={18} /></button>
                 </div>
-                <div>
-                   <p className="text-[9px] font-black uppercase tracking-widest">Sincronización</p>
-                   <p className="text-[10px] font-bold text-[var(--text-main)] opacity-60">Nube MJM-Sync v4.0 activa</p>
-                </div>
-             </div>
-             <button className="w-full btn-secondary py-4 text-[10px] font-black uppercase tracking-[0.2em] shadow-sm">
-                Sincronizar Calendario
-             </button>
-          </div>
+              );
+            });
+          })()}
         </div>
 
         {/* QUICK STATS IN SIDEBAR */}
-        <div className="premium-card p-8 bg-[var(--sidebar-bg)] text-white shadow-2xl">
+        <div className="p-6 bg-[var(--sidebar-bg)] text-white shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
            <div className="flex items-center gap-3 mb-6">
-              <AlertCircle size={20} className="text-[var(--tertiary)]" />
-              <h4 className="font-black text-xs uppercase tracking-widest">Alertas Críticas</h4>
+              <AlertCircle size={22} className="text-[var(--tertiary)]" />
+              <h4 className="font-black text-sm uppercase tracking-widest">Alertas Críticas</h4>
            </div>
            <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                 <span className="text-[10px] font-bold opacity-60">Vencimientos</span>
-                 <span className={`${stats.vencidos > 0 ? 'bg-red-500 animate-pulse' : 'bg-neutral-600'} px-2 py-0.5 rounded text-[10px] font-black text-white`}>
+                 <span className="text-xs font-bold opacity-60">Vencimientos</span>
+                 <span className={`${stats.vencidos > 0 ? 'bg-red-500 animate-pulse' : 'bg-neutral-600'} px-2.5 py-1 rounded text-xs font-black text-white`}>
                     {String(stats.vencidos).padStart(2, '0')}
                  </span>
               </div>
               <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                 <span className="text-[10px] font-bold opacity-60">Programados Hoy</span>
-                 <span className="bg-[var(--primary)] px-2 py-0.5 rounded text-[10px] font-black text-[#1A202C]">
+                 <span className="text-xs font-bold opacity-60">Programados Hoy</span>
+                 <span className="bg-[var(--primary)] px-2.5 py-1 rounded text-xs font-black text-[#1A202C]">
                     {String(stats.hoy).padStart(2, '0')}
                  </span>
               </div>
               <div className="flex justify-between items-center">
-                 <span className="text-[10px] font-bold opacity-60">En Proceso</span>
-                 <span className="bg-[var(--tertiary)] px-2 py-0.5 rounded text-[10px] font-black text-[#1A202C]">
+                 <span className="text-xs font-bold opacity-60">En Proceso</span>
+                 <span className="bg-[var(--tertiary)] px-2.5 py-1 rounded text-xs font-black text-[#1A202C]">
                     {String(stats.enProceso).padStart(2, '0')}
                  </span>
               </div>

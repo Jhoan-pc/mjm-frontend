@@ -218,11 +218,11 @@ const ServicesPortfolio = () => {
 
   return (
     <>
-      <section id="servicios" className="bg-[#f8f9fa] py-40 border-y border-mjm-navy/5 relative overflow-hidden">
+      <section id="servicios" className="bg-[#f8f9fa] py-24 border-y border-mjm-navy/5 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-mjm-orange/5 to-transparent pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <span className="text-mjm-orange font-black uppercase tracking-[0.4em] text-xs mb-8 block">Servicios de Ingeniería</span>
-          <h2 className="text-6xl md:text-8xl font-black text-mjm-navy mb-24 tracking-tighter">Portafolio <br/>Técnico</h2>
+          <span className="text-mjm-orange font-bold uppercase tracking-[0.25em] text-xs mb-4 block">Servicios de Ingeniería</span>
+          <h2 className="text-5xl md:text-7xl font-extrabold text-mjm-navy mb-16 tracking-tight font-display">Portafolio <span className="font-light">Técnico</span></h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, i) => (
               <motion.div
@@ -231,22 +231,22 @@ const ServicesPortfolio = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
                 transition={{ duration: 0.7, delay: i * 0.1, ease: [0.165, 0.84, 0.44, 1] }}
-                className="group relative bg-white rounded-[2rem] transition-all duration-700 hover:-translate-y-4 hover:shadow-[0_40px_80px_-20px_rgba(35,76,116,0.15)] cursor-pointer overflow-hidden border border-mjm-navy/5 flex flex-col text-left"
+                className="group relative bg-white rounded-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_25px_50px_-12px_rgba(35,76,116,0.08)] cursor-pointer overflow-hidden border border-mjm-navy/5 flex flex-col text-left"
                 onClick={() => setActiveService(service)}
               >
-                <div className="relative w-full h-56 overflow-hidden bg-mjm-navy/5">
-                  <div className="absolute inset-0 bg-mjm-navy/20 group-hover:bg-transparent transition-colors duration-700 z-10" />
-                  <img src={service.image} alt={service.name} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                <div className="relative w-full h-52 overflow-hidden bg-mjm-navy/5">
+                  <div className="absolute inset-0 bg-mjm-navy/20 group-hover:bg-transparent transition-colors duration-500 z-10" />
+                  <img src={service.image} alt={service.name} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" loading="lazy" />
                 </div>
-                <div className="relative z-10 w-full flex flex-col h-full p-10 pt-0">
-                  <div className="w-20 h-20 rounded-2xl bg-white border border-mjm-navy/5 group-hover:border-mjm-orange/20 group-hover:bg-mjm-orange flex items-center justify-center text-mjm-orange group-hover:text-white -mt-10 mb-8 transform group-hover:scale-110 group-hover:-rotate-3 transition-all duration-500 shadow-xl z-20">
-                    {service.icon}
+                <div className="relative z-10 w-full flex flex-col h-full p-8 pt-0">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-mjm-navy/5 group-hover:border-mjm-orange/20 group-hover:bg-mjm-orange flex items-center justify-center text-mjm-orange group-hover:text-white -mt-8 mb-6 transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500 shadow-lg z-20">
+                    {React.cloneElement(service.icon, { className: 'w-7 h-7' })}
                   </div>
-                  <h3 className="text-2xl font-black text-mjm-navy mb-6 uppercase tracking-widest leading-tight group-hover:text-mjm-orange transition-colors duration-500">{service.name}</h3>
-                  <div className="w-12 h-1 bg-mjm-orange/30 group-hover:w-full group-hover:bg-mjm-orange transition-all duration-700 mb-8 rounded-full" />
-                  <p className="text-mjm-navy/70 leading-relaxed font-medium mb-12 flex-grow">{service.description}</p>
-                  <div className="flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.2em] text-mjm-navy/40 group-hover:text-mjm-orange transition-colors duration-500 mt-auto">
-                    Detalles Técnicos <ArrowRight size={14} className="group-hover:translate-x-3 transition-transform duration-500" />
+                  <h3 className="text-xl font-bold text-mjm-navy mb-4 uppercase tracking-wider leading-tight group-hover:text-mjm-orange transition-colors duration-500">{service.name}</h3>
+                  <div className="w-12 h-1 bg-mjm-orange/30 group-hover:w-full group-hover:bg-mjm-orange transition-all duration-500 mb-6 rounded-full" />
+                  <p className="text-sm text-mjm-navy/70 leading-relaxed font-light mb-8 flex-grow">{service.description}</p>
+                  <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.2em] text-mjm-navy/40 group-hover:text-mjm-orange transition-colors duration-500 mt-auto">
+                    Detalles Técnicos <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform duration-500" />
                   </div>
                 </div>
               </motion.div>
