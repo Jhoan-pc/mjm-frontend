@@ -101,7 +101,7 @@ export default function DashboardLayout() {
     { name: 'Inventario de Activos', path: '/dashboard/inventario', icon: <Package size={20} /> },
     { name: 'Cronograma', path: '/dashboard/calendario', icon: <Calendar size={20} /> },
     { name: 'Gestión Operativa', path: '/dashboard/kanban', icon: <History size={20} /> },
-    { name: 'IA Lab (Beta)', path: '/dashboard/ia-lab', icon: <Database size={20} /> },
+    { name: 'Confirmación metrológica', path: '/dashboard/ia-lab', icon: <Database size={20} /> },
     { name: 'Ajustes', path: '/dashboard/settings', icon: <SettingsIcon size={20} /> },
   ];
 

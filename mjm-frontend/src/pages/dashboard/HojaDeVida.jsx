@@ -18,7 +18,8 @@ import {
   AlertCircle,
   FileText,
   Ruler,
-  ArrowLeft
+  ArrowLeft,
+  X
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
@@ -59,6 +60,8 @@ export default function HojaDeVida() {
   const { instruments, loading, getInstrumentFromFirestore } = useInventoryStore();
   const { tenant } = useAuthStore();
   const [inst, setInst] = useState(null);
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [pdfModalUrl, setPdfModalUrl] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -332,10 +335,23 @@ export default function HojaDeVida() {
                         <CheckCircle2 size={14} /> Aprobado
                       </span>
                     </td>
-                    <td className="px-stack-lg py-4 text-right">
-                      <button className="p-2 text-on-surface-variant hover:text-primary transition-colors">
-                        <FileText size={18} />
-                      </button>
+                     <td className="px-stack-lg py-4 text-right">
+                      {log.certificado_url || log.certificadoUrl ? (
+                        <button 
+                          onClick={() => {
+                            setPdfModalUrl(log.certificado_url || log.certificadoUrl);
+                            setIsPdfModalOpen(true);
+                          }}
+                          className="p-2 text-primary hover:text-primary-dark transition-colors"
+                          title="Ver Certificado PDF"
+                        >
+                          <FileText size={18} />
+                        </button>
+                      ) : (
+                        <span className="p-2 text-on-surface-variant/20 cursor-not-allowed" title="Sin PDF Adjunto">
+                          <FileText size={18} />
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -352,6 +368,42 @@ export default function HojaDeVida() {
         </div>
 
       </div>
+
+      {/* PDF Fullscreen Modal Overlay */}
+      {isPdfModalOpen && pdfModalUrl && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-350">
+          <div className="bg-white rounded-3xl shadow-2xl w-full h-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-350">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="text-[#f7931b]" size={20} />
+                <h3 className="font-outfit font-bold text-secondary text-sm tracking-wider uppercase">
+                  Visor Completo del Certificado
+                </h3>
+              </div>
+              <button
+                onClick={() => {
+                  setIsPdfModalOpen(false);
+                  setPdfModalUrl('');
+                }}
+                className="p-2 hover:bg-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition-colors"
+                title="Cerrar Visor"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="flex-1 bg-slate-100 p-2 relative">
+              <iframe 
+                src={pdfModalUrl} 
+                className="w-full h-full rounded-2xl border border-slate-200 shadow-inner"
+                title="Visor de PDF Expandido"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

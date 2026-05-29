@@ -23,7 +23,7 @@ import {
   CheckCircle, Clock, AlertCircle, X, Building2, MapPin, Globe,
   Cpu, Layers, Wrench, ShieldCheck, Barcode, Tag,
   Activity, ArrowLeft, Image as ImageIcon, Check,
-  AlertTriangle, Filter, Loader2, Archive
+  AlertTriangle, Filter, Loader2, Archive, FileText, Lock, FileUp
 } from 'lucide-react';
 
 // --- ESTADO BADGE (METROLOGY PRECISION STYLE) ---
@@ -214,6 +214,80 @@ const IndustrialWizard = ({ onClose }) => {
                  {loading ? <Loader2 className="animate-spin" size={20}/> : 'FINALIZAR REGISTRO'}
                </button>
              )}
+          </div>
+       </div>
+    </div>
+  );
+};
+
+// --- MÓDULO: CARGA MASIVA EXCEL (CON DESCARGA DE PLANTILLA Y SUBIDA BLOQUEADA) ---
+const BulkUploadModal = ({ onClose }) => {
+  const downloadTemplate = () => {
+    const csvContent = "data:text/csv;charset=utf-8,\ufeff" 
+      + "ID Interna,Instrumento,Marca,Modelo,Serial,Ubicación,Proceso,Magnitud,Criticidad,Intervalo Calibración (meses),Tolerancia Proceso\n"
+      + "MAQ-03-0561,MEDIDOR DE PH PRINCIPAL,HANNA,HI 98163,4110005101,Calidad,Calidad,pH,ALTA,12,0.02\n"
+      + "MAQ-3-0720,LUXOMETRO,EXTECH,LT-45,190401596,Mantenimiento,Producción,Fotometría,ALTA,12,10\n";
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "plantilla_carga_masiva_mjm.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+       <div className="bg-[var(--surface)] shadow-2xl rounded-[2.5rem] border border-[var(--outline-color)] w-full max-w-lg overflow-hidden flex flex-col transition-colors duration-500">
+          
+          <div className="p-8 border-b border-[var(--outline-color)] flex justify-between items-center bg-[var(--surface-alt)]">
+             <div className="flex items-center gap-4">
+                <div className="p-3 bg-[var(--primary)] text-[#1A202C] rounded-2xl shadow-lg shadow-[var(--primary)]/20"><FileText size={24}/></div>
+                <div>
+                   <h2 className="font-black text-[var(--text-main)] text-xl uppercase tracking-tight">Carga Masiva</h2>
+                   <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">Bulk Import Wizard</p>
+                </div>
+             </div>
+             <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><X size={24}/></button>
+          </div>
+
+          <div className="p-10 space-y-8 flex-1">
+             <div className="space-y-3">
+                <h3 className="font-outfit font-bold text-sm text-[var(--text-main)] uppercase tracking-wide">1. Descarga la plantilla estándar</h3>
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                   Descarga nuestra plantilla oficial estructurada en formato CSV/Excel con las columnas y formatos requeridos para la confirmación metrológica y auditoría ISO 10012.
+                </p>
+                <button 
+                  onClick={downloadTemplate}
+                  className="w-full flex items-center justify-center gap-2 py-4 px-6 bg-[var(--primary)] text-[#1A202C] font-inter font-black text-[10px] uppercase tracking-wider rounded-xl hover:brightness-105 active:scale-95 transition-all shadow-md cursor-pointer"
+                >
+                  <FileText size={14} /> Descargar Plantilla Excel/CSV
+                </button>
+             </div>
+
+             <div className="space-y-3 pt-6 border-t border-[var(--outline-color)]/20">
+                <h3 className="font-outfit font-bold text-sm text-[var(--text-main)] uppercase tracking-wide">2. Sube tu archivo</h3>
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                   Carga el archivo completado para realizar la importación masiva directa de activos a la base de datos de tu planta.
+                </p>
+                
+                {/* BLOCKED DROPZONE AREA */}
+                <div className="relative border-2 border-dashed border-[var(--outline-color)]/40 rounded-2xl p-8 flex flex-col items-center justify-center bg-[var(--surface-alt)]/40 overflow-hidden group">
+                   <div className="absolute inset-0 bg-[var(--surface)]/90 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6 z-20">
+                      <Lock size={28} className="text-[var(--text-muted)] mb-2 animate-pulse" />
+                      <p className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-wider mb-1">Subida deshabilitada temporalmente</p>
+                      <p className="text-[9px] text-[var(--text-muted)] px-6">La carga automatizada de inventarios está desactivada en modo de pruebas.</p>
+                   </div>
+                   
+                   <FileUp size={36} className="text-[var(--text-muted)]/20 mb-3" />
+                   <span className="text-[10px] font-black text-[var(--text-muted)]/20 uppercase tracking-widest">Arrastra tu archivo aquí</span>
+                </div>
+             </div>
+          </div>
+
+          <div className="p-8 bg-[var(--surface-alt)] border-t border-[var(--outline-color)] flex justify-end">
+             <button onClick={onClose} className="btn-secondary py-3 px-8 text-[10px] cursor-pointer">CERRAR WIZARD</button>
           </div>
        </div>
     </div>
@@ -1232,6 +1306,7 @@ export default function Inventario() {
   const { instruments, loading, loadInstruments } = useInventoryStore();
   const [search, setSearch] = useState('');
   const [showWizard, setShowWizard] = useState(false);
+  const [showBulk, setShowBulk] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
 
   React.useEffect(() => {
@@ -1266,6 +1341,12 @@ export default function Inventario() {
             </div>
          </div>
          <div className="flex gap-4 pb-1 shrink-0">
+             <button 
+               onClick={() => setShowBulk(true)} 
+               className="px-5 py-4 bg-[var(--surface-alt)] border border-[var(--outline-color)] text-[var(--text-main)] rounded-xl font-inter font-semibold text-[10px] uppercase tracking-wider hover:brightness-105 active:scale-[0.98] transition-all shadow-sm flex items-center gap-2"
+             >
+               <FileText size={14} /> Carga Masiva
+             </button>
             <button onClick={() => setShowWizard(true)} className="btn-primary py-4 px-10 shadow-xl shadow-[var(--primary)]/20"><Plus size={20}/> Nuevo Activo</button>
          </div>
       </section>
@@ -1292,6 +1373,8 @@ export default function Inventario() {
       </section>
 
       {showWizard && <IndustrialWizard onClose={() => setShowWizard(false)} />}
+      
+      {showBulk && <BulkUploadModal onClose={() => setShowBulk(false)} />}
       
       {/* DETALLE DEL INSTRUMENTO (MODAL NUEVO) */}
       {selectedId && (
