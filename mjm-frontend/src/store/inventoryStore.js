@@ -260,16 +260,63 @@ export const useInventoryStore = create((set, get) => ({
       updateData.finishedAt = new Date().toISOString();
     }
     
+    const activity = get().activities.find(a => a.id === activityId);
+    const instrumentId = activity?.instrumentId;
+    const tenantId = activity?.tenantId || useAuthStore.getState().tenant?.id;
+    
+    let newLog = null;
+    if (status === 'done' && instrumentId) {
+      newLog = {
+        fecha: updateData.fecha_ejecucion || new Date().toISOString().split('T')[0],
+        tipo: activity?.tipo || 'Intervención',
+        laboratorio: updateData.laboratorio_ejecutor || 'MJM Internal',
+        error: updateData.error_encontrado || null,
+        incertidumbre: updateData.incertidumbre_medicion || null,
+        certificado_url: updateData.certificado_url || null,
+        declaracion_conformidad: updateData.declaracion_conformidad || 'Conforme'
+      };
+    }
+    
     try {
       const actRef = doc(db, 'activities', activityId);
       await updateDoc(actRef, updateData);
+      
+      if (newLog && tenantId) {
+        const instRef = doc(db, 'tenants', tenantId, 'inventario_metrologico', instrumentId);
+        const instSnap = await getDoc(instRef);
+        if (instSnap.exists()) {
+          const currentHistorial = instSnap.data().historial || [];
+          await updateDoc(instRef, {
+            historial: [newLog, ...currentHistorial]
+          });
+        }
+      }
     } catch (e) {
-      console.warn("🔔 Store: Actualizando estado de actividad localmente (Sandbox Mode)", e.message);
-      set(state => ({
-        activities: state.activities.map(act => 
+      console.warn("🔔 Store: Actualizando estado de actividad e historial localmente (Sandbox Mode)", e.message);
+      set(state => {
+        const updatedActivities = state.activities.map(act => 
           act.id === activityId ? { ...act, ...updateData } : act
-        )
-      }));
+        );
+        
+        let updatedInstruments = state.instruments;
+        if (newLog) {
+          updatedInstruments = state.instruments.map(inst => {
+            if (inst.id === instrumentId) {
+              const currentHistorial = inst.historial || [];
+              return {
+                ...inst,
+                historial: [newLog, ...currentHistorial]
+              };
+            }
+            return inst;
+          });
+        }
+        
+        return {
+          activities: updatedActivities,
+          instruments: updatedInstruments
+        };
+      });
     }
   },
 
