@@ -1326,28 +1326,33 @@ export default function Inventario() {
   return (
     <div className="space-y-gutter animate-in fade-in duration-500">
       
+      {/* Title */}
+      <div className="mb-6">
+         <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Inventario <span className="text-[var(--primary)] italic">de Activos</span></h1>
+      </div>
+
       {/* Search & Actions */}
-      <section className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-16">
-         <div className="flex-1 space-y-6">
-            <div>
-               <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Inventario <span className="text-[var(--primary)] italic">de Activos</span></h1>
-            </div>
-            <div className="relative group w-full">
-               <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" size={20} />
-               <input 
-                value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar por ID, Nombre o Marca..." 
-                className="w-full bg-[var(--surface)] border border-[var(--outline-color)] rounded-2xl pl-14 pr-8 py-5 text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)] transition-all shadow-sm font-medium" />
-            </div>
+      <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
+         <div className="relative group flex-1">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" size={20} />
+            <input 
+             value={search} onChange={e => setSearch(e.target.value)}
+             placeholder="Buscar por ID, Nombre o Marca..." 
+             className="w-full bg-[var(--surface)] border border-[var(--outline-color)] rounded-2xl pl-14 pr-8 py-5 text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)] transition-all shadow-sm font-medium" />
          </div>
-         <div className="flex gap-4 pb-1 shrink-0">
+         <div className="flex gap-4 shrink-0 items-center">
              <button 
                onClick={() => setShowBulk(true)} 
-               className="px-5 py-4 bg-[var(--surface-alt)] border border-[var(--outline-color)] text-[var(--text-main)] rounded-xl font-inter font-semibold text-[10px] uppercase tracking-wider hover:brightness-105 active:scale-[0.98] transition-all shadow-sm flex items-center gap-2"
+               className="h-14 px-5 bg-[var(--surface-alt)] border border-[var(--outline-color)] text-[var(--text-main)] rounded-xl font-inter font-semibold text-[10px] uppercase tracking-wider hover:brightness-105 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
              >
                <FileText size={14} /> Carga Masiva
              </button>
-            <button onClick={() => setShowWizard(true)} className="btn-primary py-4 px-10 shadow-xl shadow-[var(--primary)]/20"><Plus size={20}/> Nuevo Activo</button>
+             <button 
+               onClick={() => setShowWizard(true)} 
+               className="btn-primary h-14 px-10 shadow-xl shadow-[var(--primary)]/20 flex items-center justify-center gap-2 cursor-pointer"
+             >
+               <Plus size={20}/> Nuevo Activo
+             </button>
          </div>
       </section>
 
