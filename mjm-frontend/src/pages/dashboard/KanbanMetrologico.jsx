@@ -34,6 +34,13 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
   const [file, setFile] = useState(null);
   const [laboratorio, setLaboratorio] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  const [patronReferencia, setPatronReferencia] = useState('');
+  const [laboratorioTipo, setLaboratorioTipo] = useState('Acreditado');
+  const [errorEncontrado, setErrorEncontrado] = useState('');
+  const [incertidumbre, setIncertidumbre] = useState('');
+  const [criterioTipo, setCriterioTipo] = useState('emp'); // 'emp' o 'tolerancia'
+  const [criterioValor, setCriterioValor] = useState('');
   
   const getColombiaDate = () => {
     const d = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Bogota"}));
@@ -46,6 +53,17 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
   const todayStr = getColombiaDate();
   const isVencida = activity.fechaProgramada < todayStr;
   const [fechaEjecucion, setFechaEjecucion] = useState(todayStr);
+
+  const parsedError = parseFloat(errorEncontrado);
+  const parsedIncertidumbre = parseFloat(incertidumbre);
+  const parsedCriterio = parseFloat(criterioValor);
+
+  const compliance = useMemo(() => {
+    if (isNaN(parsedError) || isNaN(parsedIncertidumbre) || isNaN(parsedCriterio)) {
+      return 'No Evaluado';
+    }
+    return (parsedError + parsedIncertidumbre <= parsedCriterio) ? 'Conforme' : 'No Conforme';
+  }, [parsedError, parsedIncertidumbre, parsedCriterio]);
 
   const handleFinish = async () => {
     setIsUploading(true);
@@ -62,13 +80,24 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
       }
     }
     
-    onFinish({ laboratorio, fecha_ejecucion: fechaEjecucion, certificado_url });
+    onFinish({ 
+      laboratorio, 
+      fecha_ejecucion: fechaEjecucion, 
+      certificado_url,
+      patron_referencia: patronReferencia || null,
+      laboratorio_tipo: laboratorioTipo,
+      error_encontrado: isNaN(parsedError) ? null : parsedError,
+      incertidumbre: isNaN(parsedIncertidumbre) ? null : parsedIncertidumbre,
+      criterio_tipo: criterioTipo,
+      criterio_valor: isNaN(parsedCriterio) ? null : parsedCriterio,
+      conformidad_metrologica: compliance
+    });
     setIsUploading(false);
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-secondary/60 backdrop-blur-md">
-      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-xl shadow-2xl border border-outline/20 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-[2.5rem] p-10 w-full max-w-2xl shadow-2xl border border-outline/20 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start mb-8">
            <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center">
@@ -113,7 +142,7 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
                   />
                </div>
                <div>
-                  <label className="label-sm text-neutral mb-2 block">Ejecutó</label>
+                  <label className="label-sm text-neutral mb-2 block">Ejecutó (Laboratorio)</label>
                   <input 
                     value={laboratorio} 
                     onChange={e => setLaboratorio(e.target.value)}
@@ -121,6 +150,118 @@ const ClosureModal = ({ activity, onClose, onFinish }) => {
                     className="input-metrology w-full" 
                   />
                </div>
+           </div>
+
+           {/* TRAZABILIDAD Y PATRÓN (OPCIONAL) */}
+           <div className="bg-slate-50/50 p-5 rounded-2xl border border-outline/10 space-y-4">
+             <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Trazabilidad Metrológica (Opcional)</p>
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="label-sm text-neutral mb-1.5 block">Patrón de Referencia</label>
+                 <input 
+                   value={patronReferencia} 
+                   onChange={e => setPatronReferencia(e.target.value)}
+                   placeholder="Ej: Bloques patrón grado 0" 
+                   className="input-metrology w-full" 
+                 />
+               </div>
+               <div>
+                 <label className="label-sm text-neutral mb-1.5 block">Tipo de Laboratorio</label>
+                 <div className="flex gap-2">
+                   {['Acreditado', 'Trazable'].map((t) => (
+                     <button
+                       key={t}
+                       type="button"
+                       onClick={() => setLaboratorioTipo(t)}
+                       className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all ${
+                         laboratorioTipo === t
+                           ? 'bg-[var(--primary)] border-transparent text-slate-900 shadow-sm'
+                           : 'bg-white border-outline/20 text-neutral hover:bg-slate-50'
+                       }`}
+                     >
+                       {t}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+             </div>
+           </div>
+
+           {/* CONFIRMACIÓN METROLÓGICA (OPCIONAL) */}
+           <div className="bg-slate-50/50 p-5 rounded-2xl border border-outline/10 space-y-4">
+             <div className="flex justify-between items-center">
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Confirmación Metrológica ISO 10012 (Opcional)</p>
+               {compliance !== 'No Evaluado' && (
+                 <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm ${
+                   compliance === 'Conforme' 
+                     ? 'bg-emerald-50 text-emerald-600 border border-emerald-500/20' 
+                     : 'bg-red-50 text-red-600 border border-red-500/20'
+                 }`}>
+                   {compliance === 'Conforme' ? 'Cumple (Conforme)' : 'Desviación (No Conforme)'}
+                 </span>
+               )}
+             </div>
+             
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="label-sm text-neutral mb-1.5 block">Error Máx. Encontrado</label>
+                 <input 
+                   type="number"
+                   step="any"
+                   value={errorEncontrado} 
+                   onChange={e => setErrorEncontrado(e.target.value)}
+                   placeholder="Ej: 0.002" 
+                   className="input-metrology w-full" 
+                 />
+               </div>
+               <div>
+                 <label className="label-sm text-neutral mb-1.5 block">Incertidumbre (U)</label>
+                 <input 
+                   type="number"
+                   step="any"
+                   value={incertidumbre} 
+                   onChange={e => setIncertidumbre(e.target.value)}
+                   placeholder="Ej: 0.0005" 
+                   className="input-metrology w-full" 
+                 />
+               </div>
+             </div>
+
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="label-sm text-neutral mb-1.5 block">Criterio de Aceptación</label>
+                 <div className="flex gap-2">
+                   {[
+                     { id: 'emp', label: 'EMP' },
+                     { id: 'tolerancia', label: 'Tolerancia ±' }
+                   ].map((c) => (
+                     <button
+                       key={c.id}
+                       type="button"
+                       onClick={() => setCriterioTipo(c.id)}
+                       className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all ${
+                         criterioTipo === c.id
+                           ? 'bg-secondary text-white border-transparent shadow-sm'
+                           : 'bg-white border-outline/20 text-neutral hover:bg-slate-50'
+                       }`}
+                     >
+                       {c.label}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+               <div>
+                 <label className="label-sm text-neutral mb-1.5 block">Valor del Límite</label>
+                 <input 
+                   type="number"
+                   step="any"
+                   value={criterioValor} 
+                   onChange={e => setCriterioValor(e.target.value)}
+                   placeholder="Ej: 0.005" 
+                   className="input-metrology w-full" 
+                 />
+               </div>
+             </div>
            </div>
 
            {/* DROPZONE PARA CERTIFICADO */}
@@ -233,7 +374,7 @@ const ActivityCard = ({ act, column, onStart, onFinish }) => {
 };
 
 export default function KanbanMetrologico() {
-  const { activities, loading, updateActivityStatus, loadActivities } = useInventoryStore();
+  const { activities, loading, updateActivityStatus, loadActivities, addActivity } = useInventoryStore();
   const { tenant } = useAuthStore();
   const [search, setSearch] = useState('');
   const [closureAct, setClosureAct] = useState(null);
@@ -503,13 +644,38 @@ export default function KanbanMetrologico() {
           onClose={() => setClosureAct(null)} 
           onFinish={(data) => {
             updateActivityStatus(closureAct.id, 'done', {
-               error_encontrado: 0.0001,
-               incertidumbre_medicion: 0.0002,
-               declaracion_conformidad: 'Conforme',
+               error_encontrado: data.error_encontrado,
+               incertidumbre_medicion: data.incertidumbre,
+               declaracion_conformidad: data.conformidad_metrologica,
                fecha_ejecucion: data.fecha_ejecucion,
                laboratorio_ejecutor: data.laboratorio,
-               certificado_url: data.certificado_url
+               certificado_url: data.certificado_url,
+               patron_referencia: data.patron_referencia,
+               laboratorio_tipo: data.laboratorio_tipo,
+               criterio_tipo: data.criterio_tipo,
+               criterio_valor: data.criterio_valor
             });
+
+            // Si es NO CONFORME, generar tarea correctiva automáticamente
+            if (data.conformidad_metrologica === 'No Conforme') {
+              const tenantId = closureAct.tenantId || tenant?.id;
+              const nextWeekDate = new Date();
+              nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
+              const dateStr = nextWeekDate.toISOString().split('T')[0];
+
+              addActivity({
+                tenantId,
+                instrumentId: closureAct.instrumentId,
+                instrumentNombre: closureAct.instrumentNombre,
+                codigoMJM: closureAct.codigoMJM || '',
+                tipo: 'Mantenimiento',
+                estado: 'todo',
+                fechaProgramada: dateStr,
+                priority: 'high',
+                notas: `Generado automáticamente por desviación metrológica crítica detectada en calibración/verificación del activo. Tolerancia excedida.`
+              });
+            }
+
             setClosureAct(null);
           }}
         />

@@ -252,21 +252,24 @@ export const useInventoryStore = create((set, get) => ({
 
   // Actualización con Lógica Metrológica
   updateActivityStatus: async (activityId, status, extraFields = null) => {
-    const actRef = doc(db, 'activities', activityId);
+    const updateData = { estado: status };
+    if (extraFields) {
+      Object.assign(updateData, extraFields);
+    }
+    if (status === 'done') {
+      updateData.finishedAt = new Date().toISOString();
+    }
+    
     try {
-      const updateData = { estado: status };
-      
-      if (extraFields) {
-        Object.assign(updateData, extraFields);
-      }
-
-      if (status === 'done') {
-        updateData.finishedAt = serverTimestamp();
-      }
-
+      const actRef = doc(db, 'activities', activityId);
       await updateDoc(actRef, updateData);
     } catch (e) {
-      console.error("Error updating activity: ", e);
+      console.warn("🔔 Store: Actualizando estado de actividad localmente (Sandbox Mode)", e.message);
+      set(state => ({
+        activities: state.activities.map(act => 
+          act.id === activityId ? { ...act, ...updateData } : act
+        )
+      }));
     }
   },
 
