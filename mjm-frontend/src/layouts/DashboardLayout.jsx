@@ -167,13 +167,13 @@ export default function DashboardLayout() {
             </nav>
 
             <div className="mt-auto pb-6 flex flex-col items-center">
-               <button 
-                 onClick={handleLogout}
-                 className="w-full flex items-center justify-center gap-2.5 px-5 py-3 text-white/40 hover:text-red-400 transition-all duration-300 group"
-               >
-                 <LogOut size={14} className="opacity-40 group-hover:rotate-12 transition-transform" />
-                 <span className="text-[9px] font-inter font-bold uppercase tracking-[0.15em]">Cerrar Sesión</span>
-               </button>
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2.5 px-5 py-3 text-white/70 hover:text-red-400 active:scale-95 transition-all duration-300 group cursor-pointer"
+              >
+                <LogOut size={14} className="opacity-70 group-hover:opacity-100 group-hover:rotate-12 transition-all" />
+                <span className="text-[10px] font-inter font-bold uppercase tracking-[0.15em]">Cerrar Sesión</span>
+              </button>
 
                <p className="text-[8px] text-white/20 font-inter font-medium uppercase tracking-[0.3em] mt-2 select-none pointer-events-none">
                   Powered by MJM
@@ -228,13 +228,13 @@ export default function DashboardLayout() {
 
         {/* --- FOOTER BRANDING --- */}
         <div className="mt-auto pb-6 flex flex-col items-center">
-           <button 
-             onClick={handleLogout}
-             className="w-full flex items-center justify-center gap-2.5 px-5 py-3 text-white/40 hover:text-red-400 transition-all duration-300 group"
-           >
-             <LogOut size={14} className="opacity-40 group-hover:rotate-12 transition-transform" />
-             <span className="text-[9px] font-inter font-bold uppercase tracking-[0.15em]">Cerrar Sesión</span>
-           </button>
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2.5 px-5 py-3 text-white/70 hover:text-red-400 active:scale-95 transition-all duration-300 group cursor-pointer"
+            >
+              <LogOut size={14} className="opacity-70 group-hover:opacity-100 group-hover:rotate-12 transition-all" />
+              <span className="text-[10px] font-inter font-bold uppercase tracking-[0.15em]">Cerrar Sesión</span>
+            </button>
 
            <p className="text-[8px] text-white/20 font-inter font-medium uppercase tracking-[0.3em] mt-2 select-none pointer-events-none">
               Powered by MJM

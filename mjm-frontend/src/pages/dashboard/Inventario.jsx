@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 const cleanText = (text) => {
@@ -169,7 +170,7 @@ const IndustrialWizard = ({ onClose }) => {
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
        <div className="bg-[var(--surface)] shadow-2xl rounded-[2.5rem] border border-[var(--outline-color)] w-full max-w-xl overflow-hidden flex flex-col transition-colors duration-500">
           
@@ -216,28 +217,23 @@ const IndustrialWizard = ({ onClose }) => {
              )}
           </div>
        </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
 // --- MÓDULO: CARGA MASIVA EXCEL (CON DESCARGA DE PLANTILLA Y SUBIDA BLOQUEADA) ---
 const BulkUploadModal = ({ onClose }) => {
   const downloadTemplate = () => {
-    const csvContent = "data:text/csv;charset=utf-8,\ufeff" 
-      + "ID Interna,Instrumento,Marca,Modelo,Serial,Ubicación,Proceso,Magnitud,Criticidad,Intervalo Calibración (meses),Tolerancia Proceso\n"
-      + "MAQ-03-0561,MEDIDOR DE PH PRINCIPAL,HANNA,HI 98163,4110005101,Calidad,Calidad,pH,ALTA,12,0.02\n"
-      + "MAQ-3-0720,LUXOMETRO,EXTECH,LT-45,190401596,Mantenimiento,Producción,Fotometría,ALTA,12,10\n";
-      
-    const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "plantilla_carga_masiva_mjm.csv");
+    link.setAttribute("href", "/plantilla_carga_masiva_mjm.xlsx");
+    link.setAttribute("download", "plantilla_carga_masiva_mjm.xlsx");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
        <div className="bg-[var(--surface)] shadow-2xl rounded-[2.5rem] border border-[var(--outline-color)] w-full max-w-lg overflow-hidden flex flex-col transition-colors duration-500">
           
@@ -274,9 +270,9 @@ const BulkUploadModal = ({ onClose }) => {
                 
                 {/* BLOCKED DROPZONE AREA */}
                 <div className="relative border-2 border-dashed border-[var(--outline-color)]/40 rounded-2xl p-8 flex flex-col items-center justify-center bg-[var(--surface-alt)]/40 overflow-hidden group">
-                   <div className="absolute inset-0 bg-[var(--surface)]/90 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-6 z-20">
-                      <Lock size={28} className="text-[var(--text-muted)] mb-2 animate-pulse" />
-                      <p className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-wider mb-1">Subida deshabilitada temporalmente</p>
+                   <div className="absolute inset-0 bg-[var(--surface)]/95 backdrop-blur-[4px] flex flex-col items-center justify-center text-center p-6 z-20">
+                      <Lock size={28} className="text-amber-500 mb-2 animate-pulse" />
+                      <p className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">Subida deshabilitada temporalmente</p>
                       <p className="text-[9px] text-[var(--text-muted)] px-6">La carga automatizada de inventarios está desactivada en modo de pruebas.</p>
                    </div>
                    
@@ -290,7 +286,8 @@ const BulkUploadModal = ({ onClose }) => {
              <button onClick={onClose} className="btn-secondary py-3 px-8 text-[10px] cursor-pointer">CERRAR WIZARD</button>
           </div>
        </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -335,7 +332,10 @@ const InstrumentCard = ({ inst, onNavigate }) => {
            <h4 className="text-[var(--text-main)] font-black text-sm uppercase tracking-tight truncate">
              {cleanText(inst.nombre)}
            </h4>
-           <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">{inst.marca || 'GENERIC MANUFACTURER'}</p>
+           <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1 flex items-center justify-between gap-2">
+             <span>{inst.marca || 'GENERIC MANUFACTURER'}</span>
+             {inst.serie && <span className="font-mono text-[10px] text-[var(--text-main)] bg-[var(--surface-alt)] px-2 py-0.5 rounded border border-[var(--outline-color)]/30">Serial: {inst.serie}</span>}
+           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -899,7 +899,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
 
 
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-10 bg-black/70 backdrop-blur-md animate-in fade-in duration-500">
       <div className="bg-[#FAF8FF] w-full max-w-6xl max-h-[92vh] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col relative border border-white/20" onClick={(e) => e.stopPropagation()}>
         
@@ -1296,7 +1296,8 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

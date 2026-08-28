@@ -5,7 +5,8 @@ import { useContentStore } from '../store/contentStore';
 import { useEffect } from 'react';
 import {
   Mail, Phone, MapPin, ArrowRight,
-  CheckCircle, Target, Shield, Wrench, Package, Users
+  CheckCircle, Target, Shield, ShieldCheck, Wrench, Package, Users, Globe,
+  ChevronRight, ExternalLink
 } from 'lucide-react';
 
 // Sub-componentes modulares (cada uno aislado con su propio estado)
@@ -15,6 +16,18 @@ import ServicesPortfolio from '../components/landing/ServicesPortfolio';
 import ChatbotWidget     from '../components/landing/ChatbotWidget';
 
 import logoAzul from '../assets/logo_azul_sin_fondo.png';
+
+// ─── Helpers Dinámicos de Fecha & Trayectoria (Actualización Automática cada Diciembre) ──
+const getExperienceYears = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0 = Enero, 11 = Diciembre
+  // En diciembre de cada año se anticipa y computa el siguiente ciclo anual
+  const effectiveYear = month === 11 ? year + 1 : year;
+  return Math.max(12, effectiveYear - 2014);
+};
+
+const getCurrentYear = () => new Date().getFullYear();
 
 const brandLogos = [
   "/brands/1693432797912-pmaaao.png",
@@ -30,132 +43,221 @@ const brandLogos = [
   "/brands/channels4_profile.jpg"
 ];
 
-// ─── Sección Alcance ────────────────────────────────────────────────────────
+// ─── TrustBar Metrológica (Tesla-Style Glass Stats Ribbon Estilo Ingyemel) ──
+const TrustBar = () => (
+  <div className="relative z-30 bg-black/70 border-y border-white/10 backdrop-blur-md py-4 sm:py-6 text-white shadow-xl">
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-12 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-white/10">
+      <div className="py-2 space-y-1">
+        <span className="text-xl sm:text-2xl font-space font-extrabold text-mjm-orange">ISO 9001:2015</span>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">CERTIFICADO ICONTEC • CO-SC-CER1090494</p>
+      </div>
+      <div className="py-2 space-y-1">
+        <span className="text-xl sm:text-2xl font-space font-extrabold text-mjm-orange">NTC-ISO/IEC 17025</span>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">TRAZABILIDAD METROLÓGICA • ONAC / NIST</p>
+      </div>
+      <div className="py-2 space-y-1">
+        <span className="text-xl sm:text-2xl font-space font-extrabold text-mjm-orange">Nivel Nacional</span>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">ATENCIÓN EN PLANTA EN TODA COLOMBIA</p>
+      </div>
+      <div className="py-2 space-y-1">
+        <span className="text-xl sm:text-2xl font-space font-extrabold text-emerald-400">Multi-Tenant 24/7</span>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">CUSTODIA DIGITAL • GOBERNANZA DE ACTIVOS</p>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Sección Alcance (Clinical Light & Technical Excellence) ────────────────
 const AlcanceSection = () => (
-  <section className="bg-slate-50/20 py-16 lg:py-20 relative overflow-hidden">
+  <section id="alcance" className="bg-[#F8F9FB] py-20 lg:py-28 relative overflow-hidden border-b border-mjm-navy/5">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col lg:flex-row gap-16 lg:gap-20 items-center">
-        <div className="lg:w-1/2 relative">
-          <div className="relative z-10 rounded-2xl shadow-xl border border-slate-100 p-1.5 bg-white overflow-hidden group">
-            <img src="https://asesoriasintegralesmjm.com/services/alcance.jpeg" alt="Metrologo MJM trabajando" className="w-full h-auto rounded-xl grayscale hover:grayscale-0 transition-all duration-700" loading="lazy" />
+      <div className="flex flex-col lg:flex-row gap-14 lg:gap-20 items-center">
+        
+        {/* Fotografía Real con Marco Técnico de Laboratorio */}
+        <div className="lg:w-1/2 relative group">
+          <div className="relative z-10 rounded-2xl shadow-2xl border border-mjm-navy/10 p-2 bg-white overflow-hidden">
+            <img
+              src="/ui/principal2.jpeg"
+              alt="Metrólogo de MJM realizando aseguramiento en laboratorio"
+              className="w-full h-auto rounded-xl object-cover grayscale-0 group-hover:scale-[1.02] transition-transform duration-700"
+              loading="lazy"
+              decoding="async"
+            />
+            {/* Tag de Rigor Metrológico */}
+            <div className="absolute top-4 left-4 z-20 bg-mjm-navy/90 border border-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-white font-mono text-[10px] uppercase tracking-wider flex items-center gap-2 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-mjm-orange animate-pulse"></span>
+              <span>Laboratorio & Aseguramiento en Campo</span>
+            </div>
           </div>
-          <div className="absolute -bottom-6 -right-6 w-48 h-48 bg-mjm-navy/10 rounded-3xl -z-0" />
+          <div className="absolute -bottom-5 -right-5 w-48 h-48 bg-mjm-orange/10 rounded-3xl -z-0 blur-xl" />
         </div>
-        <div className="lg:w-1/2">
-          <span className="text-mjm-orange font-bold uppercase tracking-[0.25em] text-xs mb-4 block">Trayectoria y Confianza</span>
-          <h2 className="text-4xl lg:text-5xl font-extrabold mb-6 leading-tight text-mjm-navy">Nuestro <span className="font-light">Alcance</span></h2>
-          <div className="w-12 h-1 bg-mjm-orange mb-8 rounded-full" />
-          <p className="text-base text-mjm-navy/70 leading-relaxed font-light mb-8">
-            Con más de 12 años de experiencia, Asesorías Integrales MJM S.A.S. se ha consolidado como el aliado estratégico ideal para empresas que buscan la excelencia en sus sistemas de medición.
+
+        {/* Storytelling de Dolor y Blindaje de Auditorías */}
+        <div className="lg:w-1/2 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-mjm-orange/10 border border-mjm-orange/20 text-mjm-orange font-mono text-xs uppercase tracking-wider">
+            <Shield className="w-3.5 h-3.5" />
+            <span>Blindaje Normativo & Cero No-Conformidades</span>
+          </div>
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-space font-extrabold text-mjm-navy uppercase tracking-tight leading-tight">
+            Nuestro Alcance: <br />
+            <span className="text-mjm-orange font-light">Más Allá del Papel</span>
+          </h2>
+
+          <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-light font-inter">
+            Un certificado de calibración archivado en una carpeta física no protege a su empresa si no hay trazabilidad en planta. Cuando un instrumento se desvía de su tolerancia en plena producción, el costo de los lotes defectuosos y las no-conformidades ante auditores de <strong className="font-semibold text-mjm-navy">ICONTEC, INVIMA o ISO 9001</strong> es crítico.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-light">
+            En Asesorías Integrales MJM combinamos la rigurosidad técnica de laboratorio con el control de sus activos, asegurando que cada medición cumpla con las especificaciones de su proceso industrial.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
             {[
-              { num: '01', color: 'bg-mjm-navy/10 text-mjm-navy border-mjm-navy/20', title: 'Consultoría ISO 9001', desc: 'Asesoramos la implementación de sistemas de calidad metrológica bajo los más altos estándares internacionales.' },
-              { num: '02', color: 'bg-mjm-orange/10 text-mjm-orange border-mjm-orange/20', title: 'Criterio Técnico', desc: 'Nuestros expertos brindan soporte especializado para la toma de decisiones críticas en aseguramiento metrológico.' },
+              { num: '01', title: 'Criterio Técnico & GUM', desc: 'Determinación matemática de conformidad considerando la incertidumbre de medición y la tolerancia de su proceso.' },
+              { num: '02', title: 'Protección en Auditorías', desc: 'Hojas de vida, cronogramas y certificados centralizados para responder ante cualquier auditor en segundos.' },
             ].map(item => (
-              <div key={item.num} className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 ${item.color} flex items-center justify-center rounded-xl font-bold text-sm border font-data`}>{item.num}</div>
-                  <span className="font-bold uppercase text-xs tracking-wider text-mjm-navy">{item.title}</span>
+              <div key={item.num} className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm space-y-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="font-space font-extrabold text-mjm-orange text-lg">{item.num}.</span>
+                  <span className="font-space font-bold uppercase text-xs tracking-wider text-mjm-navy">{item.title}</span>
                 </div>
-                <p className="text-xs text-mjm-navy/60 font-light leading-relaxed">{item.desc}</p>
+                <p className="text-xs text-slate-600 font-normal leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
+
       </div>
     </div>
   </section>
 );
 
-// ─── Sección Nosotros ───────────────────────────────────────────────────────
+// ─── Sección Nosotros: Infraestructura & Autoridad Técnica (Clinical Light Luxury) ──────
 const NosotrosSection = () => (
-  <section id="nosotros" className="bg-mjm-navy py-20 lg:py-24 relative overflow-hidden text-white border-b border-white/5">
-    <div className="absolute inset-0 z-0 opacity-10">
-      <img src="/nosotros/cimga.jpg" alt="Background Texture" className="w-full h-full object-cover blur-sm" />
-    </div>
-    <div className="absolute inset-0 bg-gradient-to-br from-mjm-navy via-mjm-navy/95 to-slate-900/90 z-0" />
-    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col lg:flex-row gap-16 lg:gap-20 items-center">
-        <div className="lg:w-1/2 space-y-8">
-          <div className="space-y-4">
-            <span className="text-mjm-orange font-bold uppercase tracking-[0.25em] text-xs block">Trayectoria y Liderazgo</span>
-            <h2 className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight uppercase">Sobre <br/><span className="font-light text-white/70">Nosotros</span></h2>
-            <div className="w-12 h-1 bg-mjm-orange rounded-full" />
+  <section id="nosotros" className="py-24 lg:py-32 bg-white relative z-20 shadow-xl border-t border-slate-200 text-mjm-navy">
+    <div className="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      
+      {/* Columna Izquierda (5 Cols): Marco Visual Limpio con Resplandor & Placa Flotante */}
+      <div className="lg:col-span-5 relative group">
+        {/* Resplandor Cálido Suave */}
+        <div className="absolute -inset-1.5 rounded-3xl bg-gradient-to-r from-[#f7931b]/15 via-orange-400/10 to-[#f7931b]/15 blur-xl opacity-70 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+        <div className="aspect-[4/5] sm:aspect-square rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 relative bg-slate-50 p-2">
+          <img
+            src="/nosotros/cimga.jpg"
+            alt="Autoridad Técnica MJM en Congreso CIMGA"
+            className="w-full h-full object-cover rounded-2xl contrast-[1.04] brightness-[0.98] group-hover:scale-105 transition-transform duration-700"
+            loading="lazy"
+            decoding="async"
+          />
+
+          {/* Badge de Rigor Superior */}
+          <div className="absolute top-5 left-5 z-10 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-mjm-navy/90 border border-white/20 backdrop-blur-md text-[10px] font-mono text-white shadow-xl">
+            <span className="w-2 h-2 rounded-full bg-[#f7931b] animate-pulse shrink-0"></span>
+            <span>PARTICIPACIÓN CIENTÍFICA • CIMGA</span>
           </div>
-          <div className="relative rounded-2xl overflow-hidden border border-white/10 group shadow-xl">
-            <img src="/nosotros/cimga.jpg" alt="Participación CIMGA" className="w-full aspect-video object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-mjm-navy/95 via-transparent to-transparent opacity-80" />
-            <div className="absolute bottom-6 left-6 right-6">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-mjm-orange mb-1">Compromiso Industrial</p>
-              <p className="text-base font-bold leading-tight">Participación destacada en eventos técnicos de metrología como CIMGA.</p>
-            </div>
-          </div>
-          <p className="text-lg text-white/90 leading-relaxed font-light border-l-4 border-mjm-orange pl-6 py-2 bg-white/5 rounded-r-xl">
-            "Media década de experiencia en aseguramiento metrológico, comprometidos con la excelencia y la mejora continua."
+        </div>
+
+        {/* Placa Flotante Inferior Derecha (Años de Experiencia Dinámicos) */}
+        <div className="absolute -bottom-6 -right-6 p-5 bg-white/95 border border-slate-200 text-mjm-navy rounded-2xl shadow-2xl backdrop-blur-xl hidden sm:block z-20 space-y-1">
+          <span className="block text-2xl font-space font-extrabold text-[#f7931b]">+{getExperienceYears()} Años</span>
+          <span className="block text-[10px] font-mono uppercase tracking-widest text-slate-600 font-bold">Trayectoria Metrológica</span>
+        </div>
+      </div>
+
+      {/* Columna Derecha (7 Cols): Narrativa Editorial & 2 Tarjetas Blancas de Titanio */}
+      <div className="lg:col-span-7 space-y-6">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#f7931b]/10 border border-[#f7931b]/30 rounded-full text-[#f7931b] font-mono uppercase tracking-wider text-[10px] sm:text-xs font-bold">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#f7931b]" />
+          <span>AUTORIDAD TÉCNICO-CIENTÍFICA & RIGOR NORMATIVO</span>
+        </div>
+
+        <h2 className="font-space font-extrabold text-3xl sm:text-5xl text-mjm-navy uppercase tracking-tight leading-tight">
+          Ingeniería Metrológica <br />
+          <span className="text-[#f7931b] font-light">con Criterio Aplicado</span>
+        </h2>
+
+        <div className="space-y-4 text-slate-700 text-sm sm:text-base leading-relaxed font-light font-inter">
+          <p>
+            En <strong className="text-mjm-navy font-semibold">Asesorías Integrales MJM</strong> entendemos que una desviación no detectada en un instrumento paraliza una auditoría y arriesga la conformidad de lotes enteros de producción. Con más de {getExperienceYears()} años de trayectoria y actualización continua en congresos técnico-científicos (<strong className="text-[#f7931b] font-medium">CIMGA</strong>), aportamos exactitud matemática y criterio de ingeniería a sus procesos.
+          </p>
+          <p className="text-slate-600 text-xs sm:text-sm font-normal">
+            Unificamos la rigurosidad de laboratorio bajo norma NTC-ISO/IEC 17025, aseguramiento en planta ISO 10012 y gobernanza en la nube para proteger a su empresa ante cualquier organismo de control.
           </p>
         </div>
-        <div className="lg:w-1/2 grid grid-cols-1 gap-6 w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              { label: 'Misión', color: 'text-mjm-orange', text: 'Ser un aliado estratégico para la estructuración y fortalecimiento de la gestión metrológica de nuestros clientes basándonos en la experiencia técnico-científica.' },
-              { label: 'Visión', color: 'text-white',      text: 'Liderar el mercado nacional a través de la prestación de servicios integrales, confiables y oportunos.' },
-            ].map(item => (
-              <div key={item.label} className="glass-premium-dark p-6 rounded-2xl hover:bg-white/[0.08] transition-premium">
-                <h3 className={`text-base font-bold mb-3 uppercase tracking-wider ${item.color} border-b border-white/10 pb-2`}>{item.label}</h3>
-                <p className="text-xs text-white/70 leading-relaxed font-light">{item.text}</p>
+
+        {/* 2 Tarjetas Blancas de Titanio de Alto Nivel */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div className="p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-[#f7931b] hover:shadow-xl transition-all space-y-2 group/card shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[#f7931b]/10 border border-[#f7931b]/30 flex items-center justify-center text-[#f7931b] group-hover/card:bg-[#f7931b] group-hover/card:text-white transition-colors">
+                <Globe className="w-4 h-4" />
               </div>
-            ))}
-          </div>
-          <div className="glass-premium-dark p-6 md:p-8 rounded-2xl shadow-xl border border-white/10">
-            <h3 className="text-base font-bold mb-5 uppercase tracking-wider text-white flex items-center gap-3">
-              <span className="w-6 h-[2px] bg-mjm-orange block" /> Pilares Operacionales
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {[
-                { title: 'Innovación Continua',   desc: 'Implementamos desarrollos que optimizan procesos de medición.' },
-                { title: 'Excelencia Operacional', desc: 'Altos estándares de calidad certificados por ISO 9001:2015.' },
-                { title: 'Desarrollo del Talento', desc: 'Fortalecemos continuamente las competencias técnicas de nuestro equipo.' },
-                { title: 'Crecimiento Sostenible', desc: 'Expansión estratégica y presencia sólida en el mercado colombiano.' },
-              ].map(p => (
-                <div key={p.title} className="space-y-1">
-                  <p className="font-bold text-xs uppercase tracking-wider text-mjm-orange">{p.title}</p>
-                  <p className="text-xs text-white/50 leading-relaxed font-light">{p.desc}</p>
-                </div>
-              ))}
+              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Despliegue a Nivel Nacional</h4>
             </div>
+            <p className="text-xs text-slate-600 font-normal leading-relaxed font-inter">
+              Atención presencial en plantas de toda Colombia para no detener líneas continuas durante rutinas de verificación.
+            </p>
           </div>
-          <div className="flex gap-2.5 pt-2 flex-wrap">
-            {['Integridad', 'Confianza', 'Pasión'].map(val => (
-              <span key={val} className="px-3.5 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-mjm-orange">{val}</span>
-            ))}
+
+          <div className="p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-[#f7931b] hover:shadow-xl transition-all space-y-2 group/card shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[#f7931b]/10 border border-[#f7931b]/30 flex items-center justify-center text-[#f7931b] group-hover/card:bg-[#f7931b] group-hover/card:text-white transition-colors">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Blindaje en Auditorías</h4>
+            </div>
+            <p className="text-xs text-slate-600 font-normal leading-relaxed font-inter">
+              Custodia digital inalterable de hojas de vida y certificados con cálculo GUM para auditorías ICONTEC e INVIMA.
+            </p>
           </div>
         </div>
+
+        {/* Cita Editorial en Barra Limpia */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm flex items-center gap-4 text-xs sm:text-sm font-inter text-slate-700 font-light">
+          <div className="w-1.5 h-10 bg-[#f7931b] rounded-full shrink-0" />
+          <p className="italic">
+            "Más de {getExperienceYears()} años brindando aseguramiento metrológico para industrias donde el margen de error no es una opción."
+          </p>
+        </div>
+
       </div>
     </div>
   </section>
 );
 
-// ─── Sección Equipo ─────────────────────────────────────────────────────────
+// ─── Sección Equipo (Clinical Light Talent & Lab) ───────────────────────────
 const EquipoSection = () => (
-  <section className="bg-slate-50/20 py-20 lg:py-24 border-t border-mjm-navy/5">
+  <section className="bg-[#F8F9FB] py-20 lg:py-24 border-t border-slate-200">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16">
-        <span className="text-mjm-orange font-bold uppercase tracking-[0.25em] text-xs mb-3 block">Talento Especializado</span>
-        <h2 className="text-4xl lg:text-5xl font-extrabold text-mjm-navy tracking-tight uppercase leading-none">Nuestro <span className="font-light">Equipo</span></h2>
-        <div className="w-12 h-1 bg-mjm-orange/85 mx-auto mt-4 rounded-full" />
+      <div className="text-center mb-16 space-y-2">
+        <span className="text-mjm-orange font-mono uppercase tracking-[0.25em] text-xs font-bold block">Talento & Laboratorio</span>
+        <h2 className="text-3xl sm:text-5xl font-space font-extrabold text-mjm-navy tracking-tight uppercase leading-none">
+          Equipo <span className="font-light text-slate-500">Especializado</span>
+        </h2>
+        <div className="w-12 h-1 bg-mjm-orange mx-auto mt-4 rounded-full" />
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-12">
         {[
-          { img: '/team/team_1.jpg', alt: 'MJM Technical Team 1', title: 'Expertos en diversas magnitudes físicas y calidad.', desc: 'Nuestra fuerza radica en el Staff de metrólogos calificados y aliados estratégicos en Bogotá y a nivel nacional.' },
-          { img: '/team/team_2.jpg', alt: 'MJM Technical Team 2', title: 'Laboratorios acreditados bajo estándares internacionales.', desc: 'Trabajamos bajo criterios técnicos estrictos para asegurar que cada medición resista auditorías de alta exigencia.' },
+          { img: '/team/team_1.jpg', alt: 'Equipo Técnico MJM en campo', title: 'Especialistas en múltiples magnitudes físicas.', desc: 'Metrólogos calificados para atender requerimientos de longitud, temperatura, presión, vibración y frecuencia en planta.' },
+          { img: '/team/team_2.jpg', alt: 'Laboratorio de calibración y verificación MJM', title: 'Laboratorios y alianzas de alta exigencia técnica.', desc: 'Cumplimiento estricto de criterios de calibración para garantizar que cada entrega resista auditorías de alta exigencia.' },
         ].map(item => (
           <div key={item.alt} className="space-y-5 group">
-            <div className="w-full h-80 bg-mjm-navy/5 rounded-2xl border border-mjm-navy/10 overflow-hidden grayscale hover:grayscale-0 transition-premium relative shadow-md">
-              <img src={item.img} alt={item.alt} className="w-full h-full object-cover transition-transform duration-[800ms] group-hover:scale-105" loading="lazy" />
+            <div className="w-full h-80 bg-slate-900 rounded-2xl border border-slate-200 overflow-hidden relative shadow-md">
+              <img
+                src={item.img}
+                alt={item.alt}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-            <h4 className="text-lg md:text-xl font-bold text-mjm-navy leading-tight tracking-tight uppercase group-hover:text-mjm-orange transition-premium">{item.title}</h4>
-            <p className="text-xs text-mjm-navy/60 leading-relaxed font-light">{item.desc}</p>
+            <h4 className="text-lg md:text-xl font-space font-bold text-mjm-navy leading-tight tracking-tight uppercase group-hover:text-mjm-orange transition-premium">
+              {item.title}
+            </h4>
+            <p className="text-xs text-slate-600 leading-relaxed font-light font-inter">{item.desc}</p>
           </div>
         ))}
       </div>
@@ -163,42 +265,66 @@ const EquipoSection = () => (
   </section>
 );
 
-// ─── CTA Final ──────────────────────────────────────────────────────────────
+// ─── CTA Final de Alta Gama (Obsidian Command Center) ────────────────────────
 const CTASection = () => (
-  <section className="bg-mjm-orange py-20 lg:py-24 relative overflow-hidden text-center text-white">
-    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent mix-blend-overlay pointer-events-none" />
-    <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-[radial-gradient(circle,_rgba(255,255,255,0.15)_0%,_transparent_70%)] rounded-full blur-[60px] pointer-events-none"></div>
-    <div className="max-w-4xl mx-auto px-4 relative z-10 space-y-8">
-      <h2 className="text-4xl md:text-6xl font-extrabold text-mjm-navy tracking-tight uppercase leading-none italic">¿LISTO PARA <br/>LA EXCELENCIA?</h2>
-      <p className="text-base md:text-lg text-white font-bold uppercase tracking-[0.2em]">Optimice su Aseguramiento Metrológico Hoy</p>
-      <div>
+  <section className="bg-[#090f1d] py-20 lg:py-28 relative overflow-hidden text-center text-white border-t border-b border-white/10">
+    <div className="absolute inset-0 bg-radial-gradient from-mjm-orange/10 via-transparent to-transparent pointer-events-none" />
+    <div className="max-w-4xl mx-auto px-4 relative z-10 space-y-6">
+      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-mjm-orange/10 border border-mjm-orange/30 rounded-full text-mjm-orange font-mono text-[10px] font-bold uppercase tracking-wider">
+        <span className="w-2 h-2 rounded-full bg-mjm-orange animate-pulse" />
+        <span>Atención Inmediata a Nivel Nacional</span>
+      </div>
+      <h2 className="text-3xl sm:text-5xl md:text-6xl font-space font-extrabold text-white tracking-tight uppercase leading-tight">
+        ¿Listo para Blindar sus <br /><span className="text-mjm-orange font-light">Auditorías Metrológicas?</span>
+      </h2>
+      <p className="text-sm sm:text-base text-zinc-300 font-light max-w-xl mx-auto font-inter">
+        Agende una sesión técnica con nuestros ingenieros metrólogos y cotice sus servicios de calibración, diagnóstico en campo o suscripción a la plataforma de control.
+      </p>
+      <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4">
         <a
-          href="https://wa.me/573137960800" target="_blank" rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 bg-mjm-navy hover:bg-mjm-navy/90 text-white px-8 py-4 rounded-xl font-bold uppercase text-[11px] tracking-wider transition-premium shadow-[0_12px_24px_rgba(35,76,116,0.3)] hover:-translate-y-0.5 active:scale-95 group"
+          href="https://wa.me/573137960800"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary flex items-center justify-center gap-3 shadow-xl shadow-orange-500/25"
         >
-          Contactar por WhatsApp <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+          <span>Contactar Ingeniero por WhatsApp</span>
+          <ArrowRight className="w-4 h-4" />
+        </a>
+        <a
+          href="#contacto"
+          className="px-6 py-3.5 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-space text-xs font-bold uppercase tracking-wider transition-all"
+        >
+          <span>Enviar Formulario Técnico</span>
         </a>
       </div>
     </div>
   </section>
 );
 
-// ─── Logos Aliados ───────────────────────────────────────────────────────────
+// ─── Logos Aliados con Máscara Gaussiana ───────────────────────────────────────
 const BrandsCarousel = () => (
   <section className="bg-white py-12 lg:py-16 border-y border-mjm-navy/5 overflow-hidden">
     <div className="max-w-7xl mx-auto px-4 mb-8 text-center">
-      <span className="text-mjm-navy/35 font-bold uppercase tracking-[0.4em] text-[10px]">Alianzas y Respaldo Técnico</span>
+      <span className="text-slate-400 font-mono font-bold uppercase tracking-[0.3em] text-[10px]">
+        Marcas & Fabricantes Suministrados y Respaldados
+      </span>
     </div>
-    <div className="relative flex overflow-hidden w-full">
+    <div className="relative flex overflow-hidden w-full mask-gradient-x">
       <motion.div
         className="flex gap-20 items-center shrink-0"
         style={{ minWidth: '200%' }}
         animate={{ x: ['0%', '-50%'] }}
-        transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+        transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
       >
         {[...brandLogos, ...brandLogos].map((logo, idx) => (
           <div key={idx} className="h-10 w-24 flex items-center justify-center shrink-0">
-            <img src={logo} alt="Client Brand" className="max-h-full max-w-full object-contain grayscale opacity-45 hover:grayscale-0 hover:opacity-100 transition-premium" loading="lazy" />
+            <img
+              src={logo}
+              alt="Marca Aliada"
+              className="max-h-full max-w-full object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-premium"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         ))}
       </motion.div>
@@ -206,67 +332,139 @@ const BrandsCarousel = () => (
   </section>
 );
 
-// ─── Footer ──────────────────────────────────────────────────────────────────
+// ─── Footer (Titanium Glass Style Estilo Ingyemel) ───────────────────────────
 const Footer = () => (
-  <footer className="bg-[#0b1326] pt-16 lg:pt-20 pb-10 text-white/50 border-t border-white/5">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12 mb-16">
-        <div className="space-y-5">
-          <div className="flex flex-col">
-            <span className="text-white font-bold text-lg tracking-tight uppercase leading-none">Asesorías Integrales</span>
-            <span className="text-mjm-orange font-extrabold text-lg tracking-tight uppercase leading-none">MJM</span>
+  <footer className="bg-gradient-to-b from-[#141722] via-[#0E1119] to-[#07080C] text-white pt-20 pb-12 border-t-2 border-white/20 rounded-t-[44px] md:rounded-t-[64px] relative z-20 shadow-2xl overflow-hidden" id="contacto">
+    {/* Resplandor Ambiental Dorado/Naranja en el Fondo */}
+    <div className="absolute bottom-0 right-0 w-[600px] h-[300px] bg-[#f7931b]/5 blur-[140px] rounded-full pointer-events-none" />
+
+    <div className="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10">
+      
+      {/* Columna 1: Logo & Bio Corporativa (4 cols) */}
+      <div className="lg:col-span-4 space-y-6">
+        <a href="#inicio" className="flex items-center gap-3 sm:gap-3.5 group cursor-pointer">
+          <div className="w-11 h-11 rounded-xl bg-white/95 backdrop-blur-md border border-white/40 shadow-lg flex items-center justify-center p-1.5 group-hover:border-[#f7931b]/60 group-hover:shadow-[0_0_20px_rgba(247,147,27,0.35)] transition-all shrink-0">
+            <img
+              src={logoAzul}
+              alt="Isotipo MJM"
+              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+            />
           </div>
-          <p className="text-xs leading-relaxed font-light max-w-xs text-white/60">
-            Expertos en aseguramiento metrológico y consultoría técnica con certificación ISO 9001.
-          </p>
-        </div>
-        <div>
-          <h4 className="text-white font-bold uppercase tracking-wider text-xs mb-5 border-b border-white/10 pb-2">Servicios</h4>
-          <ul className="space-y-2.5 text-xs font-light">
-            {['Aseguramiento Metrológico', 'Capacitación Técnica', 'Calibración de Instrumentos', 'Diagnóstico y Mantenimiento', 'Suministros Técnicos'].map(s => (
-              <li key={s}><a href="#servicios" className="hover:text-mjm-orange transition-premium">{s}</a></li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h4 className="text-white font-bold uppercase tracking-wider text-xs mb-5 border-b border-white/10 pb-2">Enlaces Rápidos</h4>
-          <ul className="space-y-2.5 text-xs font-light">
-            <li><a href="#inicio"    className="hover:text-mjm-orange transition-premium">Inicio</a></li>
-            <li><a href="#nosotros"  className="hover:text-mjm-orange transition-premium">Nosotros</a></li>
-            <li><a href="#servicios" className="hover:text-mjm-orange transition-premium">Servicios</a></li>
-            <li><Link to="/login"    className="hover:text-mjm-orange transition-premium">Portal de Clientes</Link></li>
-          </ul>
-        </div>
-        <div className="space-y-3.5">
-          <h4 className="text-white font-bold uppercase tracking-wider text-xs mb-5 border-b border-white/10 pb-2">Contacto</h4>
-          <div className="flex items-start gap-2.5">
-            <Mail className="w-4 h-4 text-mjm-orange shrink-0 mt-0.5" />
-            <span className="text-xs font-light text-white/70">comercial.asesoriasmjm@gmail.com</span>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <Phone className="w-4 h-4 text-mjm-orange shrink-0" />
-            <span className="text-xs font-light text-white/70">+57 313 7960800</span>
-          </div>
-          <div className="flex items-start gap-2.5 group">
-            <MapPin className="w-4 h-4 text-mjm-orange shrink-0 mt-0.5 group-hover:scale-105 transition-premium" />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs font-light text-white/70">Cl 2 #71d-84</span>
-              <span className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Bogotá, Colombia</span>
-              <a href="https://www.google.com/maps/search/?api=1&query=Cl+2+%2371d-84,+Bogotá,+Colombia" target="_blank" rel="noopener noreferrer"
-                className="text-[10px] text-mjm-orange font-bold uppercase tracking-widest hover:underline mt-1 flex items-center gap-1">
-                Ver en Google Maps <ArrowRight size={10} />
-              </a>
+          
+          <div className="flex flex-col text-left">
+            <div className="flex items-center gap-1.5 leading-none">
+              <span className="font-space font-extrabold text-base sm:text-lg text-white tracking-tight uppercase group-hover:text-white transition-colors">
+                ASESORÍAS INTEGRALES
+              </span>
+              <span className="font-space font-extrabold text-base sm:text-lg text-[#f7931b] tracking-tight uppercase">
+                MJM
+              </span>
             </div>
+            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-[0.22em] text-zinc-400 font-medium mt-1 leading-none flex items-center gap-1.5">
+              <span>Metrología & Calibración</span>
+              <span className="text-[#f7931b] font-bold">•</span>
+              <span className="text-zinc-400">ISO 9001</span>
+            </span>
+          </div>
+        </a>
+        
+        <p className="text-xs md:text-sm text-zinc-300 font-light leading-relaxed max-w-sm font-inter">
+          Líderes en aseguramiento metrológico, calibración trazable y gobernanza de activos en planta. Cumplimiento bajo normas ISO 9001 e ISO 10012 con atención técnica a nivel nacional.
+        </p>
+
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-[11px] font-mono text-zinc-300 backdrop-blur-md">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Atención en Planta • Soporte Metrológico 24/7</span>
+        </div>
+      </div>
+
+      {/* Columna 2: Especialidades de Medición (3 cols) */}
+      <div className="lg:col-span-3 space-y-4">
+        <h4 className="font-mono text-xs uppercase tracking-[0.25em] text-[#f7931b] font-bold">Especialidades de Medición</h4>
+        <ul className="space-y-2.5 text-xs text-zinc-300 font-space">
+          {[
+            'Aseguramiento Metrológico Integral',
+            'Calibración & Verificación Trazable',
+            'Capacitación Técnica Especializada',
+            'Diagnóstico y Mantenimiento',
+            'Suministro de Instrumentación',
+            'Custodia Digital Multi-Tenant'
+          ].map((item, idx) => (
+            <li key={idx}>
+              <a href="#servicios" className="hover:text-[#f7931b] transition-colors flex items-center gap-2">
+                <ChevronRight className="w-3 h-3 text-[#f7931b]" />
+                <span>{item}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Columna 3: Sede Principal & Cobertura (3 cols) */}
+      <div className="lg:col-span-3 space-y-4">
+        <h4 className="font-mono text-xs uppercase tracking-[0.25em] text-[#f7931b] font-bold">Sede Principal & Cobertura</h4>
+        <div className="space-y-3 text-xs text-zinc-300 font-inter">
+          <div className="flex items-start gap-3">
+            <MapPin className="w-4 h-4 text-[#f7931b] shrink-0 mt-0.5" />
+            <span className="leading-relaxed font-light">Cl 2 #71d-84, Bogotá D.C., Colombia <br /><strong className="text-white font-medium">(Atención Presencial a Nivel Nacional)</strong></span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Phone className="w-4 h-4 text-[#f7931b] shrink-0" />
+            <span>Cel / WhatsApp: +57 313 7960800</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Mail className="w-4 h-4 text-[#f7931b] shrink-0" />
+            <span>comercial.asesoriasmjm@gmail.com</span>
           </div>
         </div>
       </div>
-      <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-wider text-white/40 font-medium">
-        <p>© 2026 Asesorías Integrales MJM S.A.S. - Todos los derechos reservados.</p>
-        <div className="flex gap-6">
-          <a href="#" className="hover:text-white transition-premium">Privacidad</a>
-          <a href="#" className="hover:text-white transition-premium">Términos</a>
-        </div>
+
+      {/* Columna 4: Portal Corporativo (2 cols) */}
+      <div className="lg:col-span-2 space-y-4">
+        <h4 className="font-mono text-xs uppercase tracking-[0.25em] text-[#f7931b] font-bold">Portal de Clientes</h4>
+        <p className="text-xs text-zinc-400 font-light leading-relaxed">
+          Custodia inalterable de hojas de vida, certificados y cálculo de conformidad GUM.
+        </p>
+        <Link 
+          to="/login" 
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#f7931b] text-zinc-950 font-extrabold text-xs uppercase tracking-widest hover:bg-orange-400 transition-all shadow-xl shadow-orange-500/20 font-space cursor-pointer"
+        >
+          <span>Acceso Clientes</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </Link>
       </div>
+
+    </div>
+
+    {/* Barra Inferior Sub-Footer con Powered by Delta CoreTech */}
+    <div className="max-w-[1440px] mx-auto px-6 md:px-12 mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-zinc-400 font-mono relative z-10 md:pr-80 pb-24 md:pb-4">
+      {/* Copyright & Habeas Data */}
+      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center md:text-left text-zinc-400">
+        <span>© {getCurrentYear()} Asesorías Integrales MJM S.A.S. • Todos los derechos reservados.</span>
+        <span className="hidden sm:inline text-zinc-600">•</span>
+        <span className="text-[11px] text-zinc-500 font-sans">
+          Tratamiento de Datos (Ley 1581)
+        </span>
+      </div>
+      
+      {/* Insignia Delta CoreTech (Centrada / 100% Despejada y Visible) */}
+      <a 
+        href="https://deltacoretech.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2.5 sm:gap-3 px-5 py-2.5 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md hover:border-[#f7931b]/70 hover:bg-white/[0.12] transition-all group shadow-xl cursor-pointer"
+        title="Desarrollado y Gestionado por Delta CoreTech"
+      >
+        <span className="text-[10px] sm:text-xs text-zinc-300 font-sans tracking-wide">Powered by</span>
+        <img 
+          src="/assets/images/delta_symbol_white.png" 
+          alt="Delta CoreTech Icon" 
+          className="w-4 h-4 sm:w-5 sm:h-5 object-contain transition-transform duration-200 group-hover:scale-110 filter drop-shadow-[0_0_8px_rgba(247,147,27,0.6)]" 
+        />
+        <span className="text-xs sm:text-sm font-extrabold font-space text-white tracking-wider uppercase">
+          Delta <span className="text-[#f7931b]">CoreTech</span>
+        </span>
+      </a>
     </div>
   </footer>
 );
@@ -284,7 +482,7 @@ const Landing = () => {
   }, []);
 
   return (
-    <div className="font-sans text-mjm-navy bg-white min-h-screen flex flex-col relative w-full overflow-x-hidden selection:bg-mjm-orange selection:text-white">
+    <div className="font-sans text-mjm-navy bg-white min-h-screen flex flex-col relative w-full overflow-x-clip selection:bg-mjm-orange selection:text-white">
 
       {/* Navegación — estado de scroll aislado dentro del componente */}
       <LandingHeader />
@@ -294,6 +492,9 @@ const Landing = () => {
         title={landing?.hero?.title || 'Expertos en Aseguramiento Metrológico'}
         subtitle={landing?.hero?.subtitle || 'Consultoría, capacitación, verificación y calibración de instrumentos con los más altos estándares de calidad y confiabilidad'}
       />
+
+      {/* Barra de Confianza Metrológica */}
+      <TrustBar />
 
       {/* Contenido estático — sin estado, render único */}
       <AlcanceSection />

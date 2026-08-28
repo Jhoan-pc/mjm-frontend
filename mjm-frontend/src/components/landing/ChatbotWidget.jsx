@@ -175,27 +175,42 @@ const ChatbotWidget = () => {
         )}
       </AnimatePresence>
 
-      {/* Botón flotante */}
+      {/* Botón flotante: Cápsula de Cristal de Titanio */}
       <button
         onClick={toggleChat}
-        className={`w-16 h-16 rounded-full shadow-2xl transition-all duration-500 flex items-center justify-center group border-b-4 active:border-b-0 active:translate-y-1 relative ${
+        className={`group flex items-center gap-3 p-1.5 pl-4 pr-1.5 rounded-full backdrop-blur-xl transition-all duration-300 shadow-2xl cursor-pointer ${
           isOpen
-            ? 'bg-mjm-navy text-white border-mjm-navy shadow-mjm-navy/20'
-            : 'bg-mjm-orange text-white border-orange-700 shadow-mjm-orange/30 hover:-translate-y-1'
+            ? 'bg-zinc-900/95 text-white border border-white/20 shadow-black/80'
+            : 'bg-[#090f1d]/90 text-white border border-white/20 hover:border-[#f7931b]/60 shadow-[0_10px_35px_rgba(0,0,0,0.6)] hover:shadow-[0_10px_35px_rgba(247,147,27,0.25)] hover:scale-[1.02]'
         }`}
+        title="Asistente Metrológico MJM"
       >
-        <AnimatePresence mode="wait">
-          {isOpen
-            ? <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}><X size={28} /></motion.span>
-            : <motion.span key="open"  initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}><MessageCircle size={28} className="group-hover:scale-110 transition-transform" /></motion.span>
-          }
-        </AnimatePresence>
+        {/* Etiqueta descriptiva en desktop */}
         {!isOpen && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-5 w-5 bg-red-600 border-2 border-white" />
-          </span>
+          <div className="hidden sm:flex flex-col text-left pr-1">
+            <span className="font-space font-extrabold text-xs uppercase tracking-wider text-white group-hover:text-[#f7931b] transition-colors leading-none">
+              Asistencia Técnica
+            </span>
+            <span className="text-[9px] font-mono text-emerald-400 flex items-center gap-1.5 mt-1 leading-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>En Línea 24/7</span>
+            </span>
+          </div>
         )}
+
+        {/* Insignia Circular con Ícono */}
+        <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-transform duration-300 ${
+          isOpen
+            ? 'bg-white/10 text-white rotate-90'
+            : 'bg-[#f7931b] text-zinc-950 shadow-lg shadow-orange-500/30 group-hover:scale-105'
+        }`}>
+          <AnimatePresence mode="wait">
+            {isOpen
+              ? <motion.span key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}><X size={20} /></motion.span>
+              : <motion.span key="open"  initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}><MessageCircle size={22} className="text-zinc-950" /></motion.span>
+            }
+          </AnimatePresence>
+        </div>
       </button>
     </div>
   );

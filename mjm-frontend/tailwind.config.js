@@ -21,15 +21,17 @@ export default {
         "mjm-orange": "#f7931b",
         // Los colores de superficie ahora se manejarán principalmente vía CSS Variables
       },
+      fontFamily: {
+        space: ['"Space Grotesk"', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
+        mono: ['"Roboto Mono"', 'monospace'],
+      },
       spacing: {
         'gutter': '24px',
         'stack-sm': '8px',
         'stack-md': '16px',
         'stack-lg': '32px',
       },
-      animation: {
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      }
     },
   },
   plugins: [],

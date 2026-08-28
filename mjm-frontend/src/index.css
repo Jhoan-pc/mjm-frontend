@@ -33,36 +33,38 @@
 
 @layer base {
   body {
-    @apply bg-[var(--background)] text-[var(--text-main)] transition-colors duration-500 antialiased;
-    font-family: 'Outfit', 'Inter', sans-serif;
+    @apply bg-[#F8F9FB] text-mjm-navy transition-colors duration-500 antialiased;
+    font-family: 'Inter', sans-serif;
   }
 
-  .font-data {
-    font-family: 'Roboto Mono', monospace;
-  }
-
-  .font-outfit {
-    font-family: 'Outfit', sans-serif;
+  .font-space {
+    font-family: 'Space Grotesk', sans-serif;
   }
 
   .font-inter {
     font-family: 'Inter', sans-serif;
   }
 
-  h1, h2, h3 { @apply tracking-tighter; }
+  .font-data, .font-mono {
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
 }
 
 @layer components {
   /* Premium Glassmorphism */
   .glass-premium {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.6);
   }
 
   .glass-premium-dark {
-    background: rgba(35, 76, 116, 0.15);
+    background: rgba(11, 19, 38, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -70,38 +72,59 @@
 
   /* Premium ease-out-expo transition */
   .transition-premium {
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  /* Cards Adaptables */
-  .premium-card {
-    @apply bg-[var(--surface)] rounded-3xl transition-all duration-300;
-    border: 1px solid var(--outline-color);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  /* Canvas Card: Titanium Glass Refraction & Magnetic Glow (Ingyemel Standard) */
+  .canvas-card {
+    position: relative;
+    background: 
+      radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(247, 147, 27, 0.12), transparent 50%),
+      radial-gradient(120% 120% at 50% 0%, rgba(26, 32, 46, 0.96) 0%, rgba(12, 16, 26, 0.98) 100%) !important;
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.28) !important;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 0 24px rgba(255, 255, 255, 0.02),
+      0 24px 64px rgba(0, 0, 0, 0.75);
+    border-radius: 28px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .dark .premium-card {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  .canvas-card:hover {
+    border-color: rgba(247, 147, 27, 0.5) !important;
+    border-top-color: rgba(247, 147, 27, 0.8) !important;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 32px 80px rgba(0, 0, 0, 0.85),
+      0 0 35px rgba(247, 147, 27, 0.22);
   }
 
-  /* Botones M3 */
+  /* Máscara de Desvanecimiento Gaussiano para Carruseles de Marcas */
+  .mask-gradient-x {
+    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  }
+
+  /* Botones Primarios y Secundarios */
   .btn-primary {
-    @apply bg-[var(--primary)] text-[#1A202C] px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#78B7D0]/20;
+    @apply bg-mjm-orange text-white px-7 py-3.5 rounded-xl font-space font-bold text-xs uppercase tracking-wider transition-all hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/25 active:scale-95;
   }
 
   .btn-secondary {
-    @apply bg-[var(--surface-alt)] text-[var(--text-main)] px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest border transition-all hover:brightness-110;
-    border-color: var(--outline-color);
+    @apply bg-white/10 text-white px-7 py-3.5 rounded-xl font-space font-bold text-xs uppercase tracking-wider border border-white/20 transition-all hover:bg-white/20 hover:border-white active:scale-95;
   }
 }
 
-/* Scrollbar Adaptable - CORREGIDO PARA EVITAR ERROR POSTCSS */
+/* Scrollbar Adaptable */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { 
-  background: rgba(117, 119, 121, 0.3); 
+  background: rgba(35, 76, 116, 0.2); 
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover { 
-  background: var(--primary); 
+  background: #f7931b; 
 }

@@ -1,262 +1,508 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle, Target, Cpu, Users, Cog, Wrench, Package, Calendar, Shield, Thermometer, Ruler, Clock, ArrowRight } from 'lucide-react';
-
-const brandLogos = [
-  "/brands/1693432797912-pmaaao.png",
-  "/brands/1763365987FAG (1).png",
-  "/brands/441881478_122148678764198124_1758329588444554_n.jpg",
-  "/brands/Adash_www.png",
-  "/brands/EASYLASER_600px.png",
-  "/brands/FLIR_logo.svg.png",
-  "/brands/Fluke_logo.svg.png",
-  "/brands/Megger_logo_without_slogan.svg.png",
-  "/brands/SKF-Logo.png",
-  "/brands/b0a75f_f62ecb4182b64bdbab646485b47f2f5a~mv2.png",
-  "/brands/channels4_profile.jpg"
-];
+import { 
+  X, 
+  CheckCircle, 
+  Target, 
+  Cpu, 
+  Users, 
+  Cog, 
+  Wrench, 
+  Package, 
+  Calendar, 
+  Shield, 
+  Thermometer, 
+  Ruler, 
+  Clock, 
+  ArrowRight, 
+  Sparkles, 
+  ShieldCheck, 
+  Mail,
+  Eye,
+  ChevronRight
+} from 'lucide-react';
 
 const services = [
   {
-    id: 1, name: "Aseguramiento Metrológico", icon: <Target className="w-10 h-10" />,
-    description: "Gestión integral de sus procesos de medición para garantizar conformidad y calidad bajo estándares ISO 9001.",
-    image: "/services/aseguramiento.png", imageModal: "/services/aseguramiento.png",
+    id: "aseguramiento",
+    num: "01",
+    tag: "Aseguramiento en Planta",
+    name: "Aseguramiento Metrológico Integral",
+    icon: Target,
+    badge: "SERVICIO CENTRAL / ISO 9001",
+    description: "Gestión integral de sus procesos de medición para garantizar conformidad y calidad bajo estándares ISO 9001 e ISO 10012.",
+    longDesc: "Diseñamos y estructuramos planes de aseguramiento metrológico en sitio. Levantamos la línea base técnica de su parque de instrumentos, establecemos intervalos de confirmación metrológica y definimos reglas de decisión para proteger a su empresa ante cualquier auditoría externa de ICONTEC o INVIMA.",
+    image: "/services/aseguramiento.png",
+    standardsTitle: "NORMA ISO 10012 & CONFIRMACIÓN METROLÓGICA",
+    standardsDesc: "Evaluación matemática de error e incertidumbre frente a las tolerancias de su proceso industrial.",
+    gallery: [
+      { url: "/services/aseguramiento.png", title: "Levantamiento de Línea Base Metrológica en Planta" },
+      { url: "/ui/principal2.jpeg", title: "Verificación y Custodia Técnica en Laboratorio" },
+      { url: "/services/calibracion.jpeg", title: "Aseguramiento Metrológico Integral de Instrumentos" }
+    ],
     features: [
-      { title: "Clasificación de Instrumentos", desc: "Identificación y clasificación detallada de todos los instrumentos de medición para un control efectivo" },
-      { title: "Levantamiento de Información", desc: "Recopilación exhaustiva de datos técnicos y metrológicos para establecer la línea base del aseguramiento" },
-      { title: "Cronogramas Integrados", desc: "Planificación estratégica de rutinas para minimizar tiempos de inactividad" },
-      { title: "Indicadores de Gestión", desc: "Visualización de datos y métricas clave para la toma de decisiones basada en evidencia" }
+      { title: "Clasificación Técnica", desc: "Inventario maestro y clasificación de criticidad para instrumentos en planta." },
+      { title: "Línea Base & Tolerancias", desc: "Recopilación de tolerancias de proceso y especificaciones del fabricante." },
+      { title: "Cronogramas de Rutina", desc: "Planificación estratégica para minimizar tiempos de parada en producción." },
+      { title: "Indicadores de Gestión", desc: "Métricas de conformidad (Cl. 7.1) y cumplimiento de calibraciones en tiempo real." }
     ]
   },
   {
-    id: 2, name: "Portal Operativo (SaaS)", icon: <Cpu className="w-10 h-10" />,
-    description: "Plataforma Cloud-First para la gestión integral de activos, cronogramas de mantenimiento y aseguramiento metrológico.",
-    image: "/services/saas_card.png", imageModal: "/services/saas_card.png", isCustomLayout: true,
-    customData: { cards: [
-      { title: "Dashboard de Control", icon: <Target className="w-5 h-5"/>, img: "/services/saas_dashboard.png", desc: "Indicadores clave de desempeño y estatus metrológico en tiempo real." },
-      { title: "Planificador Metrológico", icon: <Calendar className="w-5 h-5"/>, img: "/services/saas_planificador.png", desc: "Gestión automatizada de cronogramas y actividades de calibración." },
-      { title: "Inventario de Activos", icon: <Package className="w-5 h-5"/>, img: "/services/saas_inventario.png", desc: "Listado maestro de instrumentos con trazabilidad completa y alertas." },
-      { title: "Seguridad Cloud", icon: <Shield className="w-5 h-5"/>, img: "/services/saas_dashboard.png", desc: "Respaldo de información en la nube con acceso restringido y seguro." }
-    ]}
+    id: "calibracion",
+    num: "02",
+    tag: "Laboratorio Trazable",
+    name: "Calibración de Instrumentos",
+    icon: Cog,
+    badge: "5 MAGNITUDES FÍSICAS / NTC-ISO/IEC 17025",
+    description: "Servicios de calibración trazable y acreditada con laboratorios aliados para garantizar la exactitud en vibración, temperatura, longitud y presión.",
+    longDesc: "Ejecutamos calibraciones trazables bajo norma NTC-ISO/IEC 17025 con patrones de referencia de alta exactitud. Entregamos certificados oficiales con cálculo de incertidumbre expandida (GUM) y declaración de conformidad según criterios de aceptación técnica.",
+    image: "/services/calibracion.jpeg",
+    standardsTitle: "TRAZABILIDAD ONAC / NIST",
+    standardsDesc: "Patrones de referencia calibrados periódicamente para asegurar repetibilidad y validez internacional.",
+    gallery: [
+      { url: "/services/calibracion.jpeg", title: "Calibración de Sensores y Colectores de Vibración" },
+      { url: "/services/sub_temperatura.jpg", title: "Verificación Térmica de Pirómetros y Termocuplas" },
+      { url: "/services/sub_longitud.jpg", title: "Alineación Laser y Verificación Dimensional de Ejes" }
+    ],
+    cards: [
+      { title: "Medidores & Sensores de Vibración", desc: "Verificación de acelerómetros, sensores de proximidad y monitoreo predictivo.", icon: <Target className="w-4 h-4"/> },
+      { title: "Analizadores de Vibración Multicanal", desc: "Calibración de colectores y sistemas dinámicos para mantenimiento.", icon: <Clock className="w-4 h-4"/> },
+      { title: "Termometría & Cámaras Termográficas", desc: "Ajuste de emisividad, verificación de sensores infrarrojos y termocuplas.", icon: <Thermometer className="w-4 h-4"/> },
+      { title: "Alineadores Laser de Ejes", desc: "Verificación de coplanaridad y precisión en maquinaria rotativa.", icon: <Ruler className="w-4 h-4"/> }
+    ]
   },
   {
-    id: 3, name: "Capacitación", icon: <Users className="w-10 h-10" />,
-    description: "Programas especializados en metrología adaptados a las necesidades de su empresa.",
-    image: "/services/capacitacion.jpg", imageModal: "/services/capacitacion-modal.jpg"
+    id: "mantenimiento",
+    num: "03",
+    tag: "Servicio Técnico Calificado",
+    name: "Diagnóstico, Mantenimiento & Verificación",
+    icon: Wrench,
+    badge: "SERVICIO PREVENTIVO & CORRECTIVO",
+    description: "Evaluación técnica especializada, reparación de instrumentos críticos y verificación intermedia para extender la vida útil de sus activos.",
+    longDesc: "Un instrumento con desgaste silencioso genera pérdidas millonarias en lotes defectuosos. Realizamos diagnóstico exhaustivo de componentes electrónicos y mecánicos, limpieza metrológica, ajustes de cero y verificaciones intermedias en campo.",
+    image: "/services/diagnostico.jpg",
+    standardsTitle: "VERIFICACIONES INTERMEDIAS",
+    standardsDesc: "Comprobación rápida entre calibraciones para detectar derivas antes de auditorías.",
+    gallery: [
+      { url: "/services/diagnostico.jpg", title: "Diagnóstico y Ajuste de Cero en Instrumentos de Medición" },
+      { url: "/services/sub_reparacion.jpg", title: "Restauración y Mantenimiento Electromecánico" },
+      { url: "/services/sub_verificacion.jpg", title: "Pruebas de Repetibilidad y Verificación en Campo" }
+    ],
+    cards: [
+      { title: "Diagnóstico Técnico en Campo", desc: "Evaluación del estado funcional y repetibilidad del instrumento.", icon: <Target className="w-4 h-4"/> },
+      { title: "Reparación Especializada", desc: "Servicio técnico calificado para restauración de componentes electrónicos.", icon: <Wrench className="w-4 h-4"/> },
+      { title: "Verificación Intermedia", desc: "Comprobación de especificaciones de proceso antes de entrar a turno.", icon: <CheckCircle className="w-4 h-4"/> },
+      { title: "Mantenimiento Preventivo", desc: "Planes programados de conservación para alargar la vida útil del equipo.", icon: <Shield className="w-4 h-4"/> }
+    ]
   },
   {
-    id: 4, name: "Calibración de Instrumentos", icon: <Cog className="w-10 h-10" />,
-    description: "Servicios de calibración trazable y acreditada con laboratorios aliados para garantizar la precisión de sus mediciones.",
-    image: "/services/calibracion.jpeg", imageModal: "/services/calibracion-modal.jpeg", isCustomLayout: true,
-    customData: { cards: [
-      { title: "Medidores y Sensores de Vibración", icon: <Target className="w-5 h-5"/>, img: "/services/sub_vibracion_1.jpg" },
-      { title: "Analizadores de Vibración", icon: <Clock className="w-5 h-5"/>, img: "/services/sub_vibracion_2.jpg" },
-      { title: "Termómetros infrarrojos", icon: <Thermometer className="w-5 h-5"/>, img: "/services/sub_temperatura.jpg" },
-      { title: "Alineadores Laser", icon: <Ruler className="w-5 h-5"/>, img: "/services/sub_longitud.jpg" }
-    ]}
+    id: "capacitacion",
+    num: "04",
+    tag: "Formación Técnica",
+    name: "Capacitación Especializada en Metrología",
+    icon: Users,
+    badge: "PROGRAMAS TÉCNICOS A LA MEDIDA",
+    description: "Talleres prácticos de metrología, interpretación de certificados de calibración y normas de calidad dirigidos al personal técnico de planta.",
+    longDesc: "Fortalecemos las competencias técnicas de su equipo. Enseñamos a interpretar los certificados de calibración, entender los errores máximos permisibles (EMP) y aplicar buenas prácticas de laboratorio para evitar errores de medición en la operación diaria.",
+    image: "/services/capacitacion.jpg",
+    standardsTitle: "ALINEACIÓN ISO 9001 / ISO 17025",
+    standardsDesc: "Capacitación orientada a superar preguntas de auditoría técnica con solidez conceptual.",
+    gallery: [
+      { url: "/services/capacitacion.jpg", title: "Capacitación Técnica en Interpretación de Certificados" },
+      { url: "/services/capacitacion-modal.jpg", title: "Talleres Prácticos de Buenas Prácticas de Medición" }
+    ],
+    features: [
+      { title: "Fundamentos y Magnitudes", desc: "Principios teóricos y aplicación práctica en líneas de producción." },
+      { title: "Interpretación de Certificados", desc: "Criterios de aceptación, análisis de incertidumbre GUM y errores." },
+      { title: "Buenas Prácticas en Planta", desc: "Manejo, conservación y almacenamiento de instrumentos de precisión." },
+      { title: "Talleres a la Medida", desc: "Contenidos adaptados específicamente a los instrumentos de su empresa." }
+    ]
   },
   {
-    id: 5, name: "Diagnóstico, Mantenimiento y Verificación", icon: <Wrench className="w-10 h-10" />,
-    description: "Mantenga sus instrumentos en óptimas condiciones con nuestro servicio técnico especializado.",
-    image: "/services/diagnostico.jpg", imageModal: "/services/diagnostico.jpg", isCustomLayout: true,
-    customData: { cards: [
-      { title: "Diagnóstico Técnico", icon: <Target className="w-5 h-5"/>, img: "/services/sub_diagnostico.jpg", desc: "Evaluación exhaustiva del estado y funcionamiento de sus instrumentos de medición" },
-      { title: "Reparación Especializada", icon: <Wrench className="w-5 h-5"/>, img: "/services/sub_reparacion.jpg", desc: "Servicio técnico calificado para la reparación de instrumentos" },
-      { title: "Verificación", icon: <CheckCircle className="w-5 h-5"/>, img: "/services/sub_verificacion.jpg", desc: "Comprobación de especificaciones y funcionamiento según aplicación" },
-      { title: "Mantenimiento Preventivo", icon: <Shield className="w-5 h-5"/>, img: "/services/sub_preventivo.jpg", desc: "Programas de mantenimiento para extender la vida útil de sus instrumentos" }
-    ]}
+    id: "suministros",
+    num: "05",
+    tag: "Equipamiento & Patrones",
+    name: "Suministros Técnicos & Equipos de Medición",
+    icon: Package,
+    badge: "DISTRIBUCIÓN DIRECTA MULTIMARCA",
+    description: "Provisión de instrumentos de medición de alta gama, patrones de referencia y accesorios de marcas líderes mundiales con garantía técnica.",
+    longDesc: "Proveemos instrumentos de medición de las marcas más prestigiosas de la industria (Fluke, SKF, Megger, FLIR, EasyLaser, Mitutoyo). Asesoramos técnicamente su compra para asegurar que el rango, resolución y precisión cumplan exactamente con la necesidad de su proceso.",
+    image: "/services/suministros.jpg",
+    standardsTitle: "GARANTÍA TÉCNICA DE FÁBRICA",
+    standardsDesc: "Equipos 100% originales con respaldo de fabricante y opción de calibración inicial.",
+    gallery: [
+      { url: "/services/suministros.jpg", title: "Instrumentos y Patrones de Medición Industrial" },
+      { url: "/services/sub_instrumentos.jpg", title: "Calibradores, Micrómetros y Termómetros Especializados" },
+      { url: "/services/sub_almacenamiento.jpg", title: "Estuches de Protección y Accesorios Metrológicos" }
+    ],
+    cards: [
+      { title: "Instrumentos de Medición", desc: "Calibradores, micrómetros, manómetros, termómetros, tacómetros.", icon: <Target className="w-4 h-4"/> },
+      { title: "Estuches de Protección", desc: "Cajas de alta resistencia, kits de limpieza metrológica y soportes.", icon: <Package className="w-4 h-4"/> },
+      { title: "Sensores & Repuestos", desc: "Acelerómetros piezoeléctricos, cables blindados y baterías originales.", icon: <Cog className="w-4 h-4"/> },
+      { title: "Asesoría de Selección", desc: "Acompañamiento técnico para elegir el instrumento exacto para su proceso.", icon: <Users className="w-4 h-4"/> }
+    ]
   },
   {
-    id: 6, name: "Suministros e Instrumentos", icon: <Package className="w-10 h-10" />,
-    description: "Provisión de instrumentos de medición de alta calidad, patrones y accesorios especializados.",
-    image: "/services/suministros.jpg", imageModal: "/services/suministros.jpg", isCustomLayout: true,
-    customData: { cards: [
-      { title: "Instrumentos de Medición", icon: <Target className="w-5 h-5"/>, img: "/services/sub_instrumentos.jpg", desc: "• Calibradores • Micrómetros • Termómetros • Manómetros" },
-      { title: "Elementos de Almacenamiento", icon: <Package className="w-5 h-5"/>, img: "/services/sub_almacenamiento.jpg", desc: "• Estuches de protección • Kits de limpieza • Soportes • Adaptadores" },
-      { title: "Repuestos Originales", icon: <Cog className="w-5 h-5"/>, img: "/services/sub_repuestos.jpg", desc: "• Sensores • Baterías • Cables • Componentes" },
-      { title: "Asesoría Personalizada", icon: <Users className="w-5 h-5"/>, img: "/services/sub_asesoria.jpg", desc: "• Selección de instrumentos • Cotizaciones • Soporte técnico • Garantías" }
-    ]}
+    id: "saas",
+    num: "06",
+    tag: "Innovación Multi-Tenant",
+    isFeatured: true,
+    name: "Portal de Control Metrológico & Activos",
+    icon: Cpu,
+    badge: "SOFTWARE PROPIETARIO / ISO 10012",
+    description: "Plataforma digital en la nube para la custodia de hojas de vida, cálculo automático de conformidad (GUM / ISO 10012) y semaforización de vencimientos 24/7.",
+    longDesc: "El complemento tecnológico que elimina el desorden de las hojas de cálculo. Cada cliente cuenta con su entorno Multi-Tenant privado para consultar el historial de calibraciones, descargar certificados oficiales ante auditores y recibir alertas automáticas antes de que un instrumento venza.",
+    image: "/services/saas_card.png",
+    standardsTitle: "MODELO MULTI-TENANT SEGURO",
+    standardsDesc: "Espacios de trabajo independientes y aislados por empresa, planta o filial corporativa.",
+    gallery: [
+      { url: "/services/saas_dashboard_real.png", title: "Dashboard Central de Indicadores y Conformidad ISO 10012" },
+      { url: "/services/saas_card.png", title: "Gestión de Hojas de Vida y Certificados Inalterables" }
+    ],
+    cards: [
+      { title: "Hojas de Vida Digitales", desc: "Registro inalterable con tolerancias, datos de placa y certificados adjuntos.", icon: <Target className="w-4 h-4"/> },
+      { title: "Planificador Metrológico", desc: "Cronogramas automatizados con semáforo preventivo a 30 y 60 días.", icon: <Calendar className="w-4 h-4"/> },
+      { title: "Cálculo GUM / ISO 10012", desc: "Evaluación algorítmica de Error + Incertidumbre frente a la tolerancia del proceso.", icon: <Shield className="w-4 h-4"/> },
+      { title: "Suscripción Multi-Tenant", desc: "Ambiente empresarial en la nube para gestionar miles de instrumentos centralizadamente.", icon: <Cpu className="w-4 h-4"/> }
+    ]
   },
 ];
 
-// --- SERVICE MODAL ---
-const ServiceModal = ({ service, onClose }) => (
-  <AnimatePresence>
-    {service && (
-      <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-mjm-navy/95 backdrop-blur-md"
-          onClick={onClose}
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative z-10 bg-white w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] rounded-3xl"
-        >
-          <button
-            onClick={onClose}
-            className={`absolute top-6 right-6 z-50 rounded-full p-2 transition-all ${
-              service.isCustomLayout
-                ? 'text-white/60 hover:text-white bg-white/10 hover:bg-white/20 backdrop-blur-md'
-                : 'text-mjm-navy/30 hover:text-mjm-orange bg-mjm-navy/5 hover:bg-mjm-navy/10'
-            }`}
-          >
-            <X size={28} />
-          </button>
-
-          {service.isCustomLayout ? (
-            <div className="w-full h-full overflow-y-auto bg-mjm-navy flex flex-col">
-              <div className="text-center pt-20 pb-16 px-8 relative">
-                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                <h2 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight relative z-10">{service.name}</h2>
-                <p className="text-lg md:text-xl text-white/80 font-medium max-w-3xl mx-auto relative z-10">{service.description}</p>
-              </div>
-              <div className="px-8 pb-16">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {service.customData?.cards.map((card, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl overflow-hidden flex flex-col shadow-xl">
-                      <div className="h-40 overflow-hidden bg-[#e2e8f0]">
-                        <img src={card.img} alt={card.title} className="w-full h-full object-cover" loading="lazy" />
-                      </div>
-                      <div className="p-6 flex-grow flex flex-col items-center justify-center text-center gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-[#fff0e5] text-mjm-orange flex items-center justify-center shrink-0">{card.icon}</div>
-                          <h4 className="font-black text-mjm-navy text-[13px] leading-tight uppercase">{card.title}</h4>
-                        </div>
-                        {card.desc && <p className="text-[11px] text-mjm-navy/60 font-medium leading-relaxed mt-2">{card.desc}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mx-8 mb-16 bg-mjm-orange rounded-2xl p-8 flex flex-col sm:flex-row items-center gap-6 shadow-[0_10px_40px_rgba(238,140,44,0.3)]">
-                <div className="w-14 h-14 shrink-0 rounded-full flex items-center justify-center border-2 border-white/50 bg-white/10">
-                  <CheckCircle className="text-white w-7 h-7" />
-                </div>
-                <div>
-                  <h3 className="text-white text-2xl font-black mb-1">Comprometidos con la Trazabilidad</h3>
-                  <p className="text-white/90 font-medium text-sm">Nuestros patrones y entregables cumplen con la norma NTC-ISO/IEC 17025</p>
-                </div>
-              </div>
-              <div className="bg-white w-full pt-14 pb-14 border-t-8 border-mjm-orange/10">
-                <h3 className="text-center text-mjm-navy font-black text-xl md:text-2xl mb-10 tracking-tight">Marcas que trabajamos</h3>
-                <div className="relative flex overflow-hidden w-full">
-                  <motion.div
-                    className="flex gap-16 items-center shrink-0"
-                    style={{ minWidth: '200%' }}
-                    animate={{ x: ['0%', '-50%'] }}
-                    transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-                  >
-                    {[...brandLogos, ...brandLogos].map((logo, idx) => (
-                      <div key={idx} className="h-16 w-32 flex items-center justify-center">
-                        <img src={logo} alt="Brand Logo" className="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-500 opacity-50 hover:opacity-100" />
-                      </div>
-                    ))}
-                  </motion.div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col md:flex-row w-full h-full">
-              <div className="md:w-1/2 relative overflow-hidden bg-mjm-navy min-h-[300px]">
-                <div className="absolute inset-0 z-0">
-                  <img src={service.imageModal} alt={service.name} className="w-full h-full object-cover opacity-60 mix-blend-overlay" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-mjm-navy via-mjm-navy/40 to-transparent" />
-                </div>
-                <div className="relative z-10 p-12 md:p-16 flex flex-col justify-end h-full">
-                  <div className="w-16 h-16 bg-mjm-orange text-white rounded-2xl flex items-center justify-center shadow-2xl mb-6 transform -rotate-3 border-4 border-white/10">
-                    {React.cloneElement(service.icon, { className: 'w-8 h-8' })}
-                  </div>
-                  <h3 className="text-white text-3xl md:text-4xl font-black uppercase leading-tight tracking-tight drop-shadow-xl">{service.name}</h3>
-                </div>
-              </div>
-              <div className="md:w-1/2 p-10 md:p-14 overflow-y-auto">
-                <div className="space-y-8 pr-2">
-                  <h2 className="text-3xl md:text-4xl font-black text-mjm-navy uppercase tracking-tighter leading-tight pr-6">{service.name}</h2>
-                  <div className="w-16 h-2 bg-mjm-orange rounded-full" />
-                  <p className="text-lg text-mjm-navy/80 leading-relaxed font-medium">{service.description}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-mjm-navy/5 p-6 rounded-2xl border-l-4 border-mjm-orange/30">
-                    {service.features ? (
-                      service.features.map((feat, idx) => (
-                        <div key={idx} className="flex flex-col gap-2">
-                          <div className="flex items-start gap-2">
-                            <CheckCircle className="text-mjm-orange w-4 h-4 shrink-0 mt-0.5" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-mjm-navy leading-tight">{feat.title}</span>
-                          </div>
-                          <p className="text-[11px] text-mjm-navy/70 font-medium pl-6 leading-relaxed">{feat.desc}</p>
-                        </div>
-                      ))
-                    ) : (
-                      ['ISO 9001:2015', 'Trazabilidad', 'Capacitación', 'Soporte Técnico'].map(item => (
-                        <div key={item} className="flex items-center gap-3">
-                          <CheckCircle className="text-mjm-orange w-4 h-4" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.15em] text-mjm-navy">{item}</span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  <button className="w-full bg-mjm-orange text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-orange-600 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 mt-4">
-                    Solicitar Cotización Inmediata
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </motion.div>
-      </div>
-    )}
-  </AnimatePresence>
-);
-
-// --- PORTFOLIO PRINCIPAL ---
+// ─── PORTAFOLIO PRINCIPAL: SPLIT-SCREEN STICKY PINNED CON FEED CONTINUO (INGYEMEL ENGINE) ────
 const ServicesPortfolio = () => {
-  const [activeService, setActiveService] = useState(null);
-  const close = useCallback(() => setActiveService(null), []);
+  const [selectedService, setSelectedService] = useState(null);
+  const [activeFocusedServiceId, setActiveFocusedServiceId] = useState("aseguramiento");
+  const [modalMediaIndices, setModalMediaIndices] = useState({
+    aseguramiento: 0,
+    calibracion: 0,
+    mantenimiento: 0,
+    capacitacion: 0,
+    suministros: 0,
+    saas: 0
+  });
+
+  // Auto scroll & Intersection Observer for Modal Spotlight Focus Effect (Ingyemel Architecture)
+  useEffect(() => {
+    if (!selectedService) return;
+    setActiveFocusedServiceId(selectedService.id);
+
+    setTimeout(() => {
+      const el = document.getElementById(`modal-card-${selectedService.id}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+
+    const rootEl = document.getElementById('modal-feed-container');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const srvId = entry.target.id.replace('modal-card-', '');
+            setActiveFocusedServiceId(srvId);
+          }
+        });
+      },
+      { root: rootEl, threshold: 0.25 }
+    );
+
+    services.forEach((srv) => {
+      const el = document.getElementById(`modal-card-${srv.id}`);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [selectedService?.id]);
+
+  const handleCardMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+  };
 
   return (
     <>
-      <section id="servicios" className="bg-[#f8f9fa] py-24 border-y border-mjm-navy/5 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-mjm-orange/5 to-transparent pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <span className="text-mjm-orange font-bold uppercase tracking-[0.25em] text-xs mb-4 block">Servicios de Ingeniería</span>
-          <h2 className="text-5xl md:text-7xl font-extrabold text-mjm-navy mb-16 tracking-tight font-display">Portafolio <span className="font-light">Técnico</span></h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, i) => (
-              <motion.div
-                key={service.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.7, delay: i * 0.1, ease: [0.165, 0.84, 0.44, 1] }}
-                className="group relative bg-white rounded-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_25px_50px_-12px_rgba(35,76,116,0.08)] cursor-pointer overflow-hidden border border-mjm-navy/5 flex flex-col text-left"
-                onClick={() => setActiveService(service)}
-              >
-                <div className="relative w-full h-52 overflow-hidden bg-mjm-navy/5">
-                  <div className="absolute inset-0 bg-mjm-navy/20 group-hover:bg-transparent transition-colors duration-500 z-10" />
-                  <img src={service.image} alt={service.name} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+      {/* 5. NUESTROS SERVICIOS SECTION (Dual-Column Pinned Scroll Gallery Ingyemel Style) */}
+      <section 
+        id="servicios" 
+        className="py-28 md:py-36 bg-gradient-to-b from-[#121214] via-[#09090B] to-[#070708] relative z-20 shadow-2xl border-t-2 border-white/20 rounded-t-[44px] md:rounded-t-[64px]"
+      >
+        <div className="max-w-[1440px] mx-auto px-6 md:px-12">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+            
+            {/* Columna Izquierda: Sticky Pinned en Desktop (Apuntalado a la izquierda) */}
+            <div className="lg:col-span-5 lg:sticky lg:top-32 space-y-6 self-start">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f7931b]/10 border border-[#f7931b]/30 backdrop-blur-md text-[#f7931b] font-mono text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
+                <span className="w-2 h-2 rounded-full bg-[#f7931b] animate-pulse shrink-0"></span>
+                <span>ESPECIALIDADES DE INGENIERÍA</span>
+              </div>
+
+              <h2 className="font-space font-extrabold text-3xl sm:text-5xl lg:text-[3.25rem] text-white uppercase tracking-tight leading-[1.08]">
+                SOLUCIONES METROLÓGICAS <br />
+                <span className="text-white">INTEGRALES</span>
+              </h2>
+
+              <p className="text-zinc-400 text-sm md:text-base leading-relaxed font-light font-inter">
+                Inspeccione nuestras 6 líneas principales de aseguramiento metrológico en planta, calibración trazable, mantenimiento técnico y custodia digital.
+              </p>
+
+              <div className="pt-4 space-y-4">
+                <a
+                  href="#contacto"
+                  className="w-full sm:w-auto px-8 py-4 bg-[#f7931b] text-zinc-950 font-extrabold rounded-2xl hover:bg-orange-400 active:scale-[0.98] transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2 shadow-2xl shadow-orange-500/30 cursor-pointer font-space"
+                >
+                  <Mail className="w-4 h-4 text-zinc-950" />
+                  <span>SOLICITAR DIAGNÓSTICO OPORTUNO</span>
+                </a>
+                
+                <div className="flex items-center gap-3 text-xs font-mono text-zinc-400 pt-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Soporte Metrológico 24/7 Disponible</span>
                 </div>
-                <div className="relative z-10 w-full flex flex-col h-full p-8 pt-0">
-                  <div className="w-16 h-16 rounded-xl bg-white border border-mjm-navy/5 group-hover:border-mjm-orange/20 group-hover:bg-mjm-orange flex items-center justify-center text-mjm-orange group-hover:text-white -mt-8 mb-6 transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500 shadow-lg z-20">
-                    {React.cloneElement(service.icon, { className: 'w-7 h-7' })}
+              </div>
+            </div>
+
+            {/* Columna Derecha: Stack Vertical de Tarjetas Canvas Oscuras con Scroll y Watermark Numbers */}
+            <div className="lg:col-span-7 space-y-12">
+              {services.map((service) => {
+                const IconComponent = service.icon;
+                const numStr = service.num;
+
+                return (
+                  <div
+                    key={service.id}
+                    onMouseMove={handleCardMouseMove}
+                    onClick={() => setSelectedService(service)}
+                    className="canvas-card p-6 md:p-10 space-y-6 group cursor-pointer overflow-hidden relative"
+                  >
+                    {/* Editorial Watermark Number (Exacto como en la imagen) */}
+                    <span className="absolute top-4 right-6 z-20 font-space text-6xl md:text-7xl font-extrabold text-white/20 group-hover:text-[#f7931b]/40 transition-colors select-none pointer-events-none drop-shadow-md">
+                      {numStr}
+                    </span>
+
+                    {/* Image Box */}
+                    <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black/60 border border-white/15">
+                      <img
+                        src={service.image}
+                        alt={service.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
+                      
+                      <div className="absolute top-4 left-4 z-20">
+                        <span className="bg-black/85 text-[#f7931b] border border-[#f7931b]/40 backdrop-blur-md text-[10px] font-mono font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-xl">
+                          {service.tag}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Service Content */}
+                    <div className="space-y-3 relative z-10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#f7931b]/10 border border-[#f7931b]/30 flex items-center justify-center text-[#f7931b]">
+                          <IconComponent className="w-5 h-5" />
+                        </div>
+                        <span className="text-[11px] font-mono uppercase tracking-widest text-[#f7931b] font-bold">
+                          ESPECIALIDAD {numStr}
+                        </span>
+                      </div>
+
+                      <h3 className="font-space font-extrabold text-2xl md:text-3xl text-white uppercase tracking-tight group-hover:text-[#f7931b] transition-colors">
+                        {service.name}
+                      </h3>
+
+                      <p className="text-zinc-300 text-xs md:text-sm font-light leading-relaxed font-inter">
+                        {service.description}
+                      </p>
+
+                      <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs font-mono">
+                        <div className="flex items-center gap-2 text-[#f7931b] font-bold text-[11px]">
+                          <Sparkles className="w-3.5 h-3.5 text-[#f7931b] animate-pulse shrink-0" />
+                          <span>Toca la tarjeta para abrir el Dossier & Galería</span>
+                        </div>
+                        <div className="px-4 py-2 bg-[#f7931b] text-zinc-950 font-bold rounded-xl flex items-center justify-center gap-2 group-hover:bg-orange-400 transition-all uppercase text-[11px] tracking-wider shadow-lg shadow-orange-500/20 cursor-pointer font-space">
+                          <Eye className="w-3.5 h-3.5 text-zinc-950" />
+                          <span>Explorar Ficha Completa</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-zinc-950 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
-                  <h3 className="text-xl font-bold text-mjm-navy mb-4 uppercase tracking-wider leading-tight group-hover:text-mjm-orange transition-colors duration-500">{service.name}</h3>
-                  <div className="w-12 h-1 bg-mjm-orange/30 group-hover:w-full group-hover:bg-mjm-orange transition-all duration-500 mb-6 rounded-full" />
-                  <p className="text-sm text-mjm-navy/70 leading-relaxed font-light mb-8 flex-grow">{service.description}</p>
-                  <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.2em] text-mjm-navy/40 group-hover:text-mjm-orange transition-colors duration-500 mt-auto">
-                    Detalles Técnicos <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform duration-500" />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                );
+              })}
+            </div>
+
           </div>
+
         </div>
       </section>
 
-      {/* Modal de servicio — estado aislado, no afecta el resto de la página */}
-      <ServiceModal service={activeService} onClose={close} />
+      {/* 6. CONTINUOUS VERTICAL MODAL FEED WITH SPOTLIGHT FOCUS EFFECT (EXACT INGYEMEL ENGINE) */}
+      {selectedService && (
+        <div className="fixed inset-0 z-[100] bg-black/94 backdrop-blur-2xl animate-in fade-in duration-300">
+          
+          {/* Strictly Fixed & Sticky Close Button (Always visible on viewport) */}
+          <button
+            onClick={() => setSelectedService(null)}
+            className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[130] p-3 sm:p-3.5 rounded-full bg-zinc-950/90 text-white border-2 border-mjm-orange/60 hover:bg-mjm-orange hover:text-white transition-all shadow-[0_0_30px_rgba(247,147,27,0.35)] cursor-pointer flex items-center justify-center group"
+            title="Cerrar Dossier"
+          >
+            <X className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-200" />
+          </button>
+
+          <div id="modal-feed-container" className="w-full h-full overflow-y-auto subtle-scroll px-3 sm:px-8 py-6 sm:py-[max(40px,calc(50vh-280px))]">
+            
+            {/* Vertical Stack of All 6 Service Modal Cards with Spotlight Focus Effect */}
+            <div className="max-w-6xl mx-auto w-full space-y-12 sm:space-y-20">
+              {services.map((service, sIndex) => {
+                const currentMediaIndex = modalMediaIndices[service.id] || 0;
+                const numStr = service.num;
+                const isFocused = activeFocusedServiceId === service.id;
+                const whatsappMsg = encodeURIComponent(`Hola, requiero cotización y soporte técnico sobre "${service.name}" (Especialidad ${numStr}).`);
+
+                return (
+                  <div
+                    key={service.id}
+                    id={`modal-card-${service.id}`}
+                    className={`canvas-card w-full rounded-2xl sm:rounded-3xl overflow-hidden backdrop-blur-2xl flex flex-col lg:flex-row relative scroll-mt-24 transition-all duration-500 ease-out bg-[#0F121B]/95 text-white ${
+                      isFocused 
+                        ? 'border-2 border-mjm-orange/60 shadow-[0_0_90px_rgba(247,147,27,0.22)] opacity-100 scale-100' 
+                        : 'border border-white/15 hover:border-mjm-orange/40 shadow-2xl opacity-90'
+                    }`}
+                  >
+                    {/* Left Column: Widescreen Media Viewer & Thumbnails */}
+                    <div className="lg:w-7/12 min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] relative bg-zinc-950 flex flex-col justify-between p-3 sm:p-6">
+                      <div className="absolute inset-0 z-0">
+                        <img 
+                          src={service.gallery?.[currentMediaIndex]?.url || service.image} 
+                          alt={service.name} 
+                          loading="lazy" 
+                          decoding="async" 
+                          className="w-full h-full object-cover animate-in fade-in duration-500" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-black/40 pointer-events-none" />
+                      </div>
+
+                      {/* Top Media Title Badge & Slide Counter */}
+                      <div className="relative z-10 flex items-center justify-between w-full pr-2 sm:pr-4">
+                        <div className="bg-black/75 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-white/10 text-[10px] sm:text-xs font-medium text-white max-w-[75%] truncate shadow-lg">
+                          <span className="text-mjm-orange font-bold font-mono">
+                            {service.gallery?.[currentMediaIndex]?.title || service.name}
+                          </span>
+                        </div>
+                        {service.gallery && (
+                          <div className="bg-black/75 backdrop-blur-md px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-white/10 text-[10px] sm:text-xs font-mono text-zinc-300 font-bold">
+                            0{currentMediaIndex + 1} / 0{service.gallery.length}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bottom Thumbnail Gallery Selector */}
+                      {service.gallery && service.gallery.length > 1 && (
+                        <div className="relative z-10 flex gap-2 w-full p-2 bg-black/75 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/10 mt-auto overflow-x-auto">
+                          {service.gallery.map((media, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setModalMediaIndices(prev => ({ ...prev, [service.id]: idx }))}
+                              className={`relative h-12 w-20 sm:h-14 sm:w-24 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                                currentMediaIndex === idx ? 'border-mjm-orange scale-105 shadow-xl shadow-orange-500/30' : 'border-transparent opacity-50 hover:opacity-100'
+                              }`}
+                            >
+                              <img src={media.url} alt={media.title} className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Column: Executive Technical Sheet & CTA */}
+                    <div className="lg:w-5/12 p-6 sm:p-8 lg:p-10 flex flex-col justify-between space-y-6 relative">
+                      
+                      {/* Editorial Watermark Number */}
+                      <span className="absolute top-4 sm:top-6 right-6 sm:right-8 font-space text-5xl sm:text-6xl md:text-7xl font-extrabold text-white/10 select-none pointer-events-none drop-shadow-md z-0">
+                        {numStr}
+                      </span>
+
+                      <div className="space-y-4 relative z-10">
+                        <div>
+                          <div className="inline-flex items-center gap-2 px-3 py-1 bg-mjm-orange/10 border border-mjm-orange/30 rounded-full text-mjm-orange font-mono text-[10px] sm:text-[11px] uppercase tracking-wider mb-2">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>ESPECIALIDAD {numStr}</span>
+                          </div>
+                          <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold font-space text-white uppercase tracking-tight leading-tight">
+                            {service.name}
+                          </h3>
+                        </div>
+
+                        <p className="text-xs sm:text-sm text-zinc-300 font-light leading-relaxed font-inter">
+                          {service.longDesc}
+                        </p>
+
+                        {/* Standards Banner */}
+                        <div className="p-4 rounded-xl bg-white/[0.04] border border-white/10 space-y-1">
+                          <h4 className="font-space font-bold text-xs uppercase tracking-wider text-mjm-orange">
+                            {service.standardsTitle}
+                          </h4>
+                          <p className="text-[11px] text-zinc-400 font-light leading-relaxed">
+                            {service.standardsDesc}
+                          </p>
+                        </div>
+
+                        {/* Specs grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          {service.cards ? (
+                            service.cards.map((c, i) => (
+                              <div key={i} className="p-3 rounded-lg bg-white/[0.02] border border-white/10 text-xs">
+                                <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
+                                  <span className="text-mjm-orange">{c.icon}</span>
+                                  <span>{c.title}</span>
+                                </div>
+                                <p className="text-[10px] text-zinc-400 font-light mt-0.5 leading-relaxed">{c.desc}</p>
+                              </div>
+                            ))
+                          ) : (
+                            service.features?.map((f, i) => (
+                              <div key={i} className="p-3 rounded-lg bg-white/[0.02] border border-white/10 text-xs">
+                                <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
+                                  <CheckCircle className="w-3.5 h-3.5 text-mjm-orange shrink-0" />
+                                  <span>{f.title}</span>
+                                </div>
+                                <p className="text-[10px] text-zinc-400 font-light mt-0.5 leading-relaxed">{f.desc}</p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Bar */}
+                      <div className="pt-4 border-t border-white/10 flex flex-col gap-3 relative z-10">
+                        <a
+                          href={`https://wa.me/573137960800?text=${whatsappMsg}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full btn-primary flex items-center justify-center gap-2 text-center shadow-lg shadow-orange-500/25 font-space font-bold uppercase text-xs tracking-wider"
+                        >
+                          <Mail className="w-4 h-4 text-white" />
+                          <span>Cotizar esta Especialidad</span>
+                          <ArrowRight className="w-4 h-4 text-white" />
+                        </a>
+                      </div>
+
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
+        </div>
+      )}
     </>
   );
 };
