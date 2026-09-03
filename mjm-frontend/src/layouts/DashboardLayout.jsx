@@ -97,31 +97,32 @@ export default function DashboardLayout() {
   );
 
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Inventario de Activos', path: '/dashboard/inventario', icon: <Package size={20} /> },
-    { name: 'Cronograma', path: '/dashboard/calendario', icon: <Calendar size={20} /> },
-    { name: 'Gestión Operativa', path: '/dashboard/kanban', icon: <History size={20} /> },
-    { name: 'Confirmación metrológica', path: '/dashboard/ia-lab', icon: <Database size={20} /> },
-    { name: 'Ajustes', path: '/dashboard/settings', icon: <SettingsIcon size={20} /> },
+    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={19} /> },
+    { name: 'Inventario de Activos', path: '/dashboard/inventario', icon: <Package size={19} /> },
+    { name: 'Comprobación en Planta', path: '/dashboard/aseguramiento', icon: <ShieldCheck size={19} /> },
+    { name: 'Confirmación Metrológica IA', path: '/dashboard/ia-lab', icon: <Database size={19} /> },
+    { name: 'Cronograma', path: '/dashboard/calendario', icon: <Calendar size={19} /> },
+    { name: 'Gestión Operativa', path: '/dashboard/kanban', icon: <History size={19} /> },
+    { name: 'Ajustes', path: '/dashboard/settings', icon: <SettingsIcon size={19} /> },
   ];
 
   return (
-    <div className="flex h-screen bg-[var(--background)] overflow-hidden transition-colors duration-500 selection:bg-[var(--primary)]/20">
+    <div className="flex h-screen bg-[var(--background)] overflow-hidden transition-colors duration-500 selection:bg-[#f7931b]/20">
       
       {/* --- MOBILE SIDEBAR DRAWER --- */}
       {isSidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
             onClick={() => setSidebarOpen(false)}
           />
           
           {/* Drawer Content */}
           <aside className="relative flex flex-col w-72 h-full bg-[var(--sidebar-bg)] text-white shadow-2xl z-50 animate-in slide-in-from-left duration-300">
-            <div className="p-6 mb-4 border-b border-white/5 flex items-center justify-between">
+            <div className="p-5 mb-2 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-lg">
+                <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-white/10 shadow-md">
                    <img 
                      src={tenant?.logo_url || mjmLogo} 
                      alt="Logo" 
@@ -129,54 +130,54 @@ export default function DashboardLayout() {
                    />
                 </div>
                 <div className="flex-1 min-w-0">
-                   <h1 className="font-outfit font-bold text-white text-sm tracking-tight uppercase leading-none truncate">
+                   <h1 className="font-space font-bold text-white text-xs tracking-tight uppercase leading-none truncate">
                      {tenant?.nombre_empresa || 'MJM Plataforma'}
                    </h1>
-                   <p className="text-[8px] text-[var(--primary)] font-inter font-medium uppercase tracking-[0.15em] mt-1.5">
-                     Sistema de Gestión
+                   <p className="text-[8px] text-[#f7931b] font-mono font-medium uppercase tracking-widest mt-1">
+                     ISO 10012 Metrología
                    </p>
                 </div>
               </div>
               <button 
                 onClick={() => setSidebarOpen(false)}
-                className="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all"
+                className="text-white/60 hover:text-white p-1 rounded-md hover:bg-white/5 transition-all"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
-            <nav className="flex-1 px-4 space-y-1.5">
+            <nav className="flex-1 px-3 space-y-1">
               {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-xs ${
                     isActive(item.path)
-                      ? 'bg-[var(--primary)] text-[#1A202C] shadow-md shadow-[var(--primary)]/10 font-inter font-semibold'
-                      : 'text-white/60 hover:bg-white/5 hover:text-white font-inter font-medium'
+                      ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b]'
+                      : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
                   }`}
                 >
-                  <span className={`transition-transform duration-300 ${isActive(item.path) ? 'scale-105' : 'group-hover:scale-105'}`}>
+                  <span className={`transition-transform duration-200 ${isActive(item.path) ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
                     {item.icon}
                   </span>
-                  <span className="text-[10px] uppercase tracking-wider">{item.name}</span>
-                  {isActive(item.path) && <ChevronRight size={12} className="ml-auto opacity-60" />}
+                  <span className="tracking-wide">{item.name}</span>
+                  {isActive(item.path) && <ChevronRight size={12} className="ml-auto text-[#f7931b]" />}
                 </Link>
               ))}
             </nav>
 
-            <div className="mt-auto pb-6 flex flex-col items-center">
+            <div className="mt-auto pb-5 flex flex-col items-center">
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2.5 px-5 py-3 text-white/70 hover:text-red-400 active:scale-95 transition-all duration-300 group cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-slate-300 hover:text-red-400 active:scale-95 transition-all group cursor-pointer"
               >
-                <LogOut size={14} className="opacity-70 group-hover:opacity-100 group-hover:rotate-12 transition-all" />
-                <span className="text-[10px] font-inter font-bold uppercase tracking-[0.15em]">Cerrar Sesión</span>
+                <LogOut size={14} className="opacity-70 group-hover:opacity-100 transition-all" />
+                <span className="text-[11px] font-semibold uppercase tracking-wider">Cerrar Sesión</span>
               </button>
 
-               <p className="text-[8px] text-white/20 font-inter font-medium uppercase tracking-[0.3em] mt-2 select-none pointer-events-none">
-                  Powered by MJM
+               <p className="text-[9px] text-white/25 font-mono uppercase tracking-widest mt-2 select-none pointer-events-none">
+                  MJM Engine v2.4
                </p>
             </div>
           </aside>
@@ -184,11 +185,11 @@ export default function DashboardLayout() {
       )}
 
       {/* --- SIDEBAR (Dark Optimized) --- */}
-      <aside className="hidden lg:flex flex-col w-72 bg-[var(--sidebar-bg)] text-white flex-shrink-0 border-r border-white/5 z-50 transition-colors duration-500">
-        <div className="p-6 mb-4 border-b border-white/5">
+      <aside className="hidden lg:flex flex-col w-72 bg-[var(--sidebar-bg)] text-white flex-shrink-0 border-r border-white/10 z-50 transition-colors duration-500">
+        <div className="p-5 mb-2 border-b border-white/10">
         {/* BRANDING DEL TENANT */}
         <div className="flex items-center gap-3">
-           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-white/10 shadow-lg">
+           <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-white/10 shadow-md">
               <img 
                 src={tenant?.logo_url || mjmLogo} 
                 alt="Logo" 
@@ -196,48 +197,48 @@ export default function DashboardLayout() {
               />
            </div>
            <div className="flex-1 min-w-0">
-              <h1 className="font-outfit font-bold text-white text-sm tracking-tight uppercase leading-none truncate">
+              <h1 className="font-space font-bold text-white text-xs tracking-tight uppercase leading-none truncate">
                 {tenant?.nombre_empresa || 'MJM Plataforma'}
               </h1>
-              <p className="text-[8px] text-[var(--primary)] font-inter font-medium uppercase tracking-[0.15em] mt-1.5">
-                Sistema de Gestión
+              <p className="text-[8px] text-[#f7931b] font-mono font-medium uppercase tracking-widest mt-1">
+                ISO 10012 Metrología
               </p>
            </div>
         </div>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1.5 font-inter">
+        <nav className="flex-1 px-3 space-y-1 font-inter">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group ${
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-xs ${
                 isActive(item.path)
-                  ? 'bg-[var(--primary)] text-[#1A202C] shadow-md shadow-[var(--primary)]/10 font-semibold'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white font-medium'
+                  ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b] shadow-sm'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
               }`}
             >
-              <span className={`transition-transform duration-300 ${isActive(item.path) ? 'scale-105' : 'group-hover:scale-105'}`}>
+              <span className={`transition-transform duration-200 ${isActive(item.path) ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
                 {item.icon}
               </span>
-              <span className="text-[10px] uppercase tracking-wider">{item.name}</span>
-              {isActive(item.path) && <ChevronRight size={12} className="ml-auto opacity-60" />}
+              <span className="tracking-wide">{item.name}</span>
+              {isActive(item.path) && <ChevronRight size={12} className="ml-auto text-[#f7931b]" />}
             </Link>
           ))}
         </nav>
 
         {/* --- FOOTER BRANDING --- */}
-        <div className="mt-auto pb-6 flex flex-col items-center">
+        <div className="mt-auto pb-5 flex flex-col items-center">
             <button 
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2.5 px-5 py-3 text-white/70 hover:text-red-400 active:scale-95 transition-all duration-300 group cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-slate-300 hover:text-red-400 active:scale-95 transition-all group cursor-pointer"
             >
-              <LogOut size={14} className="opacity-70 group-hover:opacity-100 group-hover:rotate-12 transition-all" />
-              <span className="text-[10px] font-inter font-bold uppercase tracking-[0.15em]">Cerrar Sesión</span>
+              <LogOut size={14} className="opacity-70 group-hover:opacity-100 transition-all" />
+              <span className="text-[11px] font-semibold uppercase tracking-wider">Cerrar Sesión</span>
             </button>
 
-           <p className="text-[8px] text-white/20 font-inter font-medium uppercase tracking-[0.3em] mt-2 select-none pointer-events-none">
-              Powered by MJM
+           <p className="text-[9px] text-white/25 font-mono uppercase tracking-widest mt-2 select-none pointer-events-none">
+              MJM Engine v2.4
            </p>
         </div>
       </aside>
@@ -245,26 +246,28 @@ export default function DashboardLayout() {
       {/* --- CONTENIDO PRINCIPAL --- */}
       <div className="flex-1 flex flex-col min-w-0">
         
-        {/* TOPBAR */}
-        <header className="h-20 bg-[var(--surface)] border-b border-[var(--outline-color)] flex items-center justify-between px-8 transition-colors duration-500">
+        {/* TOPBAR COMPACTO Y ELEGANTE (64px) */}
+        <header className="h-16 bg-[var(--surface)] border-b border-[var(--outline-color)] flex items-center justify-between px-6 transition-colors duration-500">
            <div className="flex items-center gap-4 flex-1">
               <button 
                 onClick={() => setSidebarOpen(true)}
                 className="lg:hidden p-2 text-[var(--text-main)] hover:bg-[var(--surface-alt)] rounded-lg transition-all"
               >
-                 <Menu size={20} />
+                 <Menu size={18} />
               </button>
-              <div className="hidden md:flex items-center gap-2.5 text-[var(--text-muted)] text-[10px] font-inter font-medium uppercase tracking-wider">
-                 <span>Panel de Gestión</span>
+              <div className="hidden md:flex items-center gap-2 text-[var(--text-muted)] text-[11px] font-inter font-medium uppercase tracking-wider">
+                 <span>Gestión Metrológica</span>
                  <ChevronRight size={10} className="opacity-40" />
-                 <span className="text-[var(--primary)] font-semibold">
+                 <span className="text-mjm-navy dark:text-[#f7931b] font-semibold">
                     {(() => {
                       const path = location.pathname.split('/').pop() || 'overview';
-                      if (path === 'calendario') return 'Cronograma';
+                      if (path === 'calendario') return 'Cronograma de Calibración';
                       if (path === 'inventario') return 'Inventario de Activos';
                       if (path === 'kanban') return 'Gestión Operativa';
-                      if (path === 'ia-lab') return 'IA Lab (Beta)';
-                      return path;
+                      if (path === 'ia-lab') return 'Confirmación Metrológica IA';
+                      if (path === 'aseguramiento') return 'Comprobación Metrológica en Planta';
+                      if (path === 'settings') return 'Ajustes del Sistema';
+                      return 'Tablero General';
                     })()}
                  </span>
               </div>
@@ -322,16 +325,16 @@ export default function DashboardLayout() {
               )}
 
               {/* PERFIL DE USUARIO */}
-              <div className="flex items-center gap-3 pl-4 border-l border-neutral-200 dark:border-white/10 group cursor-default">
+              <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-white/10 group cursor-default">
                  <div className="flex flex-col items-end transition-all duration-300">
-                    <p className={`text-[10px] font-inter font-semibold uppercase tracking-wider transition-colors ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
-                       {user?.nombre || 'MJM Administrator'}
+                    <p className={`text-xs font-inter font-semibold tracking-wide transition-colors ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                       {user?.nombre || 'Administrador MJM'}
                     </p>
-                    <p className={`text-[8px] font-inter font-medium uppercase tracking-[0.2em] transition-all ${isDarkMode ? 'text-[var(--primary)] drop-shadow-[0_0_10px_var(--primary)]' : 'text-slate-500'}`}>
+                    <p className={`text-[9px] font-mono font-medium uppercase tracking-wider transition-all ${isDarkMode ? 'text-[#f7931b]' : 'text-slate-500'}`}>
                        {tenant?.nombre_empresa || 'DeltaSandbox'}
                     </p>
                  </div>
-                 <div className="w-8 h-8 rounded-xl bg-[var(--primary)] flex items-center justify-center text-slate-900 font-outfit font-bold text-xs shadow-md shadow-[var(--primary)]/10 transition-shadow">
+                 <div className="w-8 h-8 rounded-lg bg-mjm-navy text-white dark:bg-[#f7931b] dark:text-slate-950 flex items-center justify-center font-space font-bold text-xs shadow-sm transition-shadow">
                     {user?.nombre ? user.nombre.substring(0, 2).toUpperCase() : 'MJ'}
                  </div>
               </div>

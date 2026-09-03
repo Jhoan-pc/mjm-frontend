@@ -121,14 +121,18 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  logout: async () => {
+    logout: async () => {
     // Limpiar sesión mock si existe
     localStorage.removeItem('mjm_mock_session');
     // Si era el usuario simulado
-    if (useAuthStore.getState().user?.id === 'mock1') {
+    if (useAuthStore.getState().user?.id === 'mock1' || useAuthStore.getState().user?.id === 'sandbox-dev-001') {
        set({ isAuthenticated: false, user: null, tenant: null });
        return;
     }
     await signOut(auth);
+  },
+
+  loginDemo: async () => {
+    return useAuthStore.getState().login("prueba@prueba.com", "mjmmetrologia");
   }
 }));

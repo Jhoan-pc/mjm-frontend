@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, Package, MessageCircle, CheckCircle } from 'lucide-react';
+import { X, ArrowRight, Package, MessageCircle, CheckCircle, ShieldCheck, AlertTriangle, Sparkles } from 'lucide-react';
 import { useContentStore } from '../../store/contentStore';
 import logoChatbot from '../../assets/logo_original_con_fondo.jpeg';
 
@@ -22,6 +22,8 @@ const ChatbotWidget = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [chatData, setChatData]     = useState({});
   const [inputValue, setInputValue] = useState('');
+  const [auditStep, setAuditStep]   = useState(0);
+  const [auditAnswers, setAuditAnswers] = useState({ qty: '', urgency: '', storage: '' });
 
   const handleNext = useCallback(() => {
     if (!inputValue.trim()) return;
@@ -42,6 +44,8 @@ const ChatbotWidget = () => {
     setCurrentStep(0);
     setChatData({});
     setInputValue('');
+    setAuditStep(0);
+    setAuditAnswers({ qty: '', urgency: '', storage: '' });
   }, []);
 
   const toggleChat = useCallback(() => setIsOpen(v => !v), []);
@@ -84,21 +88,158 @@ const ChatbotWidget = () => {
                     <p className="text-sm text-mjm-navy/50 font-medium">Selecciona una opción para que nuestro equipo técnico te acompañe.</p>
                   </div>
                   <div className="grid grid-cols-1 gap-3">
-                    <button onClick={() => setChatView('form')} className="group flex items-center gap-5 p-5 bg-white border border-mjm-navy/5 rounded-2xl text-left transition-all hover:border-mjm-orange hover:shadow-xl hover:shadow-mjm-orange/10 active:scale-95">
-                      <div className="w-12 h-12 shrink-0 rounded-xl bg-mjm-navy/5 text-mjm-navy flex items-center justify-center transition-colors group-hover:bg-mjm-orange group-hover:text-white">
-                        <Package size={22} />
+                    <button 
+                      onClick={() => setChatView('audit_calculator')} 
+                      className="group flex items-center gap-4 p-4 bg-gradient-to-r from-orange-500/10 via-white to-white border border-[#f7931b]/40 rounded-2xl text-left transition-all hover:border-mjm-orange hover:shadow-xl hover:shadow-orange-500/10 active:scale-95 cursor-pointer"
+                    >
+                      <div className="w-11 h-11 shrink-0 rounded-xl bg-orange-500/15 text-mjm-orange flex items-center justify-center transition-colors group-hover:bg-mjm-orange group-hover:text-white">
+                        <ShieldCheck size={22} />
                       </div>
-                      <span className="font-black text-mjm-navy text-[13px] uppercase tracking-widest flex-1">Programar entrega de instrumento</span>
-                      <ArrowRight size={16} className="text-mjm-navy/10 group-hover:text-mjm-orange transition-all group-hover:translate-x-1" />
+                      <div className="flex-1 min-w-0">
+                        <span className="block font-black text-mjm-navy text-[13px] uppercase tracking-wider">
+                          Evaluar Riesgo de Auditoría (60s)
+                        </span>
+                        <span className="block text-[11px] text-zinc-500 font-medium mt-0.5 truncate">
+                          Diagnóstico exprés para ICONTEC / INVIMA
+                        </span>
+                      </div>
+                      <ArrowRight size={16} className="text-mjm-orange transition-all group-hover:translate-x-1 shrink-0" />
                     </button>
-                    <a href="https://wa.me/573137960800" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-5 p-5 bg-white border border-mjm-navy/5 rounded-2xl text-left transition-all hover:border-mjm-orange hover:shadow-xl hover:shadow-mjm-orange/10 active:scale-95">
-                      <div className="w-12 h-12 shrink-0 rounded-xl bg-mjm-navy/5 text-mjm-navy flex items-center justify-center transition-colors group-hover:bg-green-500 group-hover:text-white">
-                        <MessageCircle size={22} />
+
+                    <button onClick={() => setChatView('form')} className="group flex items-center gap-4 p-4 bg-white border border-mjm-navy/5 rounded-2xl text-left transition-all hover:border-mjm-orange hover:shadow-xl hover:shadow-mjm-orange/10 active:scale-95 cursor-pointer">
+                      <div className="w-11 h-11 shrink-0 rounded-xl bg-mjm-navy/5 text-mjm-navy flex items-center justify-center transition-colors group-hover:bg-mjm-orange group-hover:text-white">
+                        <Package size={20} />
                       </div>
-                      <span className="font-black text-mjm-navy text-[13px] uppercase tracking-widest flex-1">Contactar asesor comercial</span>
-                      <ArrowRight size={16} className="text-mjm-navy/10 group-hover:text-mjm-orange transition-all group-hover:translate-x-1" />
+                      <span className="font-black text-mjm-navy text-[13px] uppercase tracking-wider flex-1">Programar entrega de instrumento</span>
+                      <ArrowRight size={16} className="text-mjm-navy/10 group-hover:text-mjm-orange transition-all group-hover:translate-x-1 shrink-0" />
+                    </button>
+
+                    <a href="https://wa.me/573137960800" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 p-4 bg-white border border-mjm-navy/5 rounded-2xl text-left transition-all hover:border-mjm-orange hover:shadow-xl hover:shadow-mjm-orange/10 active:scale-95 cursor-pointer">
+                      <div className="w-11 h-11 shrink-0 rounded-xl bg-mjm-navy/5 text-mjm-navy flex items-center justify-center transition-colors group-hover:bg-green-500 group-hover:text-white">
+                        <MessageCircle size={20} />
+                      </div>
+                      <span className="font-black text-mjm-navy text-[13px] uppercase tracking-wider flex-1">Contactar asesor comercial</span>
+                      <ArrowRight size={16} className="text-mjm-navy/10 group-hover:text-mjm-orange transition-all group-hover:translate-x-1 shrink-0" />
                     </a>
                   </div>
+                </motion.div>
+              )}
+
+              {chatView === 'audit_calculator' && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+                  <button onClick={handleReset} className="text-[10px] font-black uppercase tracking-widest text-mjm-navy/40 hover:text-mjm-orange transition-colors flex items-center gap-2 cursor-pointer">
+                    ← Volver al inicio
+                  </button>
+
+                  {auditStep === 0 && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-orange-500/10 rounded-2xl border-l-4 border-mjm-orange">
+                        <span className="text-[10px] font-mono font-bold text-mjm-orange uppercase">Paso 1 de 3</span>
+                        <p className="text-sm font-bold text-mjm-navy mt-1">¿Cuántos instrumentos de medición operan en su planta?</p>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2.5">
+                        {['Menos de 25 instrumentos', '25 a 100 instrumentos', 'Más de 100 instrumentos'].map((opt) => (
+                          <button
+                            key={opt}
+                            onClick={() => {
+                              setAuditAnswers(prev => ({ ...prev, qty: opt }));
+                              setAuditStep(1);
+                            }}
+                            className="p-3.5 bg-white border border-mjm-navy/10 hover:border-mjm-orange rounded-xl text-left font-bold text-xs text-mjm-navy transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
+                          >
+                            <span>{opt}</span>
+                            <ArrowRight size={14} className="text-mjm-navy/30" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {auditStep === 1 && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-orange-500/10 rounded-2xl border-l-4 border-mjm-orange">
+                        <span className="text-[10px] font-mono font-bold text-mjm-orange uppercase">Paso 2 de 3</span>
+                        <p className="text-sm font-bold text-mjm-navy mt-1">¿Cuándo está programada su próxima auditoría de calidad?</p>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2.5">
+                        {[
+                          { label: 'Menos de 30 días (Urgente)', val: 'critico' },
+                          { label: 'De 1 a 3 meses (Preventivo)', val: 'medio' },
+                          { label: 'Más de 3 meses / Rutinaria', val: 'bajo' }
+                        ].map((opt) => (
+                          <button
+                            key={opt.val}
+                            onClick={() => {
+                              setAuditAnswers(prev => ({ ...prev, urgency: opt.label }));
+                              setAuditStep(2);
+                            }}
+                            className="p-3.5 bg-white border border-mjm-navy/10 hover:border-mjm-orange rounded-xl text-left font-bold text-xs text-mjm-navy transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
+                          >
+                            <span>{opt.label}</span>
+                            <ArrowRight size={14} className="text-mjm-navy/30" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {auditStep === 2 && (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-orange-500/10 rounded-2xl border-l-4 border-mjm-orange">
+                        <span className="text-[10px] font-mono font-bold text-mjm-orange uppercase">Paso 3 de 3</span>
+                        <p className="text-sm font-bold text-mjm-navy mt-1">¿Dónde custodian actualmente los certificados y hojas de vida?</p>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2.5">
+                        {['Carpetas físicas / Archivador AZ', 'Hojas de cálculo de Excel', 'Plataforma o Software en la nube'].map((opt) => (
+                          <button
+                            key={opt}
+                            onClick={() => {
+                              setAuditAnswers(prev => ({ ...prev, storage: opt }));
+                              setAuditStep(3);
+                            }}
+                            className="p-3.5 bg-white border border-mjm-navy/10 hover:border-mjm-orange rounded-xl text-left font-bold text-xs text-mjm-navy transition-all hover:shadow-md cursor-pointer flex items-center justify-between"
+                          >
+                            <span>{opt}</span>
+                            <ArrowRight size={14} className="text-mjm-navy/30" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {auditStep === 3 && (
+                    <div className="space-y-5 text-center">
+                      <div className="p-5 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 text-amber-900 space-y-2">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-800 font-mono text-[10px] font-extrabold uppercase">
+                          <AlertTriangle size={14} />
+                          <span>Diagnóstico Preliminar: Riesgo Potencial</span>
+                        </div>
+                        <h4 className="font-black text-base text-mjm-navy">Vulnerable a Hallazgos de Auditoría</h4>
+                        <p className="text-xs text-zinc-600 font-medium leading-relaxed">
+                          La custodia en <strong>{auditAnswers.storage}</strong> para <strong>{auditAnswers.qty}</strong> presenta una alta probabilidad de no-conformidad por trazabilidad o cálculo GUM.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        <a
+                          href={`https://wa.me/573137960800?text=${encodeURIComponent(`Hola MJM, realicé el diagnóstico de auditoría: Tengo ${auditAnswers.qty}, auditoría en "${auditAnswers.urgency}" y custodio en "${auditAnswers.storage}". Requiero acompañamiento técnico preventivo.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer font-space"
+                        >
+                          <MessageCircle size={16} />
+                          <span>Solicitar Blindaje en Planta (WhatsApp)</span>
+                        </a>
+
+                        <button
+                          onClick={handleReset}
+                          className="w-full py-2.5 text-[11px] font-bold text-zinc-500 hover:text-mjm-orange transition-colors cursor-pointer"
+                        >
+                          Reiniciar Evaluación
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               )}
 

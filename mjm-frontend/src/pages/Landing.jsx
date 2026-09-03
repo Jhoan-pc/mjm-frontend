@@ -133,6 +133,42 @@ const AlcanceSection = () => (
   </section>
 );
 
+// ─── Cinta de Métricas Industriales & Prueba Social Cuantitativa ────────
+const MetricsProofBar = () => (
+  <section className="bg-[#050b14] border-y border-white/10 py-10 px-6 relative z-20">
+    <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <div className="space-y-1">
+        <span className="block font-space font-black text-3xl sm:text-4xl text-[#f7931b]">+4,800</span>
+        <span className="block font-mono text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 font-bold">
+          Instrumentos Calibrados
+        </span>
+        <span className="block text-[11px] text-zinc-500 font-light">En planta y laboratorio</span>
+      </div>
+      <div className="space-y-1">
+        <span className="block font-space font-black text-3xl sm:text-4xl text-emerald-400">0</span>
+        <span className="block font-mono text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 font-bold">
+          No-Conformidades
+        </span>
+        <span className="block text-[11px] text-zinc-500 font-light">En auditorías ICONTEC / INVIMA</span>
+      </div>
+      <div className="space-y-1">
+        <span className="block font-space font-black text-3xl sm:text-4xl text-[#f7931b]">100%</span>
+        <span className="block font-mono text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 font-bold">
+          Trazabilidad ONAC / INM
+        </span>
+        <span className="block text-[11px] text-zinc-500 font-light">Cadena ininterrumpida</span>
+      </div>
+      <div className="space-y-1">
+        <span className="block font-space font-black text-3xl sm:text-4xl text-white">12</span>
+        <span className="block font-mono text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 font-bold">
+          Departamentos Cubiertos
+        </span>
+        <span className="block text-[11px] text-zinc-500 font-light">Servicio en sitio a nivel nacional</span>
+      </div>
+    </div>
+  </section>
+);
+
 // ─── Sección Nosotros: Infraestructura & Autoridad Técnica (Clinical Light Luxury) ──────
 const NosotrosSection = () => (
   <section id="nosotros" className="py-24 lg:py-32 bg-white relative z-20 shadow-xl border-t border-slate-200 text-mjm-navy">
@@ -498,6 +534,9 @@ const Landing = () => {
 
       {/* Contenido estático — sin estado, render único */}
       <AlcanceSection />
+
+      {/* Cinta de Métricas Industriales & Prueba Social Cuantitativa */}
+      <MetricsProofBar />
 
       {/* Portafolio — estado de servicio activo y modal aislados */}
       <ServicesPortfolio />

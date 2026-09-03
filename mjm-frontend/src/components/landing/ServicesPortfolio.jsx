@@ -19,8 +19,10 @@ import {
   ShieldCheck, 
   Mail,
   Eye,
-  ChevronRight
+  ChevronRight,
+  Play
 } from 'lucide-react';
+import PlatformVideoPlayer from './PlatformVideoPlayer';
 
 const services = [
   {
@@ -145,25 +147,28 @@ const services = [
   {
     id: "saas",
     num: "06",
-    tag: "Innovación Multi-Tenant",
+    tag: "Ventaja Exclusiva • Incluido en su Plan",
     isFeatured: true,
-    name: "Portal de Control Metrológico & Activos",
+    name: "Software de Gobernanza Metrológica & Hojas de Vida QR",
     icon: Cpu,
-    badge: "SOFTWARE PROPIETARIO / ISO 10012",
-    description: "Plataforma digital en la nube para la custodia de hojas de vida, cálculo automático de conformidad (GUM / ISO 10012) y semaforización de vencimientos 24/7.",
-    longDesc: "El complemento tecnológico que elimina el desorden de las hojas de cálculo. Cada cliente cuenta con su entorno Multi-Tenant privado para consultar el historial de calibraciones, descargar certificados oficiales ante auditores y recibir alertas automáticas antes de que un instrumento venza.",
+    badge: "100% INCLUIDO EN PLAN ANUAL • ISO 10012",
+    description: "Plataforma digital en la nube con acceso multi-usuario para la custodia de hojas de vida, escaneo QR en planta, cálculo GUM y semaforización de vencimientos 24/7 sin costo de licencia mensual.",
+    longDesc: "El diferenciador definitivo de MJM: al contratar el aseguramiento técnico o calibración anual en planta, le entregamos la plataforma digital completa sin costos de suscripción mensual. Cero carpetas físicas extraviadas, cero pérdidas de tiempo buscando certificados ante auditores y control en vivo desde cualquier tablet o celular.",
     image: "/services/saas_card.png",
     standardsTitle: "MODELO MULTI-TENANT SEGURO",
     standardsDesc: "Espacios de trabajo independientes y aislados por empresa, planta o filial corporativa.",
     gallery: [
-      { url: "/services/saas_dashboard_real.png", title: "Dashboard Central de Indicadores y Conformidad ISO 10012" },
-      { url: "/services/saas_card.png", title: "Gestión de Hojas de Vida y Certificados Inalterables" }
+      { url: "/demo/03_dashboard_kpis.png", title: "Panel Central de Control & KPIs Metrológicos en Vivo" },
+      { url: "/demo/04_inventario.png", title: "Inventario Maestro de Activos Trazables en Planta" },
+      { url: "/demo/05_aseguramiento_gum.png", title: "Evaluación Matemática de Conformidad (Criterio GUM)" },
+      { url: "/demo/06_kanban.png", title: "Tablero Kanban de Calibración en Laboratorio" },
+      { url: "/demo/07_calendario.png", title: "Planificador y Calendario Preventivo de Paradas" }
     ],
     cards: [
-      { title: "Hojas de Vida Digitales", desc: "Registro inalterable con tolerancias, datos de placa y certificados adjuntos.", icon: <Target className="w-4 h-4"/> },
-      { title: "Planificador Metrológico", desc: "Cronogramas automatizados con semáforo preventivo a 30 y 60 días.", icon: <Calendar className="w-4 h-4"/> },
+      { title: "Hojas de Vida con Código QR", desc: "Registro inalterable con tolerancias, datos de placa y certificados adjuntos escaneables en planta.", icon: <Target className="w-4 h-4"/> },
+      { title: "Planificador Metrológico", desc: "Cronogramas automatizados con semáforo preventivo a 30, 60 y 90 días.", icon: <Calendar className="w-4 h-4"/> },
       { title: "Cálculo GUM / ISO 10012", desc: "Evaluación algorítmica de Error + Incertidumbre frente a la tolerancia del proceso.", icon: <Shield className="w-4 h-4"/> },
-      { title: "Suscripción Multi-Tenant", desc: "Ambiente empresarial en la nube para gestionar miles de instrumentos centralizadamente.", icon: <Cpu className="w-4 h-4"/> }
+      { title: "Licencia Anual 100% Incluida", desc: "Sin costos mensuales recurrentes. Incluido al contratar el aseguramiento técnico en planta.", icon: <Cpu className="w-4 h-4"/> }
     ]
   },
 ];
@@ -172,6 +177,7 @@ const services = [
 const ServicesPortfolio = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [activeFocusedServiceId, setActiveFocusedServiceId] = useState("aseguramiento");
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [modalMediaIndices, setModalMediaIndices] = useState({
     aseguramiento: 0,
     calibracion: 0,
@@ -319,6 +325,22 @@ const ServicesPortfolio = () => {
                       <p className="text-zinc-300 text-xs md:text-sm font-light leading-relaxed font-inter">
                         {service.description}
                       </p>
+
+                      {service.id === 'saas' && (
+                        <div className="pt-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsVideoModalOpen(true);
+                            }}
+                            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#f7931b]/20 to-orange-500/10 border border-[#f7931b]/50 text-white font-space font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 hover:bg-[#f7931b] hover:text-zinc-950 transition-all shadow-lg shadow-orange-500/20 group/btn cursor-pointer"
+                          >
+                            <Play className="w-4 h-4 text-[#f7931b] group-hover/btn:text-zinc-950 fill-[#f7931b] group-hover/btn:fill-zinc-950" />
+                            <span>Ver Video Demostración en Vivo (Opción A)</span>
+                          </button>
+                        </div>
+                      )}
 
                       <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs font-mono">
                         <div className="flex items-center gap-2 text-[#f7931b] font-bold text-[11px]">
@@ -503,6 +525,26 @@ const ServicesPortfolio = () => {
           </div>
         </div>
       )}
+
+      {/* 7. MODAL DE VIDEO DEMOSTRACIÓN INTERACTIVA (OPCIÓN A) */}
+      <AnimatePresence>
+        {isVideoModalOpen && (
+          <div className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            {/* Botón de Cierre */}
+            <button
+              onClick={() => setIsVideoModalOpen(false)}
+              className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[160] p-3 sm:p-3.5 rounded-full bg-zinc-950/90 text-white border-2 border-[#f7931b]/60 hover:bg-[#f7931b] hover:text-zinc-950 transition-all shadow-[0_0_30px_rgba(247,147,27,0.35)] cursor-pointer flex items-center justify-center group"
+              title="Cerrar Demostración"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-90 transition-transform duration-200" />
+            </button>
+
+            <div className="w-full max-w-6xl my-auto animate-in zoom-in-95 duration-300">
+              <PlatformVideoPlayer onDemoClick={() => setIsVideoModalOpen(false)} />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

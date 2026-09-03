@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, X, ShieldCheck, Mail, ChevronRight, MessageCircle } from 'lucide-react';
+import { ArrowRight, X, ShieldCheck, Mail, ChevronRight, MessageCircle, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 
 const HeroSection = () => {
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const loginDemo = useAuthStore(state => state.loginDemo);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,6 +93,22 @@ const HeroSection = () => {
               <MessageCircle className="w-4 h-4 text-emerald-400" />
               <span>CONTACTAR POR WHATSAPP</span>
             </a>
+
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await loginDemo();
+                  navigate('/dashboard');
+                } catch(e) {
+                  navigate('/login');
+                }
+              }}
+              className="w-full sm:w-auto px-7 sm:px-8 py-3.5 sm:py-4 bg-white/[0.08] hover:bg-white/[0.16] border border-white/20 hover:border-[#f7931b]/70 text-white font-extrabold rounded-2xl transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2 backdrop-blur-md shadow-xl cursor-pointer font-space group"
+            >
+              <Sparkles className="w-4 h-4 text-[#f7931b] group-hover:rotate-12 transition-transform" />
+              <span>EXPLORAR DEMO EN VIVO</span>
+            </button>
 
             <button
               onClick={() => setIsCertModalOpen(true)}

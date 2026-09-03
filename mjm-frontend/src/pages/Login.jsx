@@ -30,72 +30,74 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-[#FAF8FF] font-sans selection:bg-[#78B7D0]/30">
+    <div className="min-h-screen flex w-full bg-slate-50 font-sans selection:bg-[#f7931b]/20">
       
       {/* --- LADO IZQUIERDO: HERO VISUAL (Oculto en móvil) --- */}
-      <section className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#0B1326]">
+      <section className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#070C18]">
         {/* Capa de imagen con overlay tonal */}
         <div className="absolute inset-0 z-0">
            <img 
             src={heroImage} 
             alt="MJM Metrology AI" 
-            className="w-full h-full object-cover opacity-60"
+            className="w-full h-full object-cover opacity-40 filter contrast-125"
            />
-           <div className="absolute inset-0 bg-gradient-to-br from-[#1F667C]/90 via-[#0B1326]/95 to-[#0B1326] mix-blend-multiply" />
+           <div className="absolute inset-0 bg-gradient-to-br from-[#234c74]/90 via-[#0B1326]/95 to-[#070C18] mix-blend-multiply" />
         </div>
 
         {/* Contenido Hero */}
         <div className="relative z-10 flex flex-col justify-between p-16 w-full">
            {/* Logo / Brand */}
            <div className="flex items-center gap-4 animate-in fade-in slide-in-from-left duration-700">
-              <img src={mjmLogo} alt="MJM Logo" className="w-16 h-16 object-cover rounded-2xl shadow-md border border-white/10" />
+              <img src={mjmLogo} alt="MJM Logo" className="w-14 h-14 object-contain rounded-xl shadow-lg border border-white/10 bg-white p-1" />
               <div className="flex flex-col">
-                 <h2 className="text-white font-bold text-2xl tracking-tight leading-none">MJM</h2>
-                 <p className="text-[#78B7D0] text-[8px] font-black uppercase tracking-[0.4em] mt-1">Plataforma Metrológica</p>
+                 <h2 className="text-white font-space font-bold text-2xl tracking-tight leading-none">MJM</h2>
+                 <p className="text-[#f7931b] text-[9px] font-mono font-semibold uppercase tracking-[0.3em] mt-1">Metrología Industrial</p>
               </div>
            </div>
 
            {/* Copy Comercial Industrial */}
-           <div className="max-w-xl animate-in fade-in slide-in-from-bottom duration-1000 delay-300">
-              <h2 className="text-5xl font-black text-white mb-8 tracking-tighter leading-[1.1]">
-                Excelencia en <br /> 
-                <span className="text-[#78B7D0] italic">Metrología Industrial</span>
+           <div className="max-w-lg animate-in fade-in slide-in-from-bottom duration-1000 delay-300">
+              <h2 className="text-4xl xl:text-5xl font-extrabold font-space text-white mb-6 tracking-tight leading-[1.15]">
+                Control y Aseguramiento <br /> 
+                <span className="text-[#f7931b]">Metrológico</span>
               </h2>
-              <p className="text-lg text-white/70 leading-relaxed font-medium">
-                Gestión integral de sus activos y procesos de medición bajo estándares internacionales. 
-                Asegure la trazabilidad y la excelencia técnica en cada una de sus operaciones industriales.
+              <p className="text-base text-slate-300 leading-relaxed font-normal">
+                Gestión digital de activos, confirmación metrológica y trazabilidad bajo estándares internacionales ISO 10012 e ISO/IEC 17025.
               </p>
            </div>
 
            {/* Footer Izquierdo Simplificado */}
-           <div className="text-[10px] font-bold text-white/30 uppercase tracking-[0.4em]">
-              Powered by MJM
+           <div className="text-[10px] font-mono text-slate-400 uppercase tracking-[0.3em]">
+              Asesorías Integrales MJM S.A.S.
            </div>
         </div>
       </section>
 
       {/* --- LADO DERECHO: FORMULARIO DE ACCESO --- */}
-      <section className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 md:p-16 relative bg-white lg:bg-transparent">
-        <div className="w-full max-w-md animate-in fade-in zoom-in duration-700">
+      <section className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 md:p-14 relative bg-white lg:bg-slate-50">
+        <div className="w-full max-w-md bg-white lg:p-10 lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-xl lg:shadow-slate-200/50 animate-in fade-in duration-500">
            {/* Encabezado del Formulario */}
-           <header className="mb-12">
-              <h1 className="text-3xl font-black text-[#131B2E] tracking-tighter mb-3 leading-tight uppercase">
-                Bienvenido a su Sistema de Gestión Metrológica
-              </h1>
-              <div className="flex items-center gap-2">
-                 <span className="px-3 py-1 bg-[#F2F3FF] border border-[#D3E4FE] text-[#505F76] text-[10px] font-black rounded-lg uppercase tracking-widest">
-                    Alineado a ISO 10012:2026
+           <header className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                 <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-mono font-medium rounded-md uppercase tracking-wider">
+                    ISO 10012:2026 Ready
                  </span>
               </div>
+              <h1 className="text-2xl font-bold font-space text-slate-900 tracking-tight">
+                Iniciar Sesión
+              </h1>
+              <p className="text-xs text-slate-500 mt-1 font-normal">
+                Ingrese sus credenciales corporativas para acceder al panel de control.
+              </p>
            </header>
 
            {/* Formulario */}
-           <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                 <label className="text-[10px] font-black text-[#40484C] uppercase tracking-widest ml-1">Correo corporativo</label>
+           <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-1.5">
+                 <label className="text-xs font-semibold text-slate-700">Correo corporativo</label>
                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#70787D] group-focus-within:text-[#1F667C] transition-colors">
-                       <Mail size={18} />
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-mjm-navy transition-colors">
+                       <Mail size={16} />
                     </div>
                     <input 
                       type="email"
@@ -103,18 +105,19 @@ export default function Login() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="nombre@empresa.com"
                       required
-                      className="w-full h-14 pl-12 pr-4 bg-[#F2F3FF]/50 border border-[#BFC8CC] rounded-2xl outline-none focus:border-[#1F667C] focus:ring-4 focus:ring-[#1F667C]/5 transition-all text-[#131B2E] font-medium placeholder:text-[#70787D]/50"
+                      className="w-full h-11 pl-10 pr-4 bg-white border border-slate-300 rounded-lg outline-none focus:border-mjm-navy focus:ring-2 focus:ring-mjm-navy/15 transition-all text-sm text-slate-900 placeholder:text-slate-400 font-medium"
                     />
                  </div>
               </div>
 
-              <div className="space-y-2">
-                 <div className="flex justify-between items-center px-1">
-                    <label className="text-[10px] font-black text-[#40484C] uppercase tracking-widest">Contraseña</label>
+              <div className="space-y-1.5">
+                 <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-slate-700">Contraseña</label>
+                    <a href="#" className="text-xs text-slate-500 hover:text-mjm-navy font-medium hover:underline transition-colors">¿Olvidó su contraseña?</a>
                  </div>
                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#70787D] group-focus-within:text-[#1F667C] transition-colors">
-                       <Lock size={18} />
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-mjm-navy transition-colors">
+                       <Lock size={16} />
                     </div>
                     <input 
                       type={showPassword ? "text" : "password"}
@@ -122,55 +125,53 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="w-full h-14 pl-12 pr-12 bg-[#F2F3FF]/50 border border-[#BFC8CC] rounded-2xl outline-none focus:border-[#1F667C] focus:ring-4 focus:ring-[#1F667C]/5 transition-all text-[#131B2E] font-medium placeholder:text-[#70787D]/50"
+                      className="w-full h-11 pl-10 pr-10 bg-white border border-slate-300 rounded-lg outline-none focus:border-mjm-navy focus:ring-2 focus:ring-mjm-navy/15 transition-all text-sm text-slate-900 placeholder:text-slate-400 font-medium"
                     />
                     <button 
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#70787D] hover:text-[#1F667C] transition-colors"
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                      tabIndex={-1}
                     >
-                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                  </div>
               </div>
 
-              <div className="flex justify-end px-1">
-                 <a href="#" className="text-[10px] font-black text-[#1F667C] uppercase tracking-widest hover:underline">¿Olvidó su contraseña?</a>
-              </div>
-
               {error && (
-                <div className="p-4 bg-red-50 border border-red-100 text-red-600 text-xs font-bold rounded-xl flex items-center gap-2 animate-shake">
-                   <AlertCircle size={16} /> {error}
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg flex items-center gap-2">
+                   <AlertCircle size={15} className="shrink-0 text-red-600" /> {error}
                 </div>
               )}
 
               <button 
                 type="submit"
                 disabled={loading}
-                className="w-full h-14 bg-[#1F667C] text-white font-black text-[12px] uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-[#1F667C]/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                className="w-full h-11 bg-mjm-navy hover:bg-[#1b3d5d] text-white font-semibold text-xs uppercase tracking-wider rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 active:scale-[0.99] disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
-                  <Loader2 className="animate-spin" size={20} />
+                  <Loader2 className="animate-spin" size={18} />
                 ) : (
                   <>
-                    Iniciar Sesión Automática <ArrowRight size={18} />
+                    Ingresar a la Plataforma <ArrowRight size={15} />
                   </>
                 )}
               </button>
            </form>
 
-           <div className="mt-12 text-center">
-              <p className="text-[10px] font-bold text-[#40484C] uppercase tracking-widest opacity-60">
-                ¿Requiere asistencia técnica? 
-                <a href="#" className="text-[#1F667C] ml-2 hover:underline">Contactar a Soporte MJM</a>
+           <div className="mt-8 text-center border-t border-slate-100 pt-6">
+              <p className="text-xs text-slate-500">
+                ¿Requiere asistencia técnica o soporte? 
+                <a href="#" className="text-mjm-navy font-semibold ml-1.5 hover:underline">Contactar a Soporte MJM</a>
               </p>
            </div>
         </div>
 
-        <footer className="absolute bottom-10 w-full px-16 flex flex-row justify-end items-center gap-4 pointer-events-none opacity-40">
-           <div className="flex gap-6">
-              <span className="text-[9px] font-black text-[#505F76] uppercase tracking-widest">Privacidad</span>
-              <span className="text-[9px] font-black text-[#505F76] uppercase tracking-widest">Términos Legales</span>
+        <footer className="absolute bottom-6 w-full px-12 flex justify-between items-center text-[10px] text-slate-400">
+           <span>Plataforma Metrológica v2.4</span>
+           <div className="flex gap-4">
+              <a href="#" className="hover:text-slate-600 transition-colors">Privacidad</a>
+              <a href="#" className="hover:text-slate-600 transition-colors">Términos de Servicio</a>
            </div>
         </footer>
       </section>

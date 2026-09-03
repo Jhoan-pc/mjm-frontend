@@ -413,22 +413,30 @@ export default function IAVerificationLab() {
     <div className="space-y-8 animate-in fade-in duration-500">
       
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200 dark:border-zinc-800 pb-6">
         <div>
-           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--primary)] mb-1.5">MJM AI Verification Lab</p>
-           <h1 className="font-outfit font-extrabold text-[var(--text-main)] text-3xl tracking-tight uppercase">Confirmación <span className="text-[var(--primary)] italic">metrológica</span></h1>
-           <p className="text-xs text-[var(--text-muted)] font-medium mt-1">Sistema de confirmación metrológica impulsado por Inteligencia Artificial</p>
+           <div className="flex items-center gap-2 mb-1.5">
+             <span className="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded text-[10px] font-mono font-medium uppercase tracking-wider border border-slate-200 dark:border-zinc-700">
+               Motor de Inteligencia Metrológica
+             </span>
+           </div>
+           <h1 className="font-space font-bold text-slate-900 dark:text-white text-2xl md:text-3xl tracking-tight">
+             Confirmación Metrológica <span className="text-mjm-navy dark:text-[#f7931b]">con IA</span>
+           </h1>
+           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-normal leading-relaxed">
+             Extracción automatizada de parámetros metrológicos (Error, Incertidumbre U, Tolerancia) y evaluación de conformidad bajo ISO 10012.
+           </p>
         </div>
         <div className="flex gap-3">
-           <div className="flex items-center gap-2 bg-[var(--surface)] px-5 py-2.5 rounded-xl border border-[var(--outline-color)]/30 shadow-sm">
-              <Database size={16} className="text-primary" />
-              <span className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest">Model: Gemini 1.5 Pro</span>
+           <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-zinc-800 shadow-sm">
+              <Cpu size={15} className="text-[#f7931b]" />
+              <span className="text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-200">Gemini 1.5 Pro Metrology</span>
            </div>
         </div>
       </header>
  
       {/* CUERPO DEL LAB */}
-      <div className="grid grid-cols-12 gap-6 min-h-[600px]">
+      <div className="grid grid-cols-12 gap-6 min-h-[560px]">
         
         {/* PANEL IZQUIERDO */}
         <section className={`col-span-12 ${status !== 'idle' ? 'lg:col-span-6' : 'lg:col-span-8'} flex flex-col gap-6 transition-all duration-500`}>
@@ -436,37 +444,37 @@ export default function IAVerificationLab() {
             <div 
               onDragOver={onDragOver}
               onDrop={handleFileUpload}
-              className="relative flex-1 bg-[var(--surface)] border-2 border-dashed border-[var(--outline-color)]/40 hover:border-primary/50 transition-all duration-500 rounded-[2.5rem] flex flex-col items-center justify-center overflow-hidden min-h-[480px]"
+              className="relative flex-1 bg-white dark:bg-zinc-900 border-2 border-dashed border-slate-200 dark:border-zinc-800 hover:border-mjm-navy dark:hover:border-[#f7931b] transition-all duration-300 rounded-xl flex flex-col items-center justify-center overflow-hidden min-h-[460px] shadow-sm"
             >
               <input type="file" id="pdf-input" className="hidden" accept=".pdf" onChange={handleFileUpload} />
-              <div className="relative z-20 text-center px-12 py-10 w-full flex flex-col items-center justify-center">
-                <label htmlFor="pdf-input" className="w-20 h-20 bg-[var(--surface-alt)] rounded-full flex items-center justify-center mb-6 border border-[var(--outline-color)]/25 group cursor-pointer hover:scale-105 transition-transform shadow-md">
-                  <FileUp size={32} className="text-primary group-hover:animate-bounce" />
+              <div className="relative z-20 text-center px-8 py-10 w-full flex flex-col items-center justify-center">
+                <label htmlFor="pdf-input" className="w-16 h-16 bg-slate-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center mb-5 border border-slate-200 dark:border-zinc-700 group cursor-pointer hover:border-mjm-navy dark:hover:border-[#f7931b] transition-all shadow-sm">
+                  <FileUp size={28} className="text-mjm-navy dark:text-[#f7931b] group-hover:scale-110 transition-transform" />
                 </label>
-                <h2 className="font-outfit font-bold text-[var(--text-main)] text-xl tracking-tight mb-2">Soltar Certificado de Calibración</h2>
-                <p className="text-[var(--text-muted)] text-xs mb-8 max-w-sm mx-auto leading-relaxed">Arrastra el archivo PDF para que Gemini extraiga automáticamente los valores de error e incertidumbre.</p>
-                <label htmlFor="pdf-input" className="btn-inverted py-3.5 px-8 shadow-lg shadow-secondary/10 cursor-pointer">
-                  SELECCIONAR ARCHIVO
+                <h2 className="font-space font-bold text-slate-900 dark:text-white text-xl tracking-tight mb-2">Cargar Certificado de Calibración</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mb-6 max-w-sm mx-auto leading-relaxed">Arrastre aquí el archivo PDF o selecciónelo para iniciar la extracción asistida por visión metrológica.</p>
+                <label htmlFor="pdf-input" className="px-5 py-2.5 bg-mjm-navy hover:bg-[#1a3857] text-white font-semibold text-xs rounded-lg shadow-sm transition-all cursor-pointer">
+                  Seleccionar Certificado PDF
                 </label>
               </div>
             </div>
           ) : (
-            <div className="bg-[var(--surface)] border border-[var(--outline-color)]/30 rounded-[2.5rem] p-4 flex flex-col shadow-xl h-full min-h-[550px] relative">
-              <div className="flex justify-between items-center px-4 py-2 border-b border-[var(--outline-color)]/20 mb-4">
-                <span className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest flex items-center gap-2">
-                  <FileText size={14} className="text-primary" /> {selectedFile?.name}
+            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-4 flex flex-col shadow-sm h-full min-h-[550px] relative">
+              <div className="flex justify-between items-center px-3 py-2 border-b border-slate-100 dark:border-zinc-800 mb-3">
+                <span className="text-xs font-mono font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <FileText size={15} className="text-[#f7931b]" /> {selectedFile?.name}
                 </span>
                 <div className="flex items-center gap-2">
                   {pdfUrl && status === 'verified' && (
                     <button 
                       onClick={() => setIsPdfModalOpen(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f7931b] hover:bg-[#e58212] text-white text-[10px] font-black uppercase tracking-wider rounded-lg shadow-sm transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f7931b] hover:bg-[#e58212] text-white text-[11px] font-semibold rounded-md shadow-sm transition-all cursor-pointer"
                     >
-                      <FileText size={12} /> Ver en Pantalla Completa
+                      <FileText size={13} /> Pantalla Completa
                     </button>
                   )}
                   {status === 'verified' && (
-                    <button onClick={handleReset} className="p-1 hover:bg-[var(--surface-alt)] rounded-lg text-[var(--text-muted)] hover:text-error transition-all">
+                    <button onClick={handleReset} className="p-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-md text-slate-400 hover:text-red-500 transition-all cursor-pointer" title="Reiniciar">
                       <X size={16} />
                     </button>
                   )}
@@ -474,22 +482,22 @@ export default function IAVerificationLab() {
               </div>
               
               {status === 'scanning' ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-6">
-                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="p-6 bg-primary/10 rounded-full text-primary shadow-lg">
-                    <Microscope size={40} />
+                <div className="flex-1 flex flex-col items-center justify-center gap-5">
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="p-5 bg-slate-100 dark:bg-zinc-800 rounded-xl text-[#f7931b] shadow-sm">
+                    <Microscope size={36} />
                   </motion.div>
-                  <h3 className="text-base font-outfit font-bold text-[var(--text-main)] tracking-tight animate-pulse uppercase">Extrayendo Datos con IA...</h3>
-                  <div className="h-1.5 w-48 bg-[var(--surface-alt)] rounded-full overflow-hidden border border-[var(--outline-color)]/20 shadow-inner">
+                  <h3 className="text-sm font-space font-semibold text-slate-800 dark:text-slate-200 tracking-tight uppercase">Extrayendo Datos con IA...</h3>
+                  <div className="h-1.5 w-48 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden border border-slate-200 dark:border-zinc-700">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: '100%' }}
                       transition={{ duration: 3 }}
-                      className="h-full bg-primary" 
+                      className="h-full bg-[#f7931b]" 
                     />
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 w-full h-[500px] overflow-hidden rounded-2xl bg-[var(--surface-alt)]">
+                <div className="flex-1 w-full h-[500px] overflow-hidden rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700">
                   <iframe 
                     src={pdfUrl} 
                     className="w-full h-full border-none" 
@@ -505,61 +513,61 @@ export default function IAVerificationLab() {
         <aside className={`col-span-12 ${status !== 'idle' ? 'lg:col-span-6' : 'lg:col-span-4'} flex flex-col gap-6 transition-all duration-500`}>
            
            {status === 'idle' ? (
-             <div className="bg-[var(--surface)] rounded-[2.5rem] p-8 border border-[var(--outline-color)]/30 h-full flex flex-col justify-between shadow-xl min-h-[480px]">
-                 <div className="flex items-center gap-4 mb-6 border-b border-[var(--outline-color)]/20 pb-5">
-                     <div className="w-12 h-12 bg-[#2f423e] text-white rounded-2xl flex items-center justify-center shadow-lg">
-                        <Cpu size={24} className="text-white" />
+             <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-800 h-full flex flex-col justify-between shadow-sm min-h-[460px]">
+                 <div className="flex items-center gap-3 mb-5 border-b border-slate-100 dark:border-zinc-800 pb-4">
+                     <div className="w-10 h-10 bg-mjm-navy text-white rounded-lg flex items-center justify-center shadow-sm">
+                        <Cpu size={20} className="text-white" />
                      </div>
                     <div>
-                       <h3 className="font-outfit font-bold text-[var(--text-main)] text-base">Metadatos del Certificado</h3>
-                       <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Extracción Gemini OCR</p>
+                       <h3 className="font-space font-bold text-slate-900 dark:text-white text-sm">Metadatos del Certificado</h3>
+                       <p className="text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider">Extracción OCR Gemini</p>
                     </div>
                  </div>
 
-                 <div className="flex-1 flex flex-col items-center justify-center text-center py-12 opacity-30 gap-3 text-[var(--text-muted)]">
-                    <FileText size={48} />
-                    <p className="text-xs font-bold">Ningún certificado cargado</p>
+                 <div className="flex-1 flex flex-col items-center justify-center text-center py-10 opacity-40 gap-2 text-slate-400">
+                    <FileText size={40} />
+                    <p className="text-xs font-medium">Ningún certificado cargado aún</p>
                  </div>
                  
-                 <div className="p-4 bg-[var(--surface-alt)] border border-[var(--outline-color)]/30 rounded-2xl text-[var(--text-muted)]">
-                    <p className="text-[10px] leading-relaxed font-medium">
-                       Los resultados de la extracción de patrones de calibración se listarán estructuradamente una vez que la IA finalice la lectura.
+                 <div className="p-3.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200/80 dark:border-zinc-800 rounded-lg text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] leading-relaxed font-normal">
+                       Los resultados estructurados de calibración (Error Máximo, Incertidumbre y veredicto ISO 10012) se visualizarán aquí una vez procesado el documento.
                     </p>
                  </div>
              </div>
            ) : (
-             <div className="space-y-6">
-                <div className="bg-[var(--surface)] rounded-[2.5rem] p-8 border border-[var(--outline-color)]/30 shadow-xl space-y-6">
-                  <div className="flex items-center justify-between pb-4 border-b border-[var(--outline-color)]/20">
-                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#2f423e] text-white rounded-xl shadow-md flex items-center justify-center">
-                           <Cpu size={18} className="text-white" />
+             <div className="space-y-5">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl p-5 border border-slate-200 dark:border-zinc-800 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-zinc-800">
+                     <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-mjm-navy text-white rounded-md shadow-sm flex items-center justify-center">
+                           <Cpu size={16} className="text-white" />
                         </div>
-                        <h3 className="font-outfit font-bold text-[var(--text-main)] text-sm">Metadatos Identificados</h3>
+                        <h3 className="font-space font-bold text-slate-900 dark:text-white text-sm">Metadatos Identificados</h3>
                      </div>
                     {status === 'verified' && (
                       <button 
                         onClick={handleSaveResults} 
                         disabled={isSaving}
-                        className="btn-primary py-2.5 px-6 text-[10px] font-black uppercase tracking-wider shadow-md hover:brightness-105"
+                        className="px-3.5 py-1.5 bg-mjm-navy hover:bg-[#1a3857] text-white text-[10px] font-semibold uppercase tracking-wider rounded-md shadow-sm transition-all cursor-pointer"
                       >
-                        {isSaving ? 'GUARDANDO...' : 'CONFIRMAR E INTEGRAR'}
+                        {isSaving ? 'Guardando...' : 'Confirmar e Integrar'}
                       </button>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-xs font-medium">
+                  <div className="grid grid-cols-2 gap-x-5 gap-y-3 text-xs font-medium">
                      {[
-                       { label: 'Número de Certificado', val: parsedData?.modelo || 'N/A' },
+                       { label: 'Modelo / Referencia', val: parsedData?.modelo || 'N/A' },
                        { label: 'Laboratorio Emisor', val: parsedData?.laboratorio || 'N/A' },
                        { label: 'Acreditación Lab', val: parsedData?.laboratorio_tipo || 'N/A' },
-                       { label: 'Instrumento Identificado', val: parsedData?.instrumento || 'N/A' },
+                       { label: 'Instrumento', val: parsedData?.instrumento || 'N/A' },
                        { label: 'Serie / Serial', val: parsedData?.serie || 'N/A' },
-                       { label: 'Patrón de Calibración', val: parsedData?.patron || 'N/A' },
+                       { label: 'Patrón Utilizado', val: parsedData?.patron || 'N/A' },
                      ].map((insight, i) => (
-                       <div key={i} className="min-w-0 border-b border-[var(--surface-alt)] pb-2">
-                          <p className="text-[8px] font-black text-[var(--text-muted)] opacity-40 uppercase tracking-widest mb-1">{insight.label}</p>
-                          <p className={`text-xs font-bold truncate ${status === 'verified' ? 'text-[var(--text-main)] font-inter' : 'text-[var(--text-muted)]/20'}`}>{insight.val}</p>
+                       <div key={i} className="min-w-0 border-b border-slate-100 dark:border-zinc-800/80 pb-2">
+                          <p className="text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">{insight.label}</p>
+                          <p className={`text-xs font-semibold truncate ${status === 'verified' ? 'text-slate-800 dark:text-slate-200' : 'text-slate-300 dark:text-zinc-600'}`}>{insight.val}</p>
                        </div>
                      ))}
                   </div>
@@ -586,28 +594,28 @@ export default function IAVerificationLab() {
 
       {/* PDF Fullscreen Modal */}
       {isPdfModalOpen && pdfUrl && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-350">
-          <div className="bg-[var(--surface)] rounded-3xl shadow-2xl w-full h-full max-w-7xl max-h-[90vh] flex flex-col overflow-hidden border border-[var(--outline-color)]/30 animate-in zoom-in-95 duration-350">
-            <div className="px-6 py-4 border-b border-[var(--outline-color)]/20 bg-[var(--surface-alt)] flex items-center justify-between">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-2xl w-full h-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-zinc-800 animate-in zoom-in-95 duration-200">
+            <div className="px-5 py-3 border-b border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/60 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="text-[#f7931b]" size={20} />
-                <h3 className="font-outfit font-bold text-[var(--text-main)] text-sm tracking-wider uppercase">
-                  Visor Completo del Certificado
+                <FileText className="text-[#f7931b]" size={18} />
+                <h3 className="font-space font-bold text-slate-900 dark:text-white text-xs tracking-wider uppercase">
+                  Visor del Certificado de Calibración
                 </h3>
               </div>
               <button
                 onClick={() => setIsPdfModalOpen(false)}
-                className="p-2 hover:bg-[var(--surface-alt)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"
-                title="Cerrar Visor"
+                className="p-1.5 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded-md text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors cursor-pointer"
+                title="Cerrar"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
             
-            <div className="flex-1 bg-[var(--surface-alt)] p-2 relative">
+            <div className="flex-1 bg-slate-100 dark:bg-zinc-950 p-2 relative">
               <iframe 
                 src={pdfUrl} 
-                className="w-full h-full rounded-2xl border border-[var(--outline-color)]/20 shadow-inner"
+                className="w-full h-full rounded-lg border border-slate-200 dark:border-zinc-800 shadow-inner"
                 title="Visor de PDF Expandido"
               />
             </div>
@@ -618,7 +626,3 @@ export default function IAVerificationLab() {
     </div>
   );
 }
-
-// Helpers
-const Building2 = ({size, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>;
-const Barcode = ({size, className}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 5v14"/><path d="M21 5v14"/><path d="M7 5v14"/><path d="M11 5v14"/><path d="M14 5v14"/><path d="M17 5v14"/></svg>;
