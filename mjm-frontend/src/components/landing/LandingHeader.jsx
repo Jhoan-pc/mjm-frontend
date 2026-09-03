@@ -85,25 +85,8 @@ const LandingHeader = () => {
           <a className="text-zinc-400 hover:text-white transition-colors" href="#contacto">Contacto</a>
         </div>
 
-        {/* Acceso a Portal de Clientes & Demo en Vivo */}
+        {/* Acceso a Portal de Clientes */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await loginDemo();
-                navigate('/dashboard');
-              } catch(e) {
-                navigate('/login');
-              }
-            }}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl bg-white/[0.08] hover:bg-white/[0.16] border border-white/20 hover:border-[#f7931b]/60 text-white font-space font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer group/demo"
-            title="Ingreso instantáneo a la Demo del Dashboard"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#f7931b] group-hover/demo:rotate-12 transition-transform" />
-            <span>Demo en Vivo</span>
-          </button>
-
           <Link 
             to="/login" 
             className="bg-mjm-orange text-white px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-[0.15em] hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-500/25 flex items-center gap-1.5 sm:gap-2 cursor-pointer shrink-0 font-space"

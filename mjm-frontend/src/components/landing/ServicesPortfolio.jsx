@@ -67,7 +67,8 @@ const services = [
     gallery: [
       { url: "/photos/diagnostico_vibraciones_fluke.jpg", title: "Banco Técnico de Caracterización de Instrumentos & Ensayos" },
       { url: "/photos/calibracion_balanzas_planta.jpg", title: "Aseguramiento Metrológico en Planta & Salas Limpias" },
-      { url: "/photos/analizador_emerson_csi2130.jpg", title: "Verificación de Trazabilidad y Estado de Activos Críticos" }
+      { url: "/photos/analizador_emerson_csi2130.jpg", title: "Verificación de Trazabilidad y Estado de Activos Críticos" },
+      { url: "/photos/laboratorio_osciloscopio_generador.jpg", title: "Instrumentación Patrón & Generación de Señales de Prueba" }
     ],
     features: [
       { title: "Clasificación Técnica", desc: "Inventario maestro y clasificación de criticidad para instrumentos en planta." },
@@ -116,7 +117,8 @@ const services = [
     gallery: [
       { url: "/photos/analizador_vibraciones_skf.jpg", title: "Diagnóstico Dinámico y Espectral con Colector SKF Microlog" },
       { url: "/photos/analizador_emerson_csi2130.jpg", title: "Monitoreo de Condición y Salud de Maquinaria Emerson CSI 2130" },
-      { url: "/photos/laboratorio_osciloscopio_generador.jpg", title: "Alineación y Mantenimiento Electrónico en Banco Tektronix" }
+      { url: "/photos/laboratorio_osciloscopio_generador.jpg", title: "Alineación y Mantenimiento Electrónico en Banco Tektronix" },
+      { url: "/photos/verificacion_emision_acustica.jpg", title: "Ensayos No Destructivos & Caracterización por Emisión Acústica" }
     ],
     cards: [
       { title: "Diagnóstico Técnico en Campo", desc: "Evaluación del estado funcional y repetibilidad del instrumento.", icon: <Target className="w-4 h-4"/> },
@@ -134,13 +136,14 @@ const services = [
     badge: "PROGRAMAS TÉCNICOS A LA MEDIDA",
     description: "Talleres prácticos de metrología, interpretación de certificados de calibración y normas de calidad dirigidos al personal técnico de planta.",
     longDesc: "Fortalecemos las competencias técnicas de su equipo. Enseñamos a interpretar los certificados de calibración, entender los errores máximos permisibles (EMP) y aplicar buenas prácticas de laboratorio para evitar errores de medición en la operación diaria.",
-    image: "/photos/laboratorio_osciloscopio_generador.jpg",
+    image: "/photos/capacitacion_taller_temperatura.jpg",
     standardsTitle: "ALINEACIÓN ISO 9001 / ISO 17025",
     standardsDesc: "Capacitación orientada a superar preguntas de auditoría técnica con solidez conceptual.",
     gallery: [
-      { url: "/photos/laboratorio_osciloscopio_generador.jpg", title: "Talleres Prácticos de Manejo de Instrumentación y Generadores de Señal" },
-      { url: "/photos/verificacion_emision_acustica.jpg", title: "Entrenamiento en Ultrasonido, Emisión Acústica y Rigor Normativo ONAC" },
-      { url: "/photos/mjm_expo_industrial.jpg", title: "Participación y Formación Técnica en Foros Industriales Nacionales" }
+      { url: "/photos/capacitacion_taller_temperatura.jpg", title: "Taller Práctico en Planta: Procedimiento de Verificación de Temperatura" },
+      { url: "/photos/capacitacion_seminario_auditorio_vim.jpg", title: "Seminario Especializado: Vocabulario Internacional de Metrología (VIM - ISO/IEC 99)" },
+      { url: "/photos/capacitacion_calculo_metrologico_sala.jpg", title: "Entrenamiento Teórico-Práctico: Cálculo de Incertidumbre y Criterios de Aceptación" },
+      { url: "/photos/capacitacion_formacion_personal_planta.jpg", title: "Formación de Personal de Planta en Aseguramiento Metrológico Integral" }
     ],
     features: [
       { title: "Fundamentos y Magnitudes", desc: "Principios teóricos y aplicación práctica en líneas de producción." },
@@ -164,7 +167,8 @@ const services = [
     gallery: [
       { url: "/photos/espectrometro_xrf_aleaciones.jpg", title: "Suministro y Verificación de Analizadores XRF y Equipos Multimarca" },
       { url: "/photos/calibracion_multimetro_fluke87v.jpg", title: "Multímetros Industriales Fluke 87V y Herramientas Eléctricas" },
-      { url: "/photos/calibrador_vibraciones_vc21.jpg", title: "Calibradores Patrón y Sensores Industriales con Garantía" }
+      { url: "/photos/calibrador_vibraciones_vc21.jpg", title: "Calibradores Patrón y Sensores Industriales con Garantía" },
+      { url: "/photos/mjm_expo_industrial.jpg", title: "Representación y Alianzas Comerciales en Expo Industrial" }
     ],
     cards: [
       { title: "Instrumentos de Medición", desc: "Calibradores, micrómetros, manómetros, termómetros, tacómetros.", icon: <Target className="w-4 h-4"/> },
