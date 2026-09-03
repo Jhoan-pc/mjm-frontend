@@ -71,7 +71,7 @@ const HeroSection = () => {
 
           {/* Subtítulo de Conversión */}
           <p className="font-inter text-xs sm:text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed font-light drop-shadow-md">
-            Garantice auditorías impecables ante <strong className="text-white font-medium">ICONTEC, INVIMA e ISO</strong> y elimine paradas de línea por derivas instrumentales. Calibramos en 5 magnitudes con técnicos en su propia planta e <strong className="text-[#f7931b] font-medium">incluimos la plataforma de gestión y hojas de vida QR sin costo de licencia mensual</strong>.
+            Garantice auditorías impecables ante <strong className="text-white font-medium">entidades regulatorias y certificadores</strong> y elimine paradas de línea por derivas instrumentales. Calibración trazable en laboratorio propio e <strong className="text-[#f7931b] font-medium">incluimos la plataforma de gestión y hojas de vida sin costo de licencia mensual</strong> <span className="text-zinc-400 text-xs sm:text-sm font-normal">(aplican condiciones)</span>.
           </p>
 
           {/* Botones de Acción Ingyemel Style */}
