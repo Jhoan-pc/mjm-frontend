@@ -253,8 +253,8 @@ const ServicesPortfolio = () => {
               </div>
 
               <h2 className="font-space font-extrabold text-3xl sm:text-5xl lg:text-[3.25rem] text-white uppercase tracking-tight leading-[1.08]">
-                BLINDAJE & CONTROL <br />
-                <span className="text-[#f7931b]">METROLÓGICO</span>
+                ASEGURAMIENTO & <br />
+                <span className="text-[#f7931b]">CONTROL METROLÓGICO</span>
               </h2>
 
               <p className="text-zinc-300 text-sm md:text-base leading-relaxed font-light font-inter">

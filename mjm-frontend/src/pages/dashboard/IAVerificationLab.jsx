@@ -18,7 +18,9 @@ import {
   Activity,
   Layers,
   Wrench,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
@@ -130,7 +132,8 @@ const ISOComparator = ({ error, uncertainty, tolerance, unit, veredicto, riesgo,
 };
 
 export default function IAVerificationLab() {
-  const { tenant } = useAuthStore();
+  const { tenant, user, isDemoMode } = useAuthStore();
+  const isDemo = isDemoMode || user?.id === 'sandbox-dev-001';
   const { instruments, addInstrument, updateInstrument, addActivity, loadInstruments } = useInventoryStore();
   const [status, setStatus] = useState('idle'); // idle, scanning, verified
   const [selectedFile, setSelectedFile] = useState(null);
@@ -138,6 +141,19 @@ export default function IAVerificationLab() {
   const [parsedData, setParsedData] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  
+  // Estados para Modo Demo & Paywall Esmerilado
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [leadForm, setLeadForm] = useState({ nombre: '', empresa: '', email: '', whatsapp: '' });
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+  const [leadSubmittedSuccess, setLeadSubmittedSuccess] = useState(false);
+
+  React.useEffect(() => {
+    if (localStorage.getItem('mjm_demo_unlocked') === 'true') {
+      setIsUnlocked(true);
+    }
+  }, []);
 
   React.useEffect(() => {
     if (tenant?.id) {
@@ -293,7 +309,49 @@ export default function IAVerificationLab() {
     setParsedData(null);
   };
 
+  const handleLeadSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmittingLead(true);
+    try {
+      const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+      const { db } = await import('../../config/firebase');
+      
+      await addDoc(collection(db, 'leads_demo'), {
+        nombre: leadForm.nombre,
+        empresa: leadForm.empresa,
+        email: leadForm.email,
+        whatsapp: leadForm.whatsapp,
+        instrumento: parsedData?.instrumento || 'Instrumento de Muestra',
+        certificadoNombre: selectedFile?.name || 'Certificado Demo',
+        veredicto: parsedData?.veredicto || 'Conforme',
+        fecha: new Date().toISOString(),
+        timestamp: serverTimestamp()
+      });
+
+      setIsUnlocked(true);
+      setLeadSubmittedSuccess(true);
+      setIsLeadModalOpen(false);
+      localStorage.setItem('mjm_demo_unlocked', 'true');
+    } catch (err) {
+      console.warn("Aviso al registrar lead en Firestore:", err);
+      setIsUnlocked(true);
+      setLeadSubmittedSuccess(true);
+      setIsLeadModalOpen(false);
+      localStorage.setItem('mjm_demo_unlocked', 'true');
+    } finally {
+      setIsSubmittingLead(false);
+    }
+  };
+
   const handleSaveResults = async () => {
+    if (isDemo && !isUnlocked) {
+      setIsLeadModalOpen(true);
+      return;
+    }
+    if (isDemo && isUnlocked) {
+      alert(`Simulación exitosa: Parámetros del certificado vinculados virtualmente a la hoja de vida de ${parsedData.instrumento}.`);
+      return;
+    }
     if (!parsedData || !tenant) return;
     setIsSaving(true);
     
@@ -549,9 +607,14 @@ export default function IAVerificationLab() {
                       <button 
                         onClick={handleSaveResults} 
                         disabled={isSaving}
-                        className="px-3.5 py-1.5 bg-mjm-navy hover:bg-[#1a3857] text-white text-[10px] font-semibold uppercase tracking-wider rounded-md shadow-sm transition-all cursor-pointer"
+                        className="px-3.5 py-1.5 bg-mjm-navy hover:bg-[#1a3857] text-white text-[10px] font-semibold uppercase tracking-wider rounded-md shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
                       >
-                        {isSaving ? 'Guardando...' : 'Confirmar e Integrar'}
+                        {isSaving ? 'Guardando...' : isDemo && !isUnlocked ? (
+                          <>
+                            <Sparkles size={12} className="text-[#f7931b]" />
+                            <span>Desbloquear Análisis</span>
+                          </>
+                        ) : 'Confirmar e Integrar'}
                       </button>
                     )}
                   </div>
@@ -574,16 +637,68 @@ export default function IAVerificationLab() {
                 </div>
 
                 {status === 'verified' && parsedData && (
-                  <div className="animate-in fade-in duration-500">
-                     <ISOComparator 
-                       error={parsedData.error_maximo} 
-                       uncertainty={parsedData.incertidumbre} 
-                       tolerance={parsedData.criterio_valor} 
-                       unit={parsedData.unidad}
-                       veredicto={parsedData.veredicto}
-                       riesgo={parsedData.riesgo}
-                       puntos={parsedData.puntos}
-                     />
+                  <div className="relative animate-in fade-in duration-500">
+                     {/* MODO DEMO: ESMERILADO DE PROTECCIÓN TÁCTICA */}
+                     {isDemo && !isUnlocked ? (
+                       <div className="relative rounded-2xl overflow-hidden">
+                          {/* Contenido con filtro de desenfoque/esmerilado */}
+                          <div className="filter blur-[6px] opacity-40 select-none pointer-events-none transition-all duration-700">
+                             <ISOComparator 
+                               error={parsedData.error_maximo} 
+                               uncertainty={parsedData.incertidumbre} 
+                               tolerance={parsedData.criterio_valor} 
+                               unit={parsedData.unidad}
+                               veredicto={parsedData.veredicto}
+                               riesgo={parsedData.riesgo}
+                               puntos={parsedData.puntos}
+                             />
+                          </div>
+
+                          {/* Capa de Cristal Esmerilado (Paywall Interactivo) */}
+                          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-white/75 dark:bg-zinc-900/80 backdrop-blur-md border border-[#f7931b]/30 rounded-2xl shadow-xl shadow-black/5">
+                             <div className="w-12 h-12 rounded-xl bg-mjm-navy dark:bg-zinc-800 text-[#f7931b] flex items-center justify-center shadow-lg border border-[#f7931b]/30 mb-3">
+                                <Lock size={22} className="text-[#f7931b]" />
+                             </div>
+
+                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f7931b]/15 text-[#f7931b] border border-[#f7931b]/30 text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
+                                <span>⚡ Cómputo ISO 10012 Procesado</span>
+                             </div>
+
+                             <h4 className="font-space font-bold text-slate-900 dark:text-white text-base max-w-xs leading-tight mb-2">
+                                Matriz de Tolerancias y Dictamen de Conformidad
+                             </h4>
+
+                             <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mb-5 leading-relaxed font-normal">
+                                Los errores absolutos, la incertidumbre expandida (U) y la evaluación de aptitud de este instrumento han sido calculados. Desbloquee los datos con su correo corporativo.
+                             </p>
+
+                             <button
+                               onClick={() => setIsLeadModalOpen(true)}
+                               className="px-6 py-3 bg-[#f7931b] hover:bg-orange-500 active:scale-95 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2 cursor-pointer font-space"
+                             >
+                               <Sparkles size={15} />
+                               <span>Desbloquear Análisis Completo</span>
+                             </button>
+                          </div>
+                       </div>
+                     ) : (
+                       <div>
+                          {leadSubmittedSuccess && (
+                            <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-xl text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+                               <CheckCircle size={16} /> ¡Análisis Desbloqueado! Ahora puede examinar la matriz metrológica y tolerancias.
+                            </div>
+                          )}
+                          <ISOComparator 
+                            error={parsedData.error_maximo} 
+                            uncertainty={parsedData.incertidumbre} 
+                            tolerance={parsedData.criterio_valor} 
+                            unit={parsedData.unidad}
+                            veredicto={parsedData.veredicto}
+                            riesgo={parsedData.riesgo}
+                            puntos={parsedData.puntos}
+                          />
+                       </div>
+                     )}
                   </div>
                 )}
              </div>
@@ -620,6 +735,116 @@ export default function IAVerificationLab() {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* MODAL DE CAPTURA DE LEADS CORPORATIVOS */}
+      {isLeadModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+           <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+              {/* Header del Modal */}
+              <div className="p-6 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-800/50 flex justify-between items-center">
+                 <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-mjm-navy text-[#f7931b] flex items-center justify-center shadow-md border border-white/10">
+                       <Sparkles size={20} />
+                    </div>
+                    <div>
+                       <h3 className="font-space font-bold text-slate-900 dark:text-white text-base">Desbloquear Análisis Metrológico</h3>
+                       <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Acceso Instantáneo · Sin Costo de Licencia</p>
+                    </div>
+                 </div>
+                 <button 
+                   onClick={() => setIsLeadModalOpen(false)}
+                   className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                 >
+                    <X size={18} />
+                 </button>
+              </div>
+
+              {/* Formulario */}
+              <form onSubmit={handleLeadSubmit} className="p-6 space-y-4">
+                 <div className="bg-amber-500/10 border border-amber-500/20 p-3.5 rounded-xl text-xs text-amber-900 dark:text-amber-200 leading-relaxed font-normal">
+                    Ingrese los datos de su planta o empresa para retirar el esmerilado de protección y visualizar la matriz de errores, incertidumbre expandida (U) y dictamen ISO 10012.
+                 </div>
+
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nombre Completo *</label>
+                       <input 
+                         type="text" 
+                         required
+                         placeholder="Ing. Carlos Rodríguez"
+                         value={leadForm.nombre}
+                         onChange={e => setLeadForm({ ...leadForm, nombre: e.target.value })}
+                         className="w-full h-10 px-3.5 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-mjm-navy dark:focus:border-[#f7931b] text-slate-900 dark:text-white transition-colors"
+                       />
+                    </div>
+                    <div>
+                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Empresa / Planta Industrial *</label>
+                       <input 
+                         type="text" 
+                         required
+                         placeholder="Ej: Lácteos del Norte S.A."
+                         value={leadForm.empresa}
+                         onChange={e => setLeadForm({ ...leadForm, empresa: e.target.value })}
+                         className="w-full h-10 px-3.5 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-mjm-navy dark:focus:border-[#f7931b] text-slate-900 dark:text-white transition-colors"
+                       />
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Correo Corporativo *</label>
+                       <input 
+                         type="email" 
+                         required
+                         placeholder="calidad@empresa.com"
+                         value={leadForm.email}
+                         onChange={e => setLeadForm({ ...leadForm, email: e.target.value })}
+                         className="w-full h-10 px-3.5 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-mjm-navy dark:focus:border-[#f7931b] text-slate-900 dark:text-white transition-colors"
+                       />
+                    </div>
+                    <div>
+                       <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">WhatsApp / Celular *</label>
+                       <input 
+                         type="tel" 
+                         required
+                         placeholder="+57 300 123 4567"
+                         value={leadForm.whatsapp}
+                         onChange={e => setLeadForm({ ...leadForm, whatsapp: e.target.value })}
+                         className="w-full h-10 px-3.5 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg text-xs outline-none focus:border-mjm-navy dark:focus:border-[#f7931b] text-slate-900 dark:text-white transition-colors"
+                       />
+                    </div>
+                 </div>
+
+                 <div className="pt-3 flex items-center justify-end gap-3">
+                    <button 
+                      type="button"
+                      onClick={() => setIsLeadModalOpen(false)}
+                      className="px-4 py-2.5 rounded-lg border border-slate-200 dark:border-zinc-700 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                    >
+                       Cerrar
+                    </button>
+                    <button 
+                      type="submit"
+                      disabled={isSubmittingLead}
+                      className="px-5 py-2.5 rounded-lg bg-[#f7931b] hover:bg-orange-500 text-zinc-950 font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 font-space"
+                    >
+                       {isSubmittingLead ? (
+                         <>
+                           <Loader2 className="animate-spin" size={14} />
+                           <span>Verificando...</span>
+                         </>
+                       ) : (
+                         <>
+                           <Sparkles size={14} />
+                           <span>Desbloquear Matriz Completa</span>
+                         </>
+                       )}
+                    </button>
+                 </div>
+              </form>
+           </div>
         </div>
       )}
 

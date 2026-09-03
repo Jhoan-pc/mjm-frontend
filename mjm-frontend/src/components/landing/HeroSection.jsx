@@ -63,9 +63,9 @@ const HeroSection = () => {
 
           {/* Título Principal Estilo Ingyemel */}
           <h1 className="font-space font-light text-white text-3xl sm:text-5xl md:text-6xl lg:text-[4.75rem] tracking-tight leading-tight sm:leading-[1.04] max-w-4xl mx-auto">
-            BLINDAJE METROLÓGICO EN PLANTA & <br />
+            ASEGURAMIENTO METROLÓGICO & <br />
             <span className="font-space italic font-normal text-mjm-orange">
-              GOBERNANZA DIGITAL DE ACTIVOS
+              TRAZABILIDAD DIGITAL DE INSTRUMENTOS
             </span>
           </h1>
 

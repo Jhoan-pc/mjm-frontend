@@ -228,7 +228,7 @@ const ChatbotWidget = () => {
                           className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer font-space"
                         >
                           <MessageCircle size={16} />
-                          <span>Solicitar Blindaje en Planta (WhatsApp)</span>
+                          <span>Solicitar Aseguramiento en Planta (WhatsApp)</span>
                         </a>
 
                         <button

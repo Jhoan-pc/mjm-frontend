@@ -16,18 +16,21 @@ import {
   ChevronRight,
   ShieldCheck,
   AlertCircle,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Sparkles
 } from 'lucide-react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import mjmLogo from '../assets/mjm-logo-main.jpg';
 
 export default function DashboardLayout() {
-  const { user, tenant, logout, isDarkMode, toggleDarkMode } = useAuthStore();
+  const { user, tenant, logout, isDarkMode, toggleDarkMode, isDemoMode } = useAuthStore();
   const { activities, loadActivities } = useInventoryStore();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const isDemo = isDemoMode || user?.id === 'sandbox-dev-001';
 
   // 🌙 Sincronizar Modo Oscuro, Colores y Datos en Tiempo Real
   React.useEffect(() => {
@@ -147,24 +150,38 @@ export default function DashboardLayout() {
             </div>
 
             <nav className="flex-1 px-3 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-xs ${
-                    isActive(item.path)
-                      ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b]'
-                      : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
-                  }`}
-                >
-                  <span className={`transition-transform duration-200 ${isActive(item.path) ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
-                    {item.icon}
-                  </span>
-                  <span className="tracking-wide">{item.name}</span>
-                  {isActive(item.path) && <ChevronRight size={12} className="ml-auto text-[#f7931b]" />}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const isIALab = item.path === '/dashboard/ia-lab';
+                const isDemoTarget = isDemo && isIALab;
+                const active = isActive(item.path);
+
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-xs ${
+                      active
+                        ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b]'
+                        : isDemoTarget
+                          ? 'border border-[#f7931b]/60 bg-[#f7931b]/15 text-white font-semibold shadow-[0_0_15px_rgba(247,147,27,0.25)]'
+                          : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
+                    }`}
+                  >
+                    <span className={`transition-transform duration-200 ${active || isDemoTarget ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="tracking-wide">{item.name}</span>
+                    {isDemoTarget ? (
+                      <span className="ml-auto px-1.5 py-0.5 rounded bg-[#f7931b] text-zinc-950 text-[9px] font-black tracking-wider uppercase flex items-center gap-1 shadow-sm animate-pulse">
+                        <Sparkles size={9} /> PROBAR
+                      </span>
+                    ) : active ? (
+                      <ChevronRight size={12} className="ml-auto text-[#f7931b]" />
+                    ) : null}
+                  </Link>
+                );
+              })}
             </nav>
 
             <div className="mt-auto pb-5 flex flex-col items-center">
@@ -208,23 +225,37 @@ export default function DashboardLayout() {
         </div>
 
         <nav className="flex-1 px-3 space-y-1 font-inter">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-xs ${
-                isActive(item.path)
-                  ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b] shadow-sm'
-                  : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
-              }`}
-            >
-              <span className={`transition-transform duration-200 ${isActive(item.path) ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
-                {item.icon}
-              </span>
-              <span className="tracking-wide">{item.name}</span>
-              {isActive(item.path) && <ChevronRight size={12} className="ml-auto text-[#f7931b]" />}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isIALab = item.path === '/dashboard/ia-lab';
+            const isDemoTarget = isDemo && isIALab;
+            const active = isActive(item.path);
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-xs ${
+                  active
+                    ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b] shadow-sm'
+                    : isDemoTarget
+                      ? 'border border-[#f7931b]/60 bg-[#f7931b]/15 text-white font-semibold shadow-[0_0_15px_rgba(247,147,27,0.25)]'
+                      : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
+                }`}
+              >
+                <span className={`transition-transform duration-200 ${active || isDemoTarget ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
+                  {item.icon}
+                </span>
+                <span className="tracking-wide">{item.name}</span>
+                {isDemoTarget ? (
+                  <span className="ml-auto px-1.5 py-0.5 rounded bg-[#f7931b] text-zinc-950 text-[9px] font-black tracking-wider uppercase flex items-center gap-1 shadow-sm animate-pulse">
+                    <Sparkles size={9} /> PROBAR
+                  </span>
+                ) : active ? (
+                  <ChevronRight size={12} className="ml-auto text-[#f7931b]" />
+                ) : null}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* --- FOOTER BRANDING --- */}
@@ -340,6 +371,27 @@ export default function DashboardLayout() {
               </div>
            </div>
         </header>
+
+        {/* Banner de Modo Demostración Interactivo */}
+        {isDemo && (
+          <div className="bg-gradient-to-r from-mjm-navy via-[#1e3e5f] to-mjm-navy text-white px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-[#f7931b]/40 shadow-sm text-xs">
+             <div className="flex items-center gap-2.5">
+                <span className="flex h-2 w-2 relative">
+                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f7931b] opacity-75"></span>
+                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#f7931b]"></span>
+                </span>
+                <span className="font-space font-bold text-[#f7931b] uppercase tracking-wider text-[11px]">Tour Interactivo MJM:</span>
+                <span className="text-slate-200 hidden md:inline font-normal">Cargue su certificado de calibración en la sección estrella para experimentar el análisis automatizado.</span>
+             </div>
+             <Link 
+               to="/dashboard/ia-lab" 
+               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f7931b] hover:bg-orange-500 text-zinc-950 font-black text-[10px] uppercase tracking-wider rounded-lg shadow-sm transition-all cursor-pointer shrink-0 font-space"
+             >
+                <Sparkles size={12} />
+                <span>Ir a Confirmación Metrológica</span>
+             </Link>
+          </div>
+        )}
 
         {/* CONTENIDO SCROLLABLE */}
         <main className="flex-1 overflow-y-auto bg-[var(--background)] p-6 md:p-8 lg:p-10 pb-28 lg:pb-10 transition-colors duration-500">

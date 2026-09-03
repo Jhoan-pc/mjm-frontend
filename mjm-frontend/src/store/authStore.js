@@ -10,8 +10,10 @@ export const useAuthStore = create((set) => ({
   loading: true,
   isSuperAdmin: true,
   isDarkMode: false,
+  isDemoMode: false,
 
   setSuperAdmin: (val) => set({ isSuperAdmin: val }),
+  setDemoMode: (val) => set({ isDemoMode: val }),
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
 
   // Escucha cambios de Firebase en tiempo real
@@ -52,18 +54,18 @@ export const useAuthStore = create((set) => ({
         });
 
       } else {
-        // Firebase dice que no hay sesión real — pero puede haber sesión mock guardada
         const mockSession = localStorage.getItem('mjm_mock_session');
         if (mockSession) {
           try {
             const session = JSON.parse(mockSession);
-            set({ isAuthenticated: true, user: session.user, tenant: session.tenant, loading: false });
+            const isDemo = session.user?.id === 'sandbox-dev-001' || !!session.isDemoMode;
+            set({ isAuthenticated: true, user: session.user, tenant: session.tenant, isDemoMode: isDemo, loading: false });
             return;
           } catch (_) {
             localStorage.removeItem('mjm_mock_session');
           }
         }
-        set({ isAuthenticated: false, user: null, tenant: null, loading: false });
+        set({ isAuthenticated: false, user: null, tenant: null, isDemoMode: false, loading: false });
       }
     });
   },
@@ -126,13 +128,23 @@ export const useAuthStore = create((set) => ({
     localStorage.removeItem('mjm_mock_session');
     // Si era el usuario simulado
     if (useAuthStore.getState().user?.id === 'mock1' || useAuthStore.getState().user?.id === 'sandbox-dev-001') {
-       set({ isAuthenticated: false, user: null, tenant: null });
+       set({ isAuthenticated: false, user: null, tenant: null, isDemoMode: false });
        return;
     }
+    set({ isDemoMode: false });
     await signOut(auth);
   },
 
   loginDemo: async () => {
-    return useAuthStore.getState().login("prueba@prueba.com", "mjmmetrologia");
+    const success = await useAuthStore.getState().login("prueba@prueba.com", "mjmmetrologia");
+    set({ isDemoMode: true });
+    const stored = localStorage.getItem('mjm_mock_session');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        localStorage.setItem('mjm_mock_session', JSON.stringify({ ...parsed, isDemoMode: true }));
+      } catch (_) {}
+    }
+    return success;
   }
 }));

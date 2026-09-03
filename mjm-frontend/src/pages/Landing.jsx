@@ -92,11 +92,11 @@ const AlcanceSection = () => (
           <div className="absolute -bottom-5 -right-5 w-48 h-48 bg-mjm-orange/10 rounded-3xl -z-0 blur-xl" />
         </div>
 
-        {/* Storytelling de Dolor y Blindaje de Auditorías */}
+        {/* Storytelling de Dolor y Aseguramiento de Auditorías */}
         <div className="lg:w-1/2 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-mjm-orange/10 border border-mjm-orange/20 text-mjm-orange font-mono text-xs uppercase tracking-wider">
-            <Shield className="w-3.5 h-3.5" />
-            <span>Blindaje Normativo & Cero No-Conformidades</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-mjm-orange/10 border border-mjm-orange/30 text-mjm-orange font-mono text-xs uppercase tracking-wider font-bold">
+            <ShieldCheck className="w-4 h-4" />
+            <span>Aseguramiento Normativo & Cero No-Conformidades</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-space font-extrabold text-mjm-navy uppercase tracking-tight leading-tight">
@@ -242,7 +242,7 @@ const NosotrosSection = () => (
               <div className="w-9 h-9 rounded-xl bg-[#f7931b]/10 border border-[#f7931b]/30 flex items-center justify-center text-[#f7931b] group-hover/card:bg-[#f7931b] group-hover/card:text-white transition-colors">
                 <ShieldCheck className="w-4 h-4" />
               </div>
-              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Blindaje en Auditorías</h4>
+              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Aseguramiento en Auditorías</h4>
             </div>
             <p className="text-xs text-slate-600 font-normal leading-relaxed font-inter">
               Custodia digital inalterable de hojas de vida y certificados con cálculo GUM para auditorías ICONTEC e INVIMA.
@@ -321,10 +321,10 @@ const CTASection = () => (
         <span>Atención Inmediata a Nivel Nacional</span>
       </div>
       <h2 className="text-3xl sm:text-5xl md:text-6xl font-space font-extrabold text-white tracking-tight uppercase leading-tight">
-        ¿Listo para Blindar sus <br /><span className="text-mjm-orange font-light">Auditorías Metrológicas?</span>
+        ¿Listo para Asegurar sus <br /><span className="text-mjm-orange font-light">Auditorías Metrológicas?</span>
       </h2>
       <p className="text-sm sm:text-base text-zinc-300 font-light max-w-xl mx-auto font-inter">
-        Agende una evaluación técnica en planta con nuestros ingenieros metrólogos. Recuerde que su aseguramiento anual incluye la plataforma de gobernanza digital y hojas de vida QR sin costo de suscripción mensual.
+        Agende una evaluación técnica en planta con nuestros ingenieros metrólogos. Recuerde que su aseguramiento anual incluye la plataforma de trazabilidad digital y hojas de vida QR sin costo de suscripción mensual.
       </p>
       <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4">
         <a
