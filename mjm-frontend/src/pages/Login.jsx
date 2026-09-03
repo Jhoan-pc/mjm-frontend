@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   ShieldCheck, 
   Mail, 
@@ -11,22 +11,35 @@ import {
   Loader2,
   ChevronRight,
   Lightbulb,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
-import mjmLogo from '../assets/mjm-logo-main.jpg';
-import heroImage from '../assets/login-hero.png';
+import mjmLogo from '../assets/logo_final_2.0.png';
+import heroImage from '../assets/metrology_bg_real.jpg';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading, error } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await login(email, password);
-    if (success) navigate('/dashboard');
+    setLoading(true);
+    setError('');
+    try {
+      await login(email, password);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Credenciales inválidas o error de autenticación. Por favor verifique sus datos.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +91,9 @@ export default function Login() {
         <div className="w-full max-w-md bg-white lg:p-10 lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-xl lg:shadow-slate-200/50 animate-in fade-in duration-500">
            {/* Encabezado del Formulario */}
            <header className="mb-8">
+              <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-mjm-navy font-medium transition-colors mb-4 group">
+                 <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> Volver a Inicio
+              </Link>
               <div className="flex items-center gap-2 mb-3">
                  <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-mono font-medium rounded-md uppercase tracking-wider">
                     ISO 10012:2026 Ready

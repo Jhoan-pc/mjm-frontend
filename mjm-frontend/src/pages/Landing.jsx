@@ -60,8 +60,8 @@ const TrustBar = () => (
         <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">ATENCIÓN EN PLANTA EN TODA COLOMBIA</p>
       </div>
       <div className="py-2 space-y-1">
-        <span className="text-xl sm:text-2xl font-space font-extrabold text-emerald-400">Multi-Tenant 24/7</span>
-        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">CUSTODIA DIGITAL • GOBERNANZA DE ACTIVOS</p>
+        <span className="text-xl sm:text-2xl font-space font-extrabold text-emerald-400">Software Incluido</span>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">PLATAFORMA & HOJAS DE VIDA QR SIN COSTO MENSUAL</p>
       </div>
     </div>
   </div>
@@ -105,17 +105,17 @@ const AlcanceSection = () => (
           </h2>
 
           <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-light font-inter">
-            Un certificado de calibración archivado en una carpeta física no protege a su empresa si no hay trazabilidad en planta. Cuando un instrumento se desvía de su tolerancia en plena producción, el costo de los lotes defectuosos y las no-conformidades ante auditores de <strong className="font-semibold text-mjm-navy">ICONTEC, INVIMA o ISO 9001</strong> es crítico.
+            Un certificado de calibración archivado en una carpeta física no protege a su empresa si no hay trazabilidad en planta. Cuando un instrumento se desvía en plena producción, el costo de lotes defectuosos y las no-conformidades ante auditores de <strong className="font-semibold text-mjm-navy">ICONTEC, INVIMA o ISO 9001</strong> es devastador.
           </p>
 
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-light">
-            En Asesorías Integrales MJM combinamos la rigurosidad técnica de laboratorio con el control de sus activos, asegurando que cada medición cumpla con las especificaciones de su proceso industrial.
+            Rompemos el esquema de los talleres tradicionales que solo entregan hojas impresas. En MJM enviamos al metrólogo a su planta para calibrar en sitio e <strong className="text-mjm-navy font-semibold">integramos el software de gobernanza digital</strong> para que cualquier auditor o jefe de calidad escanee el QR del equipo y verifique su vigencia en 3 segundos.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
             {[
-              { num: '01', title: 'Criterio Técnico & GUM', desc: 'Determinación matemática de conformidad considerando la incertidumbre de medición y la tolerancia de su proceso.' },
-              { num: '02', title: 'Protección en Auditorías', desc: 'Hojas de vida, cronogramas y certificados centralizados para responder ante cualquier auditor en segundos.' },
+              { num: '01', title: 'Criterio Técnico & GUM', desc: 'Determinación matemática de conformidad confrontando la incertidumbre expandida contra la tolerancia del proceso para prevenir paradas.' },
+              { num: '02', title: 'Gobernanza & QR en Sitio', desc: 'Hojas de vida inalterables y certificados oficiales en la nube, listos para auditoría sin buscar carpetas extraviadas.' },
             ].map(item => (
               <div key={item.num} className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm space-y-2">
                 <div className="flex items-center gap-2.5">
@@ -219,7 +219,7 @@ const NosotrosSection = () => (
             En <strong className="text-mjm-navy font-semibold">Asesorías Integrales MJM</strong> entendemos que una desviación no detectada en un instrumento paraliza una auditoría y arriesga la conformidad de lotes enteros de producción. Con más de {getExperienceYears()} años de trayectoria y actualización continua en congresos técnico-científicos (<strong className="text-[#f7931b] font-medium">CIMGA</strong>), aportamos exactitud matemática y criterio de ingeniería a sus procesos.
           </p>
           <p className="text-slate-600 text-xs sm:text-sm font-normal">
-            Unificamos la rigurosidad de laboratorio bajo norma NTC-ISO/IEC 17025, aseguramiento en planta ISO 10012 y gobernanza en la nube para proteger a su empresa ante cualquier organismo de control.
+            Unificamos la rigurosidad de laboratorio bajo norma NTC-ISO/IEC 17025, aseguramiento en planta ISO 10012 y gobernanza en la nube con licencias ilimitadas para proteger a su empresa ante cualquier organismo de control sin sobrecostos de software.
           </p>
         </div>
 
@@ -314,7 +314,7 @@ const CTASection = () => (
         ¿Listo para Blindar sus <br /><span className="text-mjm-orange font-light">Auditorías Metrológicas?</span>
       </h2>
       <p className="text-sm sm:text-base text-zinc-300 font-light max-w-xl mx-auto font-inter">
-        Agende una sesión técnica con nuestros ingenieros metrólogos y cotice sus servicios de calibración, diagnóstico en campo o suscripción a la plataforma de control.
+        Agende una evaluación técnica en planta con nuestros ingenieros metrólogos. Recuerde que su aseguramiento anual incluye la plataforma de gobernanza digital y hojas de vida QR sin costo de suscripción mensual.
       </p>
       <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4">
         <a

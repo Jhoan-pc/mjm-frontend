@@ -63,15 +63,15 @@ const HeroSection = () => {
 
           {/* Título Principal Estilo Ingyemel */}
           <h1 className="font-space font-light text-white text-3xl sm:text-5xl md:text-6xl lg:text-[4.75rem] tracking-tight leading-tight sm:leading-[1.04] max-w-4xl mx-auto">
-            ASEGURAMIENTO METROLÓGICO & <br />
+            BLINDAJE METROLÓGICO EN PLANTA & <br />
             <span className="font-space italic font-normal text-mjm-orange">
-              CALIBRACIÓN DE PRECISIÓN
+              GOBERNANZA DIGITAL DE ACTIVOS
             </span>
           </h1>
 
           {/* Subtítulo de Conversión */}
-          <p className="font-inter text-xs sm:text-lg md:text-xl text-zinc-300 max-w-2xl mx-auto leading-relaxed font-light drop-shadow-md">
-            No pierda sus auditorías de calidad por certificados vencidos o documentos extraviados. Calibramos sus instrumentos en 5 magnitudes con atención técnica en planta a nivel nacional y custodia digital de activos.
+          <p className="font-inter text-xs sm:text-lg md:text-xl text-zinc-300 max-w-3xl mx-auto leading-relaxed font-light drop-shadow-md">
+            Garantice auditorías impecables ante <strong className="text-white font-medium">ICONTEC, INVIMA e ISO</strong> y elimine paradas de línea por derivas instrumentales. Calibramos en 5 magnitudes con técnicos en su propia planta e <strong className="text-[#f7931b] font-medium">incluimos la plataforma de gestión y hojas de vida QR sin costo de licencia mensual</strong>.
           </p>
 
           {/* Botones de Acción Ingyemel Style */}

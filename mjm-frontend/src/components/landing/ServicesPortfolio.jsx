@@ -248,12 +248,12 @@ const ServicesPortfolio = () => {
               </div>
 
               <h2 className="font-space font-extrabold text-3xl sm:text-5xl lg:text-[3.25rem] text-white uppercase tracking-tight leading-[1.08]">
-                SOLUCIONES METROLÓGICAS <br />
-                <span className="text-white">INTEGRALES</span>
+                BLINDAJE & CONTROL <br />
+                <span className="text-[#f7931b]">METROLÓGICO</span>
               </h2>
 
-              <p className="text-zinc-400 text-sm md:text-base leading-relaxed font-light font-inter">
-                Inspeccione nuestras 6 líneas principales de aseguramiento metrológico en planta, calibración trazable, mantenimiento técnico y custodia digital.
+              <p className="text-zinc-300 text-sm md:text-base leading-relaxed font-light font-inter">
+                Un ecosistema de 6 especialidades que unifica metrólogos calificados en su planta, laboratorio trazable en 5 magnitudes y gobernanza digital de activos 100% incluida.
               </p>
 
               <div className="pt-4 space-y-4">
