@@ -77,9 +77,9 @@ export default function DashboardLayout() {
   }, [activities, todayStr]);
   const hasAlerts = stats.vencidos > 0 || stats.hoy > 0;
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
   const isActive = (path) => {
