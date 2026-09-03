@@ -158,11 +158,12 @@ const services = [
     standardsTitle: "MODELO MULTI-TENANT SEGURO",
     standardsDesc: "Espacios de trabajo independientes y aislados por empresa, planta o filial corporativa.",
     gallery: [
-      { url: "/demo/03_dashboard_kpis.png", title: "Panel Central de Control & KPIs Metrológicos en Vivo" },
-      { url: "/demo/04_inventario.png", title: "Inventario Maestro de Activos Trazables en Planta" },
-      { url: "/demo/05_aseguramiento_gum.png", title: "Evaluación Matemática de Conformidad (Criterio GUM)" },
-      { url: "/demo/06_kanban.png", title: "Tablero Kanban de Calibración en Laboratorio" },
-      { url: "/demo/07_calendario.png", title: "Planificador y Calendario Preventivo de Paradas" }
+      { url: "/demo/platform_demo.webm", type: "video", title: "Video Recorrido: Navegación por la Plataforma en Vivo" },
+      { url: "/demo/03_dashboard_kpis.png", type: "image", title: "Panel Central de Control & KPIs Metrológicos en Vivo" },
+      { url: "/demo/04_inventario.png", type: "image", title: "Inventario Maestro de Activos Trazables en Planta" },
+      { url: "/demo/05_aseguramiento_gum.png", type: "image", title: "Evaluación Matemática de Conformidad (Criterio GUM)" },
+      { url: "/demo/06_kanban.png", type: "image", title: "Tablero Kanban de Calibración en Laboratorio" },
+      { url: "/demo/07_calendario.png", type: "image", title: "Planificador y Calendario Preventivo de Paradas" }
     ],
     cards: [
       { title: "Hojas de Vida con Código QR", desc: "Registro inalterable con tolerancias, datos de placa y certificados adjuntos escaneables en planta.", icon: <Target className="w-4 h-4"/> },
@@ -289,15 +290,26 @@ const ServicesPortfolio = () => {
                       {numStr}
                     </span>
 
-                    {/* Image Box */}
+                    {/* Image Box / Live Video Box */}
                     <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black/60 border border-white/15">
-                      <img
-                        src={service.image}
-                        alt={service.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
-                        loading="lazy"
-                        decoding="async"
-                      />
+                      {service.id === 'saas' ? (
+                        <video
+                          src="/demo/platform_demo.webm"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                      ) : (
+                        <img
+                          src={service.image}
+                          alt={service.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
                       
                       <div className="absolute top-4 left-4 z-20">
@@ -401,13 +413,26 @@ const ServicesPortfolio = () => {
                     {/* Left Column: Widescreen Media Viewer & Thumbnails */}
                     <div className="lg:w-7/12 min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] relative bg-zinc-950 flex flex-col justify-between p-3 sm:p-6">
                       <div className="absolute inset-0 z-0">
-                        <img 
-                          src={service.gallery?.[currentMediaIndex]?.url || service.image} 
-                          alt={service.name} 
-                          loading="lazy" 
-                          decoding="async" 
-                          className="w-full h-full object-cover animate-in fade-in duration-500" 
-                        />
+                        {service.gallery?.[currentMediaIndex]?.type === 'video' ? (
+                          <video 
+                            key={`video-${service.id}-${currentMediaIndex}`}
+                            src={service.gallery[currentMediaIndex].url} 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            controls
+                            className="w-full h-full object-cover" 
+                          />
+                        ) : (
+                          <img 
+                            src={service.gallery?.[currentMediaIndex]?.url || service.image} 
+                            alt={service.name} 
+                            loading="lazy" 
+                            decoding="async" 
+                            className="w-full h-full object-cover animate-in fade-in duration-500" 
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-black/40 pointer-events-none" />
                       </div>
 
@@ -436,7 +461,14 @@ const ServicesPortfolio = () => {
                                 currentMediaIndex === idx ? 'border-mjm-orange scale-105 shadow-xl shadow-orange-500/30' : 'border-transparent opacity-50 hover:opacity-100'
                               }`}
                             >
-                              <img src={media.url} alt={media.title} className="w-full h-full object-cover" />
+                              {media.type === 'video' ? (
+                                <div className="w-full h-full bg-[#070b14] flex flex-col items-center justify-center text-white relative">
+                                  <Play size={16} className="text-[#f7931b] fill-[#f7931b]" />
+                                  <span className="text-[8px] font-mono font-bold text-[#f7931b] uppercase mt-0.5">VIDEO</span>
+                                </div>
+                              ) : (
+                                <img src={media.url} alt={media.title} className="w-full h-full object-cover" />
+                              )}
                             </button>
                           ))}
                         </div>

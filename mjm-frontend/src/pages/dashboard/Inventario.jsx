@@ -178,8 +178,8 @@ const IndustrialWizard = ({ onClose }) => {
              <div className="flex items-center gap-4">
                 <div className="p-3 bg-[var(--primary)] text-[#1A202C] rounded-2xl shadow-lg shadow-[var(--primary)]/20"><Plus size={24}/></div>
                 <div>
-                   <h2 className="font-black text-[var(--text-main)] text-xl uppercase tracking-tight">Nuevo Activo</h2>
-                   <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">Master Inventory Unit</p>
+                   <h2 className="font-space font-bold text-[var(--text-main)] text-lg uppercase tracking-tight">Nuevo Activo</h2>
+                   <p className="text-[10px] font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">Registro de Activo Metrológico</p>
                 </div>
              </div>
              <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><X size={24}/></button>
@@ -241,8 +241,8 @@ const BulkUploadModal = ({ onClose }) => {
              <div className="flex items-center gap-4">
                 <div className="p-3 bg-[var(--primary)] text-[#1A202C] rounded-2xl shadow-lg shadow-[var(--primary)]/20"><FileText size={24}/></div>
                 <div>
-                   <h2 className="font-black text-[var(--text-main)] text-xl uppercase tracking-tight">Carga Masiva</h2>
-                   <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">Bulk Import Wizard</p>
+                   <h2 className="font-space font-bold text-[var(--text-main)] text-lg uppercase tracking-tight">Carga Masiva</h2>
+                   <p className="text-[10px] font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">Asistente de Importación Masiva</p>
                 </div>
              </div>
              <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><X size={24}/></button>
@@ -795,13 +795,13 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
   const handleArchive = async () => {
     if (!tenant) return;
     const confirmArchive = window.confirm(
-      "¡Cumplimiento de la norma ISO 10012!\n\nLos activos metrológicos no se eliminan físicamente del sistema para conservar la trazabilidad histórica de calibraciones e intervenciones técnicas.\n\n¿Confirmas que deseas archivar este activo y retirarlo del inventario activo?"
+      "Trazabilidad Normativa ISO 10012:\n\nPor requisito de control metrológico, los activos no se eliminan físicamente para preservar la cadena ininterrumpida de calibración e intervenciones técnicas.\n\n¿Desea confirmar el retiro de este instrumento del inventario activo y moverlo a histórico?"
     );
     if (!confirmArchive) return;
     
     const success = await updateInstrument(tenant.id, instrumentId, { archivado: true });
     if (success) {
-      alert("El activo ha sido archivado correctamente para garantizar la trazabilidad normativa.");
+      alert("El instrumento ha sido archivado correctamente preservando su historial técnico.");
       onClose();
     }
   };

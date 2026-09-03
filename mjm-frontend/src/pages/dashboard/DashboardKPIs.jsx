@@ -200,7 +200,7 @@ export default function DashboardKPIs() {
         const tol = parseFloat(inst.tolerancia_proceso) || parseFloat(latest?.process_tolerance) || 0;
         if (tol > 0 && (err + unc) > 0.8 * tol) {
           type = 'warning';
-          desc = `Deriva Metrológica (${Math.round(((err + unc) / tol) * 100)}% de tol.)`;
+          desc = `Alerta de Deriva (${Math.round(((err + unc) / tol) * 100)}% del MPE)`;
         }
       }
 
@@ -264,8 +264,8 @@ export default function DashboardKPIs() {
       {/* --- HEADER --- */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-           <p className="font-inter font-medium text-[9px] uppercase tracking-[0.25em] text-[var(--text-muted)] mb-1.5">MJM Aseguramiento Metrológico v3.2</p>
-           <h1 className="font-outfit font-extrabold text-[var(--text-main)] text-3xl tracking-tight uppercase">Tablero de <span className="text-[var(--primary)] italic">Control</span></h1>
+           <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Sistema de Gestión de Mediciones ISO 10012</p>
+           <h1 className="font-space font-bold text-[var(--text-main)] text-2xl md:text-3xl tracking-tight">Control Metrológico <span className="text-[var(--primary)]">y Aseguramiento</span></h1>
         </div>
       </div>
 

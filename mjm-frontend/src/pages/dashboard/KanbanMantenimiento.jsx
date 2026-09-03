@@ -13,7 +13,7 @@ export default function KanbanMantenimiento() {
 
   const moveTask = (task, newStatus) => {
     if (newStatus === 'EJECUTADO' && !task.hasEvidence) {
-      alert("⚠️ REGLA DE LA NORMA: No se puede mover una actividad a 'Ejecutado' si no has adjuntado la evidencia o certificado correspondiente.");
+      alert("Requisito de Auditoría ISO 10012: Para marcar una orden como 'Ejecutado', es obligatorio adjuntar el certificado de calibración o la evidencia técnica correspondiente.");
       return;
     }
     setTasks(tasks.map(t => t.id === task.id ? { ...t, status: newStatus } : t));

@@ -33,7 +33,7 @@ const ISOComparator = ({ error, uncertainty, tolerance, unit, veredicto, riesgo,
   return (
     <div className="bg-[var(--surface)] border border-[var(--outline-color)]/30 rounded-2xl p-6 shadow-sm space-y-6">
       <div className="flex justify-between items-center pb-4 border-b border-[var(--outline-color)]/20">
-        <h3 className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-[0.3em]">Cómputo Metrológico ISO 10012</h3>
+        <h3 className="text-[10px] font-mono font-bold text-[var(--text-main)] uppercase tracking-wider">Evaluación de Conformidad (ISO 10012 Cl. 7.1)</h3>
         <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${compliance ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-sm'}`}>
           {veredicto}
         </span>
@@ -120,7 +120,7 @@ const ISOComparator = ({ error, uncertainty, tolerance, unit, veredicto, riesgo,
             <AlertCircle className="text-red-500 shrink-0" size={16} />
           )}
           <div>
-            <p className="text-[10px] font-black text-[var(--text-main)] uppercase tracking-widest mb-1">Evaluación de Riesgo de Uso Continuo (ISO 10012)</p>
+            <p className="text-[10px] font-mono font-bold text-[var(--text-main)] uppercase tracking-wider mb-1">Dictamen de Aptitud Metrológica y Riesgo de Proceso (ISO 10012)</p>
             <p className="text-xs text-[var(--text-muted)] leading-relaxed italic">{riesgo}</p>
           </div>
         </div>
@@ -365,7 +365,7 @@ export default function IAVerificationLab() {
         };
         
         instrumentId = await addInstrument(tenant.id, newInstData);
-        alert(`Instrumento inexistente detectado. Se ha registrado automáticamente en el Inventario Maestro con el código: ${finalCode} y el certificado ha sido adjuntado.`);
+        alert(`Instrumento registrado exitosamente en el Inventario Maestro (${finalCode}) con sus parámetros de calibración vinculados.`);
       } else {
         const currentHistorial = existing.historial || [];
         await updateInstrument(tenant.id, instrumentId, {
@@ -374,7 +374,7 @@ export default function IAVerificationLab() {
           certificadoUrl: certificateUrl,
           historial: [newCalibrationLog, ...currentHistorial]
         });
-        alert(`Resultados metrológicos y certificado vinculados al historial del instrumento existente: ${finalCode}`);
+        alert(`Confirmación metrológica completada: Parámetros y certificado vinculados a la hoja de vida de ${finalCode}.`);
       }
       
       if (parsedData.veredicto === 'No Conforme') {
@@ -391,9 +391,9 @@ export default function IAVerificationLab() {
           estado: 'todo',
           fechaProgramada: dateStr,
           priority: 'high',
-          notas: `TICKET AUTOMÁTICO - IA LAB: Calibración NO CONFORME. Desviación detectada: Error (${parsedData.error_maximo}) + Incertidumbre (${parsedData.incertidumbre}) supera tolerancia de ±${parsedData.criterio_valor} ${parsedData.unidad}.`
+          notas: `ACCIÓN CORRECTIVA ISO 10012: Calibración No Conforme. Error (${parsedData.error_maximo}) + Incertidumbre (${parsedData.incertidumbre}) supera tolerancia admisible de ±${parsedData.criterio_valor} ${parsedData.unidad}.`
         });
-        alert(`Alerta ISO 10012: Se ha generado automáticamente un ticket correctivo en el Kanban con plazo al: ${dateStr}`);
+        alert(`Desviación Metrológica: Se ha programado automáticamente una orden de mantenimiento correctivo con plazo al ${dateStr}.`);
       }
       
       handleReset();
@@ -417,20 +417,20 @@ export default function IAVerificationLab() {
         <div>
            <div className="flex items-center gap-2 mb-1.5">
              <span className="px-2 py-0.5 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 rounded text-[10px] font-mono font-medium uppercase tracking-wider border border-slate-200 dark:border-zinc-700">
-               Motor de Inteligencia Metrológica
+               Aseguramiento Metrológico Digital
              </span>
            </div>
            <h1 className="font-space font-bold text-slate-900 dark:text-white text-2xl md:text-3xl tracking-tight">
-             Confirmación Metrológica <span className="text-mjm-navy dark:text-[#f7931b]">con IA</span>
+             Confirmación Metrológica <span className="text-mjm-navy dark:text-[#f7931b]">Automatizada</span>
            </h1>
            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl font-normal leading-relaxed">
-             Extracción automatizada de parámetros metrológicos (Error, Incertidumbre U, Tolerancia) y evaluación de conformidad bajo ISO 10012.
+             Extracción técnica de parámetros (Error Máximo, Incertidumbre U, Tolerancia de Proceso) y evaluación estricta de conformidad bajo ISO 10012.
            </p>
         </div>
         <div className="flex gap-3">
            <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-zinc-800 shadow-sm">
               <Cpu size={15} className="text-[#f7931b]" />
-              <span className="text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-200">Gemini 1.5 Pro Metrology</span>
+              <span className="text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-200">Algoritmo ISO 10012 · Cl. 7.1</span>
            </div>
         </div>
       </header>
@@ -452,7 +452,7 @@ export default function IAVerificationLab() {
                   <FileUp size={28} className="text-mjm-navy dark:text-[#f7931b] group-hover:scale-110 transition-transform" />
                 </label>
                 <h2 className="font-space font-bold text-slate-900 dark:text-white text-xl tracking-tight mb-2">Cargar Certificado de Calibración</h2>
-                <p className="text-slate-500 dark:text-slate-400 text-xs mb-6 max-w-sm mx-auto leading-relaxed">Arrastre aquí el archivo PDF o selecciónelo para iniciar la extracción asistida por visión metrológica.</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs mb-6 max-w-sm mx-auto leading-relaxed">Arrastre el certificado emitido por el laboratorio (PDF) para ejecutar el cómputo de errores y dictamen de conformidad.</p>
                 <label htmlFor="pdf-input" className="px-5 py-2.5 bg-mjm-navy hover:bg-[#1a3857] text-white font-semibold text-xs rounded-lg shadow-sm transition-all cursor-pointer">
                   Seleccionar Certificado PDF
                 </label>
@@ -486,7 +486,7 @@ export default function IAVerificationLab() {
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 3, repeat: Infinity, ease: "linear" }} className="p-5 bg-slate-100 dark:bg-zinc-800 rounded-xl text-[#f7931b] shadow-sm">
                     <Microscope size={36} />
                   </motion.div>
-                  <h3 className="text-sm font-space font-semibold text-slate-800 dark:text-slate-200 tracking-tight uppercase">Extrayendo Datos con IA...</h3>
+                  <h3 className="text-sm font-space font-semibold text-slate-800 dark:text-slate-200 tracking-tight uppercase">Procesando Parámetros Metrológicos...</h3>
                   <div className="h-1.5 w-48 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden border border-slate-200 dark:border-zinc-700">
                     <motion.div 
                       initial={{ width: 0 }}
@@ -519,8 +519,8 @@ export default function IAVerificationLab() {
                         <Cpu size={20} className="text-white" />
                      </div>
                     <div>
-                       <h3 className="font-space font-bold text-slate-900 dark:text-white text-sm">Metadatos del Certificado</h3>
-                       <p className="text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider">Extracción OCR Gemini</p>
+                       <h3 className="font-space font-bold text-slate-900 dark:text-white text-sm">Parámetros del Certificado</h3>
+                       <p className="text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lectura Trazable de Certificado</p>
                     </div>
                  </div>
 
@@ -543,7 +543,7 @@ export default function IAVerificationLab() {
                         <div className="p-2 bg-mjm-navy text-white rounded-md shadow-sm flex items-center justify-center">
                            <Cpu size={16} className="text-white" />
                         </div>
-                        <h3 className="font-space font-bold text-slate-900 dark:text-white text-sm">Metadatos Identificados</h3>
+                        <h3 className="font-space font-bold text-slate-900 dark:text-white text-sm">Parámetros del Certificado</h3>
                      </div>
                     {status === 'verified' && (
                       <button 

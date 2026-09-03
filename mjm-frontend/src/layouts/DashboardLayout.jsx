@@ -100,7 +100,7 @@ export default function DashboardLayout() {
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={19} /> },
     { name: 'Inventario de Activos', path: '/dashboard/inventario', icon: <Package size={19} /> },
     { name: 'Comprobación en Planta', path: '/dashboard/aseguramiento', icon: <ShieldCheck size={19} /> },
-    { name: 'Confirmación Metrológica IA', path: '/dashboard/ia-lab', icon: <Database size={19} /> },
+    { name: 'Confirmación Metrológica', path: '/dashboard/ia-lab', icon: <Database size={19} /> },
     { name: 'Cronograma', path: '/dashboard/calendario', icon: <Calendar size={19} /> },
     { name: 'Gestión Operativa', path: '/dashboard/kanban', icon: <History size={19} /> },
     { name: 'Ajustes', path: '/dashboard/settings', icon: <SettingsIcon size={19} /> },
@@ -264,7 +264,7 @@ export default function DashboardLayout() {
                       if (path === 'calendario') return 'Cronograma de Calibración';
                       if (path === 'inventario') return 'Inventario de Activos';
                       if (path === 'kanban') return 'Gestión Operativa';
-                      if (path === 'ia-lab') return 'Confirmación Metrológica IA';
+                      if (path === 'ia-lab') return 'Confirmación Metrológica (ISO 10012)';
                       if (path === 'aseguramiento') return 'Comprobación Metrológica en Planta';
                       if (path === 'settings') return 'Ajustes del Sistema';
                       return 'Tablero General';
