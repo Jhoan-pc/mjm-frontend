@@ -61,7 +61,7 @@ const TrustBar = () => (
       </div>
       <div className="py-2 space-y-1">
         <span className="text-xl sm:text-2xl font-space font-extrabold text-emerald-400">Software Incluido</span>
-        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">PLATAFORMA & HOJAS DE VIDA QR SIN COSTO MENSUAL</p>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">PLATAFORMA & HOJAS DE VIDA SIN COSTO MENSUAL (APLICAN CONDICIONES)</p>
       </div>
     </div>
   </div>
@@ -324,7 +324,7 @@ const CTASection = () => (
         ¿Listo para Asegurar sus <br /><span className="text-mjm-orange font-light">Auditorías Metrológicas?</span>
       </h2>
       <p className="text-sm sm:text-base text-zinc-300 font-light max-w-xl mx-auto font-inter">
-        Agende una evaluación técnica en planta con nuestros ingenieros metrólogos. Recuerde que su aseguramiento anual incluye la plataforma de trazabilidad digital y hojas de vida QR sin costo de suscripción mensual.
+        Agende una evaluación técnica en planta con nuestros ingenieros metrólogos. Recuerde que su aseguramiento anual incluye la plataforma de trazabilidad digital y hojas de vida sin costo de suscripción mensual (aplican condiciones).
       </p>
       <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4">
         <a
