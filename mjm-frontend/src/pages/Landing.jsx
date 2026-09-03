@@ -77,8 +77,8 @@ const AlcanceSection = () => (
         <div className="lg:w-1/2 relative group">
           <div className="relative z-10 rounded-2xl shadow-2xl border border-mjm-navy/10 p-2 bg-white overflow-hidden">
             <img
-              src="/ui/principal2.jpeg"
-              alt="Metrólogo de MJM realizando aseguramiento en laboratorio"
+              src="/photos/calibracion_balanzas_planta.jpg"
+              alt="Metrólogo de MJM calibrando balanza en planta con pesas patrón clase F y monitoreo termohigrométrico"
               className="w-full h-auto rounded-xl object-cover grayscale-0 group-hover:scale-[1.02] transition-transform duration-700"
               loading="lazy"
               decoding="async"
@@ -277,8 +277,18 @@ const EquipoSection = () => (
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-12">
         {[
-          { img: '/team/team_1.jpg', alt: 'Equipo Técnico MJM en campo', title: 'Especialistas en múltiples magnitudes físicas.', desc: 'Metrólogos calificados para atender requerimientos de longitud, temperatura, presión, vibración y frecuencia en planta.' },
-          { img: '/team/team_2.jpg', alt: 'Laboratorio de calibración y verificación MJM', title: 'Laboratorios y alianzas de alta exigencia técnica.', desc: 'Cumplimiento estricto de criterios de calibración para garantizar que cada entrega resista auditorías de alta exigencia.' },
+          { 
+            img: '/photos/verificacion_emision_acustica.jpg', 
+            alt: 'Especialista metróloga realizando caracterización acústica y de señales', 
+            title: 'Especialistas en múltiples magnitudes físicas & ensayos.', 
+            desc: 'Metrólogos e ingenieros calificados en sitio para caracterización acústica, vibraciones, temperatura, presión y magnitudes eléctricas con instrumentación trazable ONAC / INM.' 
+          },
+          { 
+            img: '/photos/mjm_expo_industrial.jpg', 
+            alt: 'Representante institucional de MJM en Expo Industrial Pacífico 2026', 
+            title: 'Autoridad y presencia en foros industriales.', 
+            desc: 'Participación y actualización continua en congresos científico-técnicos (CIMGA, Expo Industrial), garantizando criterios que superan auditorías de alta exigencia.' 
+          },
         ].map(item => (
           <div key={item.alt} className="space-y-5 group">
             <div className="w-full h-80 bg-slate-900 rounded-2xl border border-slate-200 overflow-hidden relative shadow-md">

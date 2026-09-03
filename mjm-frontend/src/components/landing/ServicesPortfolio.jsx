@@ -34,13 +34,13 @@ const services = [
     badge: "SERVICIO CENTRAL / ISO 9001",
     description: "Gestión integral de sus procesos de medición para garantizar conformidad y calidad bajo estándares ISO 9001 e ISO 10012.",
     longDesc: "Diseñamos y estructuramos planes de aseguramiento metrológico en sitio. Levantamos la línea base técnica de su parque de instrumentos, establecemos intervalos de confirmación metrológica y definimos reglas de decisión para proteger a su empresa ante cualquier auditoría externa de ICONTEC o INVIMA.",
-    image: "/services/aseguramiento.png",
+    image: "/photos/diagnostico_vibraciones_fluke.jpg",
     standardsTitle: "NORMA ISO 10012 & CONFIRMACIÓN METROLÓGICA",
     standardsDesc: "Evaluación matemática de error e incertidumbre frente a las tolerancias de su proceso industrial.",
     gallery: [
-      { url: "/services/aseguramiento.png", title: "Levantamiento de Línea Base Metrológica en Planta" },
-      { url: "/ui/principal2.jpeg", title: "Verificación y Custodia Técnica en Laboratorio" },
-      { url: "/services/calibracion.jpeg", title: "Aseguramiento Metrológico Integral de Instrumentos" }
+      { url: "/photos/diagnostico_vibraciones_fluke.jpg", title: "Banco Técnico de Caracterización de Instrumentos & Ensayos" },
+      { url: "/photos/calibracion_balanzas_planta.jpg", title: "Aseguramiento Metrológico en Planta & Salas Limpias" },
+      { url: "/photos/analizador_emerson_csi2130.jpg", title: "Verificación de Trazabilidad y Estado de Activos Críticos" }
     ],
     features: [
       { title: "Clasificación Técnica", desc: "Inventario maestro y clasificación de criticidad para instrumentos en planta." },
@@ -58,13 +58,14 @@ const services = [
     badge: "5 MAGNITUDES FÍSICAS / NTC-ISO/IEC 17025",
     description: "Servicios de calibración trazable y acreditada con laboratorios aliados para garantizar la exactitud en vibración, temperatura, longitud y presión.",
     longDesc: "Ejecutamos calibraciones trazables bajo norma NTC-ISO/IEC 17025 con patrones de referencia de alta exactitud. Entregamos certificados oficiales con cálculo de incertidumbre expandida (GUM) y declaración de conformidad según criterios de aceptación técnica.",
-    image: "/services/calibracion.jpeg",
+    image: "/photos/calibracion_termografia_flir_cuerpo_negro.jpg",
     standardsTitle: "TRAZABILIDAD ONAC / NIST",
     standardsDesc: "Patrones de referencia calibrados periódicamente para asegurar repetibilidad y validez internacional.",
     gallery: [
-      { url: "/services/calibracion.jpeg", title: "Calibración de Sensores y Colectores de Vibración" },
-      { url: "/services/sub_temperatura.jpg", title: "Verificación Térmica de Pirómetros y Termocuplas" },
-      { url: "/services/sub_longitud.jpg", title: "Alineación Laser y Verificación Dimensional de Ejes" }
+      { url: "/photos/calibracion_termografia_flir_cuerpo_negro.jpg", title: "Calibración de Temperatura & Infrarrojos con Cavidad de Cuerpo Negro a 50.0°C" },
+      { url: "/photos/calibrador_vibraciones_vc21.jpg", title: "Calibración de Sensores de Vibración con Patrón Portátil VC21 a 1280 Hz" },
+      { url: "/photos/calibracion_multimetro_fluke87v.jpg", title: "Calibración Eléctrica Fluke 87V con Caja de Décadas de Resistencia Extech" },
+      { url: "/photos/calibracion_vibracion_fluke805.jpg", title: "Verificación Metrológica de Medidores Fluke 805 a 320 Hz" }
     ],
     cards: [
       { title: "Medidores & Sensores de Vibración", desc: "Verificación de acelerómetros, sensores de proximidad y monitoreo predictivo.", icon: <Target className="w-4 h-4"/> },
@@ -82,13 +83,13 @@ const services = [
     badge: "SERVICIO PREVENTIVO & CORRECTIVO",
     description: "Evaluación técnica especializada, reparación de instrumentos críticos y verificación intermedia para extender la vida útil de sus activos.",
     longDesc: "Un instrumento con desgaste silencioso genera pérdidas millonarias en lotes defectuosos. Realizamos diagnóstico exhaustivo de componentes electrónicos y mecánicos, limpieza metrológica, ajustes de cero y verificaciones intermedias en campo.",
-    image: "/services/diagnostico.jpg",
+    image: "/photos/analizador_vibraciones_skf.jpg",
     standardsTitle: "VERIFICACIONES INTERMEDIAS",
     standardsDesc: "Comprobación rápida entre calibraciones para detectar derivas antes de auditorías.",
     gallery: [
-      { url: "/services/diagnostico.jpg", title: "Diagnóstico y Ajuste de Cero en Instrumentos de Medición" },
-      { url: "/services/sub_reparacion.jpg", title: "Restauración y Mantenimiento Electromecánico" },
-      { url: "/services/sub_verificacion.jpg", title: "Pruebas de Repetibilidad y Verificación en Campo" }
+      { url: "/photos/analizador_vibraciones_skf.jpg", title: "Diagnóstico Dinámico y Espectral con Colector SKF Microlog" },
+      { url: "/photos/analizador_emerson_csi2130.jpg", title: "Monitoreo de Condición y Salud de Maquinaria Emerson CSI 2130" },
+      { url: "/photos/laboratorio_osciloscopio_generador.jpg", title: "Alineación y Mantenimiento Electrónico en Banco Tektronix" }
     ],
     cards: [
       { title: "Diagnóstico Técnico en Campo", desc: "Evaluación del estado funcional y repetibilidad del instrumento.", icon: <Target className="w-4 h-4"/> },
@@ -106,12 +107,13 @@ const services = [
     badge: "PROGRAMAS TÉCNICOS A LA MEDIDA",
     description: "Talleres prácticos de metrología, interpretación de certificados de calibración y normas de calidad dirigidos al personal técnico de planta.",
     longDesc: "Fortalecemos las competencias técnicas de su equipo. Enseñamos a interpretar los certificados de calibración, entender los errores máximos permisibles (EMP) y aplicar buenas prácticas de laboratorio para evitar errores de medición en la operación diaria.",
-    image: "/services/capacitacion.jpg",
+    image: "/photos/laboratorio_osciloscopio_generador.jpg",
     standardsTitle: "ALINEACIÓN ISO 9001 / ISO 17025",
     standardsDesc: "Capacitación orientada a superar preguntas de auditoría técnica con solidez conceptual.",
     gallery: [
-      { url: "/services/capacitacion.jpg", title: "Capacitación Técnica en Interpretación de Certificados" },
-      { url: "/services/capacitacion-modal.jpg", title: "Talleres Prácticos de Buenas Prácticas de Medición" }
+      { url: "/photos/laboratorio_osciloscopio_generador.jpg", title: "Talleres Prácticos de Manejo de Instrumentación y Generadores de Señal" },
+      { url: "/photos/verificacion_emision_acustica.jpg", title: "Entrenamiento en Ultrasonido, Emisión Acústica y Rigor Normativo ONAC" },
+      { url: "/photos/mjm_expo_industrial.jpg", title: "Participación y Formación Técnica en Foros Industriales Nacionales" }
     ],
     features: [
       { title: "Fundamentos y Magnitudes", desc: "Principios teóricos y aplicación práctica en líneas de producción." },
@@ -129,13 +131,13 @@ const services = [
     badge: "DISTRIBUCIÓN DIRECTA MULTIMARCA",
     description: "Provisión de instrumentos de medición de alta gama, patrones de referencia y accesorios de marcas líderes mundiales con garantía técnica.",
     longDesc: "Proveemos instrumentos de medición de las marcas más prestigiosas de la industria (Fluke, SKF, Megger, FLIR, EasyLaser, Mitutoyo). Asesoramos técnicamente su compra para asegurar que el rango, resolución y precisión cumplan exactamente con la necesidad de su proceso.",
-    image: "/services/suministros.jpg",
+    image: "/photos/espectrometro_xrf_aleaciones.jpg",
     standardsTitle: "GARANTÍA TÉCNICA DE FÁBRICA",
     standardsDesc: "Equipos 100% originales con respaldo de fabricante y opción de calibración inicial.",
     gallery: [
-      { url: "/services/suministros.jpg", title: "Instrumentos y Patrones de Medición Industrial" },
-      { url: "/services/sub_instrumentos.jpg", title: "Calibradores, Micrómetros y Termómetros Especializados" },
-      { url: "/services/sub_almacenamiento.jpg", title: "Estuches de Protección y Accesorios Metrológicos" }
+      { url: "/photos/espectrometro_xrf_aleaciones.jpg", title: "Suministro y Verificación de Analizadores XRF y Equipos Multimarca" },
+      { url: "/photos/calibracion_multimetro_fluke87v.jpg", title: "Multímetros Industriales Fluke 87V y Herramientas Eléctricas" },
+      { url: "/photos/calibrador_vibraciones_vc21.jpg", title: "Calibradores Patrón y Sensores Industriales con Garantía" }
     ],
     cards: [
       { title: "Instrumentos de Medición", desc: "Calibradores, micrómetros, manómetros, termómetros, tacómetros.", icon: <Target className="w-4 h-4"/> },
