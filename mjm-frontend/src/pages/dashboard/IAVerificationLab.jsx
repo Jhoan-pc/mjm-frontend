@@ -638,49 +638,51 @@ export default function IAVerificationLab() {
 
                 {status === 'verified' && parsedData && (
                   <div className="relative animate-in fade-in duration-500">
-                     {/* MODO DEMO: ESMERILADO DE PROTECCIÓN TÁCTICA */}
-                     {isDemo && !isUnlocked ? (
-                       <div className="relative rounded-2xl overflow-hidden">
-                          {/* Contenido con filtro de desenfoque/esmerilado */}
-                          <div className="filter blur-[6px] opacity-40 select-none pointer-events-none transition-all duration-700">
-                             <ISOComparator 
-                               error={parsedData.error_maximo} 
-                               uncertainty={parsedData.incertidumbre} 
-                               tolerance={parsedData.criterio_valor} 
-                               unit={parsedData.unidad}
-                               veredicto={parsedData.veredicto}
-                               riesgo={parsedData.riesgo}
-                               puntos={parsedData.puntos}
-                             />
-                          </div>
+                      {/* MODO DEMO: ESMERILADO DE PROTECCIÓN TÁCTICA */}
+                      {isDemo && !isUnlocked ? (
+                        <div className="relative rounded-2xl overflow-hidden border border-[#f7931b]/30">
+                           {/* Contenido con filtro de desenfoque sutil: texto y números perceptibles pero protegidos */}
+                           <div className="filter blur-[3px] opacity-90 select-none pointer-events-none transition-all duration-700">
+                              <ISOComparator 
+                                error={parsedData.error_maximo} 
+                                uncertainty={parsedData.incertidumbre} 
+                                tolerance={parsedData.criterio_valor} 
+                                unit={parsedData.unidad}
+                                veredicto={parsedData.veredicto}
+                                riesgo={parsedData.riesgo}
+                                puntos={parsedData.puntos}
+                              />
+                           </div>
 
-                          {/* Capa de Cristal Esmerilado (Paywall Interactivo) */}
-                          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-white/75 dark:bg-zinc-900/80 backdrop-blur-md border border-[#f7931b]/30 rounded-2xl shadow-xl shadow-black/5">
-                             <div className="w-12 h-12 rounded-xl bg-mjm-navy dark:bg-zinc-800 text-[#f7931b] flex items-center justify-center shadow-lg border border-[#f7931b]/30 mb-3">
-                                <Lock size={22} className="text-[#f7931b]" />
-                             </div>
+                           {/* Capa de Cristal Esmerilado (Velo translúcido con tarjeta flotante central) */}
+                           <div className="absolute inset-0 z-20 flex items-center justify-center p-4 bg-slate-950/15 dark:bg-black/35 backdrop-blur-[1px]">
+                              <div className="p-6 text-center bg-white/95 dark:bg-zinc-900/95 border border-slate-200 dark:border-zinc-700/80 rounded-2xl shadow-2xl shadow-slate-950/25 max-w-sm w-full backdrop-blur-xl animate-in zoom-in-95 duration-200">
+                                 <div className="w-11 h-11 rounded-xl bg-mjm-navy dark:bg-zinc-800 text-[#f7931b] flex items-center justify-center shadow-md border border-[#f7931b]/30 mx-auto mb-3">
+                                    <Lock size={20} className="text-[#f7931b]" />
+                                 </div>
 
-                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f7931b]/15 text-[#f7931b] border border-[#f7931b]/30 text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
-                                <span>⚡ Cómputo ISO 10012 Procesado</span>
-                             </div>
+                                 <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#f7931b]/15 text-[#f7931b] border border-[#f7931b]/30 text-[9px] font-mono font-bold uppercase tracking-wider mb-2">
+                                    <span>⚡ Cómputo ISO 10012 Procesado</span>
+                                 </div>
 
-                             <h4 className="font-space font-bold text-slate-900 dark:text-white text-base max-w-xs leading-tight mb-2">
-                                Matriz de Tolerancias y Dictamen de Conformidad
-                             </h4>
+                                 <h4 className="font-space font-bold text-slate-900 dark:text-white text-sm leading-tight mb-2">
+                                    Matriz de Tolerancias y Dictamen Calculado
+                                 </h4>
 
-                             <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mb-5 leading-relaxed font-normal">
-                                Los errores absolutos, la incertidumbre expandida (U) y la evaluación de aptitud de este instrumento han sido calculados. Desbloquee los datos con su correo corporativo.
-                             </p>
+                                 <p className="text-[11px] text-slate-600 dark:text-slate-300 mb-4 leading-relaxed font-normal">
+                                    Los errores absolutos, la incertidumbre expandida (U) y la evaluación de aptitud han sido procesados. Ingrese sus datos para desbloquear el informe completo.
+                                 </p>
 
-                             <button
-                               onClick={() => setIsLeadModalOpen(true)}
-                               className="px-6 py-3 bg-[#f7931b] hover:bg-orange-500 active:scale-95 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center gap-2 cursor-pointer font-space"
-                             >
-                               <Sparkles size={15} />
-                               <span>Desbloquear Análisis Completo</span>
-                             </button>
-                          </div>
-                       </div>
+                                 <button
+                                   onClick={() => setIsLeadModalOpen(true)}
+                                   className="w-full py-3 px-5 bg-[#f7931b] hover:bg-orange-500 active:scale-95 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer font-space"
+                                 >
+                                   <Sparkles size={14} />
+                                   <span>DESBLOQUEAR ANÁLISIS COMPLETO</span>
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
                      ) : (
                        <div>
                           {leadSubmittedSuccess && (

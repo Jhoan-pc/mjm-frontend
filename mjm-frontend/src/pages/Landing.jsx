@@ -49,7 +49,7 @@ const TrustBar = () => (
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-12 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-white/10">
       <div className="py-2 space-y-1">
         <span className="text-xl sm:text-2xl font-space font-extrabold text-mjm-orange">ISO 9001:2015</span>
-        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">CERTIFICADO ICONTEC • CO-SC-CER1090494</p>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">CERTIFICADO ICONTEC • SC-2002427</p>
       </div>
       <div className="py-2 space-y-1">
         <span className="text-xl sm:text-2xl font-space font-extrabold text-mjm-orange">NTC-ISO/IEC 17025</span>
