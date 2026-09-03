@@ -114,7 +114,7 @@ const ChatbotWidget = () => {
                       <ArrowRight size={16} className="text-mjm-navy/10 group-hover:text-mjm-orange transition-all group-hover:translate-x-1 shrink-0" />
                     </button>
 
-                    <a href="https://wa.me/573137960800" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 p-4 bg-white border border-mjm-navy/5 rounded-2xl text-left transition-all hover:border-mjm-orange hover:shadow-xl hover:shadow-mjm-orange/10 active:scale-95 cursor-pointer">
+                    <a href="https://wa.me/573159253952?text=Hola%20MJM,%20solicito%20contactar%20a%20un%20asesor%20comercial%20metrol%C3%B3gico." target="_blank" rel="noopener noreferrer" className="group flex items-center gap-4 p-4 bg-white border border-mjm-navy/5 rounded-2xl text-left transition-all hover:border-mjm-orange hover:shadow-xl hover:shadow-mjm-orange/10 active:scale-95 cursor-pointer">
                       <div className="w-11 h-11 shrink-0 rounded-xl bg-mjm-navy/5 text-mjm-navy flex items-center justify-center transition-colors group-hover:bg-green-500 group-hover:text-white">
                         <MessageCircle size={20} />
                       </div>
@@ -222,7 +222,7 @@ const ChatbotWidget = () => {
 
                       <div className="space-y-2.5">
                         <a
-                          href={`https://wa.me/573137960800?text=${encodeURIComponent(`Hola MJM, realicé el diagnóstico de auditoría: Tengo ${auditAnswers.qty}, auditoría en "${auditAnswers.urgency}" y custodio en "${auditAnswers.storage}". Requiero acompañamiento técnico preventivo.`)}`}
+                          href={`https://wa.me/573159253952?text=${encodeURIComponent(`Hola MJM, realicé el diagnóstico de auditoría: Tengo ${auditAnswers.qty}, auditoría en "${auditAnswers.urgency}" y custodio en "${auditAnswers.storage}". Requiero acompañamiento técnico preventivo.`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer font-space"

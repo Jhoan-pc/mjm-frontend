@@ -76,24 +76,7 @@ const HeroSection = () => {
 
           {/* Botones de Acción Ingyemel Style */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 flex-wrap">
-            <a 
-              href="#contacto" 
-              className="w-full sm:w-auto px-8 sm:px-9 py-3.5 sm:py-4 bg-[#f7931b] text-zinc-950 font-extrabold rounded-2xl hover:bg-orange-400 active:scale-[0.98] transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2 shadow-2xl shadow-orange-500/30 cursor-pointer font-space"
-            >
-              <Mail className="w-4 h-4 text-zinc-950" />
-              <span>SOLICITAR EVALUACIÓN EN PLANTA</span>
-            </a>
-
-            <a 
-              href="https://wa.me/573137960800?text=Hola%20MJM,%20solicito%20asesor%C3%ADa%20t%C3%A9cnica%20metrol%C3%B3gica"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto px-7 sm:px-8 py-3.5 sm:py-4 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 hover:border-emerald-500/50 font-extrabold rounded-2xl transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2 backdrop-blur-md shadow-xl cursor-pointer font-space"
-            >
-              <MessageCircle className="w-4 h-4 text-emerald-400" />
-              <span>CONTACTAR POR WHATSAPP</span>
-            </a>
-
+            {/* Botón Estelar: Explorar Demo en Vivo con Halo y Pulso Metrológico */}
             <button
               type="button"
               onClick={async () => {
@@ -104,11 +87,30 @@ const HeroSection = () => {
                   navigate('/login');
                 }
               }}
-              className="w-full sm:w-auto px-7 sm:px-8 py-3.5 sm:py-4 bg-white/[0.08] hover:bg-white/[0.16] border border-white/20 hover:border-[#f7931b]/70 text-white font-extrabold rounded-2xl transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2 backdrop-blur-md shadow-xl cursor-pointer font-space group"
+              className="relative group w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 bg-gradient-to-r from-[#f7931b] via-[#ffaa3b] to-[#f7931b] hover:from-[#ffa834] hover:to-[#f7931b] text-zinc-950 font-black rounded-2xl transition-all duration-300 uppercase text-xs tracking-widest flex items-center justify-center gap-3 shadow-[0_0_35px_rgba(247,147,27,0.45)] hover:shadow-[0_0_55px_rgba(247,147,27,0.7)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer font-space"
             >
-              <Sparkles className="w-4 h-4 text-[#f7931b] group-hover:rotate-12 transition-transform" />
-              <span>EXPLORAR DEMO EN VIVO</span>
+              {/* Halo de resplandor pulsante continuo */}
+              <span className="absolute -inset-0.5 rounded-2xl bg-[#f7931b]/50 blur-sm animate-pulse pointer-events-none" />
+
+              {/* Micro-indicador "En Vivo" (Radar Ping) */}
+              <span className="relative flex h-2.5 w-2.5 z-10">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-950 opacity-70" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-zinc-950" />
+              </span>
+
+              <Sparkles className="relative z-10 w-4 h-4 text-zinc-950 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="relative z-10">EXPLORAR DEMO EN VIVO</span>
             </button>
+
+            <a 
+              href="https://wa.me/573159253952?text=Hola%20MJM,%20solicito%20asesor%C3%ADa%20t%C3%A9cnica%20metrol%C3%B3gica"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto px-7 sm:px-8 py-3.5 sm:py-4 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/25 hover:border-emerald-500/50 font-extrabold rounded-2xl transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2 backdrop-blur-md shadow-xl cursor-pointer font-space"
+            >
+              <MessageCircle className="w-4 h-4 text-emerald-400" />
+              <span>CONTACTAR POR WHATSAPP</span>
+            </a>
 
             <button
               onClick={() => setIsCertModalOpen(true)}

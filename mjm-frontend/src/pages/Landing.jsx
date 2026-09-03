@@ -328,7 +328,7 @@ const CTASection = () => (
       </p>
       <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-4">
         <a
-          href="https://wa.me/573137960800"
+          href="https://wa.me/573159253952?text=Hola%20MJM,%20solicito%20asesor%C3%ADa%20t%C3%A9cnica%20metrol%C3%B3gica"
           target="_blank"
           rel="noopener noreferrer"
           className="btn-primary flex items-center justify-center gap-3 shadow-xl shadow-orange-500/25"
@@ -456,7 +456,14 @@ const Footer = () => (
           </div>
           <div className="flex items-center gap-3">
             <Phone className="w-4 h-4 text-[#f7931b] shrink-0" />
-            <span>Cel / WhatsApp: +57 313 7960800</span>
+            <a 
+              href="https://wa.me/573159253952" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-[#f7931b] transition-colors"
+            >
+              Cel / WhatsApp: +57 315 9253952
+            </a>
           </div>
           <div className="flex items-center gap-3">
             <Mail className="w-4 h-4 text-[#f7931b] shrink-0" />

@@ -263,7 +263,9 @@ const ServicesPortfolio = () => {
 
               <div className="pt-4 space-y-4">
                 <a
-                  href="#contacto"
+                  href="https://wa.me/573159253952?text=Hola%20MJM,%20solicito%20un%20diagn%C3%B3stico%20metrol%C3%B3gico%20oportuno%20para%20mi%20planta."
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-full sm:w-auto px-8 py-4 bg-[#f7931b] text-zinc-950 font-extrabold rounded-2xl hover:bg-orange-400 active:scale-[0.98] transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2 shadow-2xl shadow-orange-500/30 cursor-pointer font-space"
                 >
                   <Mail className="w-4 h-4 text-zinc-950" />
@@ -533,7 +535,7 @@ const ServicesPortfolio = () => {
                       {/* Action Bar */}
                       <div className="pt-4 border-t border-white/10 flex flex-col gap-3 relative z-10">
                         <a
-                          href={`https://wa.me/573137960800?text=${whatsappMsg}`}
+                          href={`https://wa.me/573159253952?text=${whatsappMsg}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-full btn-primary flex items-center justify-center gap-2 text-center shadow-lg shadow-orange-500/25 font-space font-bold uppercase text-xs tracking-wider"

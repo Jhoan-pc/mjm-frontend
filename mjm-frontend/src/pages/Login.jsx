@@ -191,12 +191,19 @@ export default function Login() {
               </button>
            </form>
 
-           <div className="mt-8 text-center border-t border-slate-100 pt-6">
-              <p className="text-xs text-slate-500">
-                ¿Requiere asistencia técnica o soporte? 
-                <a href="#" className="text-mjm-navy font-semibold ml-1.5 hover:underline">Contactar a Soporte MJM</a>
-              </p>
-           </div>
+            <div className="mt-8 text-center border-t border-slate-100 pt-6">
+               <p className="text-xs text-slate-500">
+                 ¿Requiere asistencia técnica o soporte? 
+                 <a 
+                   href="https://wa.me/573159253952?text=Hola%20MJM,%20requiero%20asistencia%20t%C3%A9cnica%20o%20soporte%20para%20el%20acceso%20a%20la%20plataforma." 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   className="text-mjm-navy font-semibold ml-1.5 hover:underline text-mjm-orange"
+                 >
+                   Contactar a Soporte MJM
+                 </a>
+               </p>
+            </div>
         </div>
 
         <footer className="absolute bottom-6 w-full px-12 flex justify-between items-center text-[10px] text-slate-400">
