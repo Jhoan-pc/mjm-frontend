@@ -26,8 +26,35 @@ import PlatformVideoPlayer from './PlatformVideoPlayer';
 
 const services = [
   {
-    id: "aseguramiento",
+    id: "saas",
     num: "01",
+    tag: "Ventaja Exclusiva • Incluido en su Plan",
+    isFeatured: true,
+    name: "Software de Gobernanza Metrológica & Hojas de Vida QR",
+    icon: Cpu,
+    badge: "100% INCLUIDO EN PLAN ANUAL • ISO 10012",
+    description: "Plataforma digital en la nube con acceso multi-usuario para la custodia de hojas de vida, escaneo QR en planta, cálculo GUM y semaforización de vencimientos 24/7 sin costo de licencia mensual.",
+    longDesc: "El diferenciador definitivo de MJM: al contratar el aseguramiento técnico o calibración anual en planta, le entregamos la plataforma digital completa sin costos de suscripción mensual. Cero carpetas físicas extraviadas, cero pérdidas de tiempo buscando certificados ante auditores y control en vivo desde cualquier tablet o celular.",
+    image: "/demo/04_inventario.png",
+    standardsTitle: "MODELO MULTI-TENANT SEGURO",
+    standardsDesc: "Espacios de trabajo independientes y aislados por empresa, planta o filial corporativa.",
+    gallery: [
+      { url: "/demo/04_inventario.png", type: "image", title: "Inventario Maestro de Activos Trazables en Planta" },
+      { url: "/demo/03_dashboard_kpis.png", type: "image", title: "Panel Central de Control & KPIs Metrológicos en Vivo" },
+      { url: "/demo/05_aseguramiento_gum.png", type: "image", title: "Evaluación Matemática de Conformidad (Criterio GUM)" },
+      { url: "/demo/06_kanban.png", type: "image", title: "Tablero Kanban de Calibración en Laboratorio" },
+      { url: "/demo/07_calendario.png", type: "image", title: "Planificador y Calendario Preventivo de Paradas" }
+    ],
+    cards: [
+      { title: "Hojas de Vida con Código QR", desc: "Registro inalterable con tolerancias, datos de placa y certificados adjuntos escaneables en planta.", icon: <Target className="w-4 h-4"/> },
+      { title: "Planificador Metrológico", desc: "Cronogramas automatizados con semáforo preventivo a 30, 60 y 90 días.", icon: <Calendar className="w-4 h-4"/> },
+      { title: "Cálculo GUM / ISO 10012", desc: "Evaluación algorítmica de Error + Incertidumbre frente a la tolerancia del proceso.", icon: <Shield className="w-4 h-4"/> },
+      { title: "Licencia Anual 100% Incluida", desc: "Sin costos mensuales recurrentes. Incluido al contratar el aseguramiento técnico en planta.", icon: <Cpu className="w-4 h-4"/> }
+    ]
+  },
+  {
+    id: "aseguramiento",
+    num: "02",
     tag: "Aseguramiento en Planta",
     name: "Aseguramiento Metrológico Integral",
     icon: Target,
@@ -51,7 +78,7 @@ const services = [
   },
   {
     id: "calibracion",
-    num: "02",
+    num: "03",
     tag: "Laboratorio Trazable",
     name: "Calibración de Instrumentos",
     icon: Cog,
@@ -76,7 +103,7 @@ const services = [
   },
   {
     id: "mantenimiento",
-    num: "03",
+    num: "04",
     tag: "Servicio Técnico Calificado",
     name: "Diagnóstico, Mantenimiento & Verificación",
     icon: Wrench,
@@ -100,7 +127,7 @@ const services = [
   },
   {
     id: "capacitacion",
-    num: "04",
+    num: "05",
     tag: "Formación Técnica",
     name: "Capacitación Especializada en Metrología",
     icon: Users,
@@ -124,7 +151,7 @@ const services = [
   },
   {
     id: "suministros",
-    num: "05",
+    num: "06",
     tag: "Equipamiento & Patrones",
     name: "Suministros Técnicos & Equipos de Medición",
     icon: Package,
@@ -144,34 +171,6 @@ const services = [
       { title: "Estuches de Protección", desc: "Cajas de alta resistencia, kits de limpieza metrológica y soportes.", icon: <Package className="w-4 h-4"/> },
       { title: "Sensores & Repuestos", desc: "Acelerómetros piezoeléctricos, cables blindados y baterías originales.", icon: <Cog className="w-4 h-4"/> },
       { title: "Asesoría de Selección", desc: "Acompañamiento técnico para elegir el instrumento exacto para su proceso.", icon: <Users className="w-4 h-4"/> }
-    ]
-  },
-  {
-    id: "saas",
-    num: "06",
-    tag: "Ventaja Exclusiva • Incluido en su Plan",
-    isFeatured: true,
-    name: "Software de Gobernanza Metrológica & Hojas de Vida QR",
-    icon: Cpu,
-    badge: "100% INCLUIDO EN PLAN ANUAL • ISO 10012",
-    description: "Plataforma digital en la nube con acceso multi-usuario para la custodia de hojas de vida, escaneo QR en planta, cálculo GUM y semaforización de vencimientos 24/7 sin costo de licencia mensual.",
-    longDesc: "El diferenciador definitivo de MJM: al contratar el aseguramiento técnico o calibración anual en planta, le entregamos la plataforma digital completa sin costos de suscripción mensual. Cero carpetas físicas extraviadas, cero pérdidas de tiempo buscando certificados ante auditores y control en vivo desde cualquier tablet o celular.",
-    image: "/services/saas_card.png",
-    standardsTitle: "MODELO MULTI-TENANT SEGURO",
-    standardsDesc: "Espacios de trabajo independientes y aislados por empresa, planta o filial corporativa.",
-    gallery: [
-      { url: "/demo/platform_demo.webm", type: "video", title: "Video Recorrido: Navegación por la Plataforma en Vivo" },
-      { url: "/demo/03_dashboard_kpis.png", type: "image", title: "Panel Central de Control & KPIs Metrológicos en Vivo" },
-      { url: "/demo/04_inventario.png", type: "image", title: "Inventario Maestro de Activos Trazables en Planta" },
-      { url: "/demo/05_aseguramiento_gum.png", type: "image", title: "Evaluación Matemática de Conformidad (Criterio GUM)" },
-      { url: "/demo/06_kanban.png", type: "image", title: "Tablero Kanban de Calibración en Laboratorio" },
-      { url: "/demo/07_calendario.png", type: "image", title: "Planificador y Calendario Preventivo de Paradas" }
-    ],
-    cards: [
-      { title: "Hojas de Vida con Código QR", desc: "Registro inalterable con tolerancias, datos de placa y certificados adjuntos escaneables en planta.", icon: <Target className="w-4 h-4"/> },
-      { title: "Planificador Metrológico", desc: "Cronogramas automatizados con semáforo preventivo a 30, 60 y 90 días.", icon: <Calendar className="w-4 h-4"/> },
-      { title: "Cálculo GUM / ISO 10012", desc: "Evaluación algorítmica de Error + Incertidumbre frente a la tolerancia del proceso.", icon: <Shield className="w-4 h-4"/> },
-      { title: "Licencia Anual 100% Incluida", desc: "Sin costos mensuales recurrentes. Incluido al contratar el aseguramiento técnico en planta.", icon: <Cpu className="w-4 h-4"/> }
     ]
   },
 ];
@@ -292,18 +291,16 @@ const ServicesPortfolio = () => {
                       {numStr}
                     </span>
 
-                    {/* Image Box / Live Video Box */}
-                    <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black/60 border border-white/15">
-                      {service.id === 'saas' ? (
-                        <video
-                          src="/demo/platform_demo.webm"
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        />
-                      ) : (
+                    {/* Image Box / Interactive Live Screencast Player */}
+                    {service.id === 'saas' ? (
+                      <div 
+                        className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/20 bg-[#070b14]"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <PlatformVideoPlayer isEmbedded={true} />
+                      </div>
+                    ) : (
+                      <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black/60 border border-white/15">
                         <img
                           src={service.image}
                           alt={service.name}
@@ -311,15 +308,15 @@ const ServicesPortfolio = () => {
                           loading="lazy"
                           decoding="async"
                         />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
-                      
-                      <div className="absolute top-4 left-4 z-20">
-                        <span className="bg-black/85 text-[#f7931b] border border-[#f7931b]/40 backdrop-blur-md text-[10px] font-mono font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-xl">
-                          {service.tag}
-                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
+                        
+                        <div className="absolute top-4 left-4 z-20">
+                          <span className="bg-black/85 text-[#f7931b] border border-[#f7931b]/40 backdrop-blur-md text-[10px] font-mono font-bold px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-xl">
+                            {service.tag}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Service Content */}
                     <div className="space-y-3 relative z-10">
@@ -415,17 +412,10 @@ const ServicesPortfolio = () => {
                     {/* Left Column: Widescreen Media Viewer & Thumbnails */}
                     <div className="lg:w-7/12 min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] relative bg-zinc-950 flex flex-col justify-between p-3 sm:p-6">
                       <div className="absolute inset-0 z-0">
-                        {service.gallery?.[currentMediaIndex]?.type === 'video' ? (
-                          <video 
-                            key={`video-${service.id}-${currentMediaIndex}`}
-                            src={service.gallery[currentMediaIndex].url} 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline 
-                            controls
-                            className="w-full h-full object-cover" 
-                          />
+                        {service.id === 'saas' ? (
+                          <div className="w-full h-full" onClick={(e) => e.stopPropagation()}>
+                            <PlatformVideoPlayer isEmbedded={true} />
+                          </div>
                         ) : (
                           <img 
                             src={service.gallery?.[currentMediaIndex]?.url || service.image} 

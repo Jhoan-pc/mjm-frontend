@@ -80,7 +80,7 @@ const CHAPTERS = [
   }
 ];
 
-export default function PlatformVideoPlayer({ onDemoClick }) {
+export default function PlatformVideoPlayer({ onDemoClick, isEmbedded = false }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -167,7 +167,7 @@ export default function PlatformVideoPlayer({ onDemoClick }) {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto rounded-3xl bg-[#070b14] border-2 border-white/20 shadow-[0_25px_90px_rgba(0,0,0,0.85)] overflow-hidden text-white backdrop-blur-3xl select-none">
+    <div className={`w-full rounded-2xl sm:rounded-3xl bg-[#070b14] border border-white/20 shadow-[0_25px_90px_rgba(0,0,0,0.85)] overflow-hidden text-white select-none ${isEmbedded ? '' : 'max-w-6xl mx-auto backdrop-blur-3xl'}`}>
       
       {/* 1. Barra de Navegación de Ventana Real (Browser Chrome & Titanium Bezel) */}
       <div className="bg-[#0b101d] px-3 sm:px-6 py-2.5 sm:py-3 border-b border-white/10 flex items-center justify-between gap-3 text-xs">
