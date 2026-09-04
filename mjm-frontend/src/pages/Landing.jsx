@@ -34,17 +34,19 @@ const getExperienceYears = () => {
 const getCurrentYear = () => new Date().getFullYear();
 
 const brandLogos = [
-  "/brands/1693432797912-pmaaao.png",
-  "/brands/1763365987FAG (1).png",
-  "/brands/441881478_122148678764198124_1758329588444554_n.jpg",
-  "/brands/Adash_www.png",
-  "/brands/EASYLASER_600px.png",
-  "/brands/FLIR_logo.svg.png",
-  "/brands/Fluke_logo.svg.png",
-  "/brands/Megger_logo_without_slogan.svg.png",
-  "/brands/SKF-Logo.png",
-  "/brands/b0a75f_f62ecb4182b64bdbab646485b47f2f5a~mv2.png",
-  "/brands/channels4_profile.jpg"
+  { src: "/brands/ctc_logo.jpg", name: "CTC Connection Technology Center" },
+  { src: "/brands/marca_m_gold.jpg", name: "Merit Instruments" },
+  { src: "/brands/Fluke_logo.svg.png", name: "Fluke Calibration & Test Tools" },
+  { src: "/brands/SKF-Logo.png", name: "SKF Condition Monitoring" },
+  { src: "/brands/FLIR_logo.svg.png", name: "FLIR Thermal Imaging" },
+  { src: "/brands/Megger_logo_without_slogan.svg.png", name: "Megger Electrical Testing" },
+  { src: "/brands/EASYLASER_600px.png", name: "Easy-Laser Precision Alignment" },
+  { src: "/brands/Adash_www.png", name: "Adash Vibration Diagnostics" },
+  { src: "/brands/1763365987FAG (1).png", name: "FAG Schaeffler Monitoring" },
+  { src: "/brands/1693432797912-pmaaao.png", name: "PMA Metrology" },
+  { src: "/brands/441881478_122148678764198124_1758329588444554_n.jpg", name: "Ametek Calibration" },
+  { src: "/brands/b0a75f_f62ecb4182b64bdbab646485b47f2f5a~mv2.png", name: "Testo Measurement" },
+  { src: "/brands/channels4_profile.jpg", name: "DeltaTrak Cold Chain" }
 ];
 
 // ─── TrustBar Metrológica (Tesla-Style Glass Stats Ribbon Estilo Ingyemel) ──
@@ -427,11 +429,12 @@ const BrandsCarousel = () => (
           animate={{ x: ['0%', '-50%'] }}
           transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
         >
-          {[...brandLogos, ...brandLogos].map((logo, idx) => (
+          {[...brandLogos, ...brandLogos].map((brand, idx) => (
             <div key={idx} className="h-10 w-24 flex items-center justify-center shrink-0">
               <img
-                src={logo}
-                alt="Marca Aliada"
+                src={brand.src}
+                alt={`${brand.name} - Calibración y Soporte Trazable`}
+                title={brand.name}
                 className="max-h-full max-w-full object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-premium"
                 loading="lazy"
                 decoding="async"
