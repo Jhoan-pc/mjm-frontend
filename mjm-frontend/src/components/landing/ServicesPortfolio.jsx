@@ -473,7 +473,7 @@ const ServicesPortfolio = () => {
                             className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#f7931b]/20 to-orange-500/10 border border-[#f7931b]/50 text-white font-space font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 hover:bg-[#f7931b] hover:text-zinc-950 transition-all shadow-lg shadow-orange-500/20 group/btn cursor-pointer"
                           >
                             <Play className="w-4 h-4 text-[#f7931b] group-hover/btn:text-zinc-950 fill-[#f7931b] group-hover/btn:fill-zinc-950" />
-                            <span>Ver Video Demostración en Vivo (Opción A)</span>
+                            <span>Ver Video Demostración en Vivo</span>
                           </button>
                         </div>
                       )}
@@ -738,7 +738,7 @@ const ServicesPortfolio = () => {
         </div>
       )}
 
-      {/* 7. MODAL DE VIDEO DEMOSTRACIÓN INTERACTIVA (OPCIÓN A) */}
+      {/* 7. MODAL DE VIDEO DEMOSTRACIÓN INTERACTIVA */}
       <AnimatePresence>
         {isVideoModalOpen && (
           <div className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto">

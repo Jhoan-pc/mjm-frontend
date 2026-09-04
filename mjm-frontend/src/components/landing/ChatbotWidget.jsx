@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 const WhatsAppIcon = ({ className = "w-6 h-6" }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -10,14 +10,14 @@ const ChatbotWidget = () => {
   const whatsappUrl = "https://wa.me/573159253952?text=Hola%20MJM,%20solicito%20asistencia%20t%C3%A9cnica%20metrol%C3%B3gica.";
 
   return (
-    <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-[110] flex flex-col items-end">
+    <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-[95] flex flex-col items-end">
       {/* Botón flotante: Cápsula de Contacto Directo WhatsApp */}
       <a
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Contactar por WhatsApp a MJM Asistencia Técnica"
-        className="group flex items-center gap-3 p-1.5 pl-4 pr-1.5 rounded-full backdrop-blur-xl transition-all duration-300 shadow-2xl cursor-pointer bg-[#090f1d]/90 text-white border border-emerald-500/30 hover:border-emerald-400 hover:shadow-[0_10px_35px_rgba(16,185,129,0.3)] hover:scale-[1.03] active:scale-95"
+        className="group flex items-center gap-3 p-1.5 sm:pl-4 sm:pr-1.5 rounded-full backdrop-blur-xl transition-all duration-300 shadow-2xl cursor-pointer bg-[#090f1d]/90 text-white border border-emerald-500/30 hover:border-emerald-400 hover:shadow-[0_10px_35px_rgba(16,185,129,0.3)] hover:scale-[1.03] active:scale-95"
         title="Contactar por WhatsApp"
       >
         {/* Etiqueta descriptiva en desktop */}

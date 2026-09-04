@@ -6,6 +6,11 @@ export default defineConfig({
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 800,
+    modulePreload: {
+      resolveDependencies(filename, deps) {
+        return deps.filter(dep => !dep.includes('charts'));
+      }
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -18,6 +23,9 @@ export default defineConfig({
             }
             if (id.includes('lucide-react')) {
               return 'vendor-icons';
+            }
+            if (id.includes('recharts')) {
+              return 'vendor-charts';
             }
             if (id.includes('react-dom') || id.includes('react-router-dom') || id.includes('react')) {
               return 'vendor-react';

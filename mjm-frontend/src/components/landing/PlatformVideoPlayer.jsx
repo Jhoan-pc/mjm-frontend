@@ -81,6 +81,8 @@ const CHAPTERS = [
 ];
 
 export default function PlatformVideoPlayer({ onDemoClick, isEmbedded = false }) {
+  const containerRef = useRef(null);
+  const [isInView, setIsInView] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -93,9 +95,20 @@ export default function PlatformVideoPlayer({ onDemoClick, isEmbedded = false })
   const SLIDE_DURATION = 5500; // 5.5s por capítulo
   const current = CHAPTERS[currentIdx];
 
+  // Observador de visibilidad: Pausa la animación cuando el componente está fuera del viewport
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsInView(entry.isIntersecting);
+    }, { threshold: 0.05 });
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   // Temporizador principal y coreografía de animación
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || !isInView) return;
 
     // Fases de la interacción simulada dentro de cada capítulo
     const t0 = setTimeout(() => setCursorPhase('sidebar'), 100);
@@ -109,7 +122,7 @@ export default function PlatformVideoPlayer({ onDemoClick, isEmbedded = false })
       setCursorPhase('inspecting');
     }, 1800);
 
-    const interval = 50;
+    const interval = 100;
     const step = (interval / SLIDE_DURATION) * 100;
 
     const timer = setInterval(() => {
@@ -129,7 +142,7 @@ export default function PlatformVideoPlayer({ onDemoClick, isEmbedded = false })
       clearTimeout(t3);
       clearInterval(timer);
     };
-  }, [isPlaying, currentIdx]);
+  }, [isPlaying, isInView, currentIdx]);
 
   const handleSelectChapter = (idx) => {
     setCurrentIdx(idx);
@@ -167,7 +180,7 @@ export default function PlatformVideoPlayer({ onDemoClick, isEmbedded = false })
   };
 
   return (
-    <div className={`w-full rounded-2xl sm:rounded-3xl bg-[#070b14] border border-white/20 shadow-[0_25px_90px_rgba(0,0,0,0.85)] overflow-hidden text-white select-none ${isEmbedded ? '' : 'max-w-6xl mx-auto backdrop-blur-3xl'}`}>
+    <div ref={containerRef} className={`w-full rounded-2xl sm:rounded-3xl bg-[#070b14] border border-white/20 shadow-[0_25px_90px_rgba(0,0,0,0.85)] overflow-hidden text-white select-none ${isEmbedded ? '' : 'max-w-6xl mx-auto backdrop-blur-3xl'}`}>
       
       {/* 1. Barra de Navegación de Ventana Real (Browser Chrome & Titanium Bezel) */}
       <div className="bg-[#0b101d] px-3 sm:px-6 py-2.5 sm:py-3 border-b border-white/10 flex items-center justify-between gap-3 text-xs">
@@ -181,15 +194,17 @@ export default function PlatformVideoPlayer({ onDemoClick, isEmbedded = false })
           </div>
 
           <div className="hidden sm:flex items-center gap-1 text-zinc-400 pl-2">
-            <button onClick={handlePrev} className="p-1 hover:text-white rounded hover:bg-white/5 cursor-pointer">
+            <button onClick={handlePrev} className="p-1 hover:text-white rounded hover:bg-white/5 cursor-pointer" aria-label="Capítulo anterior" title="Capítulo anterior">
               <ChevronLeft size={15} />
             </button>
-            <button onClick={handleNext} className="p-1 hover:text-white rounded hover:bg-white/5 cursor-pointer">
+            <button onClick={handleNext} className="p-1 hover:text-white rounded hover:bg-white/5 cursor-pointer" aria-label="Siguiente capítulo" title="Siguiente capítulo">
               <ChevronRight size={15} />
             </button>
             <button 
               onClick={() => setProgress(0)} 
               className={`p-1 hover:text-white rounded hover:bg-white/5 cursor-pointer ${isNavigating ? 'animate-spin text-[#f7931b]' : ''}`}
+              aria-label="Reiniciar capítulo"
+              title="Reiniciar capítulo"
             >
               <RotateCw size={13} />
             </button>

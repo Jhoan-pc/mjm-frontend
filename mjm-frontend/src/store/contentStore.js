@@ -36,12 +36,18 @@ export const useContentStore = create(
 
       // Listener en tiempo real (opcional)
       subscribeToLanding: () => {
-        const docRef = doc(db, 'content', 'landing');
-        return onSnapshot(docRef, (doc) => {
-          if (doc.exists()) {
-            set({ landing: doc.data() });
-          }
-        });
+        try {
+          const docRef = doc(db, 'content', 'landing');
+          return onSnapshot(docRef, (doc) => {
+            if (doc.exists()) {
+              set({ landing: doc.data() });
+            }
+          }, () => {
+            // Silencioso para evitar uncaught exceptions en visitantes anónimos
+          });
+        } catch {
+          return () => {};
+        }
       },
 
       updateLandingContent: async (newContent) => {

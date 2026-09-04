@@ -1,8 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useContentStore } from '../store/contentStore';
-import { useEffect } from 'react';
 import {
   Mail, Phone, MapPin, ArrowRight,
   CheckCircle, Target, Shield, ShieldCheck, Wrench, Package, Users, Globe,
@@ -177,7 +175,8 @@ const MetricsProofBar = () => (
 
 // ─── Sección Nosotros: Infraestructura & Autoridad Técnica (Clinical Light Luxury) ──────
 const NosotrosSection = () => (
-  <section id="nosotros" className="py-24 lg:py-32 bg-white relative z-20 shadow-xl border-t border-slate-200 text-mjm-navy">
+  <section id="nosotros" className="py-24 lg:py-32 bg-white relative z-20 shadow-xl border-t border-slate-200 text-mjm-navy scroll-mt-16">
+    <div id="experiencia" className="relative -top-24 invisible" />
     <div className="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
       
       {/* Columna Izquierda (5 Cols): Marco Visual Limpio con Resplandor & Placa Flotante */}
@@ -336,7 +335,7 @@ const CTASection = () => (
           href="#contacto"
           className="px-6 py-3.5 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-space text-xs font-bold uppercase tracking-wider transition-all"
         >
-          <span>Enviar Formulario Técnico</span>
+          <span>Ver Canales de Contacto Directo</span>
         </a>
       </div>
     </div>
@@ -525,20 +524,20 @@ const Footer = () => (
             <Phone className="w-4 h-4 text-[#f7931b] shrink-0 mt-0.5" />
             <div className="space-y-1">
               <a 
-                href="https://wa.me/573159253952" 
+                href="https://wa.me/573159253952?text=Hola%20MJM,%20solicito%20asesor%C3%ADa%20t%C3%A9cnica%20metrol%C3%B3gica" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="block hover:text-[#f7931b] transition-colors"
               >
-                Cel / WhatsApp: +57 315 9253952
+                Cel / WhatsApp: +57 315 925 3952
               </a>
               <a 
-                href="https://wa.me/573137960800" 
+                href="https://wa.me/573137960800?text=Hola%20MJM,%20solicito%20informaci%C3%B3n%20sobre%20proyectos%20y%20suministros" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="block hover:text-[#f7931b] transition-colors"
               >
-                Cel / WhatsApp: +57 313 7960800
+                Cel / WhatsApp: +57 313 796 0800
               </a>
             </div>
           </div>
@@ -628,13 +627,6 @@ const Footer = () => (
 // Cada sección es un componente aislado con su propio estado y re-renders
 // ════════════════════════════════════════════════════════════════════════════
 const Landing = () => {
-  const { landing } = useContentStore();
-
-  useEffect(() => {
-    const unsubscribe = useContentStore.getState().subscribeToLanding();
-    return () => unsubscribe();
-  }, []);
-
   return (
     <div className="font-sans text-mjm-navy bg-white min-h-screen flex flex-col relative w-full overflow-x-clip selection:bg-mjm-orange selection:text-white">
 
@@ -642,10 +634,7 @@ const Landing = () => {
       <LandingHeader />
 
       {/* Hero — estado del modal ISO aislado */}
-      <HeroSection
-        title={landing?.hero?.title || 'Expertos en Aseguramiento Metrológico'}
-        subtitle={landing?.hero?.subtitle || 'Consultoría, capacitación, verificación y calibración de instrumentos con los más altos estándares de calidad y confiabilidad'}
-      />
+      <HeroSection />
 
       {/* Barra de Confianza Metrológica */}
       <TrustBar />

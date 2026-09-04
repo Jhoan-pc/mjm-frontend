@@ -4,7 +4,6 @@ import { Menu, X, ShieldCheck, Lock, Globe, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import logoAzul from '../../assets/logo_azul_sin_fondo.png';
-import headerLogo0 from '../../assets/logo_final_2_0.png';
 
 const LinkedInIcon = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
