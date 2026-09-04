@@ -341,62 +341,37 @@ const ServicesPortfolio = () => {
                   <Mail className="w-4 h-4 text-zinc-950" />
                   <span>SOLICITAR DIAGNÓSTICO OPORTUNO</span>
                 </a>
-                
-                <div className="flex items-center gap-3 text-xs font-mono text-zinc-400 pt-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Soporte Metrológico 24/7 Disponible</span>
-                </div>
               </div>
 
-              {/* Bloque Destacado: Distribución Autorizada de Fábrica (CTC & Merit Instruments) */}
+              {/* Distribución Autorizada — Integración Minimalista */}
               <div className="pt-6 border-t border-white/10 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 text-white font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
-                    <Award className="w-3.5 h-3.5 text-[#f7931b]" />
-                    <span>DISTRIBUIDOR AUTORIZADO</span>
-                  </div>
-                  <span className="text-[9px] font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">
-                    Garantía de Fábrica
-                  </span>
+                <div className="flex items-center gap-2 text-zinc-400 font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em]">
+                  <Award className="w-3.5 h-3.5 text-[#f7931b]" />
+                  <span>DISTRIBUIDOR AUTORIZADO</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  {/* CTC Card */}
-                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-red-500/50 hover:bg-white/[0.06] transition-all group/bcard">
-                    <div className="h-10 w-full bg-white rounded-lg p-1.5 flex items-center justify-center mb-2 shadow-sm">
-                      <img 
-                        src="/brands/ctc_logo.jpg" 
-                        alt="CTC Connection Technology Center" 
-                        className="max-h-full max-w-full object-contain" 
-                      />
-                    </div>
-                    <div className="space-y-0.5">
-                      <span className="block font-space font-bold text-white text-[11px] uppercase tracking-tight group-hover/bcard:text-red-400 transition-colors">
-                        CTC Hardware
-                      </span>
-                      <p className="text-[10px] text-zinc-400 font-light leading-snug">
-                        Sensores, cables y cajas BNC de vibración.
-                      </p>
-                    </div>
+                <div className="inline-flex items-center gap-4 sm:gap-5 p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-md">
+                  {/* CTC Logo */}
+                  <div className="h-8 px-3 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                    <img 
+                      src="/brands/ctc_logo.jpg" 
+                      alt="CTC Connection Technology Center" 
+                      className="h-4 sm:h-4.5 w-auto object-contain" 
+                    />
                   </div>
 
-                  {/* Merit Instruments Card */}
-                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-[#f7931b]/60 hover:bg-white/[0.06] transition-all group/bcard">
-                    <div className="h-10 w-full bg-zinc-950 rounded-lg p-1.5 flex items-center justify-center mb-2 border border-zinc-800 shadow-sm">
-                      <img 
-                        src="/brands/marca_m_gold.jpg" 
-                        alt="Merit Instruments" 
-                        className="max-h-full max-w-full object-contain rounded-sm" 
-                      />
-                    </div>
-                    <div className="space-y-0.5">
-                      <span className="block font-space font-bold text-white text-[11px] uppercase tracking-tight group-hover/bcard:text-[#f7931b] transition-colors">
-                        Merit Instruments
-                      </span>
-                      <p className="text-[10px] text-zinc-400 font-light leading-snug">
-                        Manometría con glicerina y termometría.
-                      </p>
-                    </div>
+                  <div className="w-px h-6 bg-white/15" />
+
+                  {/* Merit Instruments Logo & Name */}
+                  <div className="flex items-center gap-2.5 pr-1">
+                    <img 
+                      src="/brands/marca_m_gold.jpg" 
+                      alt="Merit Instruments" 
+                      className="h-7 w-7 object-contain rounded-md border border-amber-500/30 shadow-sm" 
+                    />
+                    <span className="font-space font-extrabold text-white text-xs sm:text-sm uppercase tracking-tight">
+                      Merit <span className="text-[#f7931b] font-light">Instruments</span>
+                    </span>
                   </div>
                 </div>
               </div>
