@@ -23,7 +23,7 @@ export default function Cotizador() {
   const [clienteContacto, setClienteContacto] = useState('');
   const [validezDias, setValidezDias] = useState(15);
   const [descuentoPorcentaje, setDescuentoPorcentaje] = useState(0);
-  const [notas, setNotas] = useState('La calibración incluye emisión de certificados digitales con trazabilidad a patrones nacionales (ONAC). El servicio se ejecutará en las instalaciones del cliente.');
+  const [notas, setNotas] = useState('La calibración incluye emisión de certificados digitales con trazabilidad a patrones nacionales e internacionales. El servicio se ejecutará en las instalaciones del cliente.');
 
   const [items, setItems] = useState([
     { id: 1, descripcion: 'Calibración de Masa / Balanzas (ISO 17025)', cantidad: 5, precioUnitario: 120000 },

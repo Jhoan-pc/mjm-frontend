@@ -59,7 +59,7 @@ const TrustBar = () => (
       </div>
       <div className="py-2 space-y-1">
         <span className="text-xl sm:text-2xl font-space font-extrabold text-mjm-orange">NTC-ISO/IEC 17025</span>
-        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">TRAZABILIDAD METROLÓGICA • ONAC / NIST</p>
+        <p className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-zinc-400 leading-snug max-w-[280px] mx-auto">TRAZABILIDAD METROLÓGICA</p>
       </div>
       <div className="py-2 space-y-1">
         <span className="text-xl sm:text-2xl font-space font-extrabold text-mjm-orange">Nivel Nacional</span>
