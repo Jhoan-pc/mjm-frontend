@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import {
   Mail, Phone, MapPin, ArrowRight,
   CheckCircle, Target, Shield, ShieldCheck, Wrench, Package, Users, Globe,
-  ChevronRight, ExternalLink
+  ChevronRight, ExternalLink, Award
 } from 'lucide-react';
 
 const LinkedInIcon = ({ className = "w-4 h-4" }) => (
@@ -220,26 +220,23 @@ const NosotrosSection = () => (
           <span className="text-[#f7931b] font-light">con Criterio Aplicado</span>
         </h2>
 
-        <div className="space-y-4 text-slate-700 text-sm sm:text-base leading-relaxed font-light font-inter">
+        <div className="text-slate-700 text-sm sm:text-base leading-relaxed font-light font-inter">
           <p>
-            En <strong className="text-mjm-navy font-semibold">Asesorías Integrales MJM</strong> entendemos que una desviación no detectada en un instrumento paraliza una auditoría y arriesga la conformidad de lotes enteros de producción. Con más de {getExperienceYears()} años de trayectoria y actualización continua en congresos técnico-científicos (<strong className="text-[#f7931b] font-medium">CIMGA</strong>), aportamos exactitud matemática y criterio de ingeniería a sus procesos.
-          </p>
-          <p className="text-slate-600 text-xs sm:text-sm font-normal">
-            Unificamos la rigurosidad de laboratorio bajo norma NTC-ISO/IEC 17025, aseguramiento en planta ISO 10012 y gobernanza en la nube con licencias ilimitadas para proteger a su empresa ante cualquier organismo de control sin sobrecostos de software.
+            Con más de <strong className="text-mjm-navy font-semibold">{getExperienceYears()} años de trayectoria</strong>, aportamos exactitud matemática y criterio de ingeniería para blindar la conformidad de sus procesos. Unificamos metrología en planta, calibración trazable y gobernanza digital sin sobrecostos de software.
           </p>
         </div>
 
         {/* 2 Tarjetas Blancas de Titanio de Alto Nivel */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
           <div className="p-5 bg-white rounded-2xl border border-slate-200/80 hover:border-[#f7931b] hover:shadow-xl transition-all space-y-2 group/card shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-[#f7931b]/10 border border-[#f7931b]/30 flex items-center justify-center text-[#f7931b] group-hover/card:bg-[#f7931b] group-hover/card:text-white transition-colors">
                 <Globe className="w-4 h-4" />
               </div>
-              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Despliegue a Nivel Nacional</h4>
+              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Despliegue Nacional</h4>
             </div>
             <p className="text-xs text-slate-600 font-normal leading-relaxed font-inter">
-              Atención presencial en plantas de toda Colombia para no detener líneas continuas durante rutinas de verificación.
+              Atención presencial en plantas de toda Colombia sin detener sus líneas de producción.
             </p>
           </div>
 
@@ -248,20 +245,12 @@ const NosotrosSection = () => (
               <div className="w-9 h-9 rounded-xl bg-[#f7931b]/10 border border-[#f7931b]/30 flex items-center justify-center text-[#f7931b] group-hover/card:bg-[#f7931b] group-hover/card:text-white transition-colors">
                 <ShieldCheck className="w-4 h-4" />
               </div>
-              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Aseguramiento en Auditorías</h4>
+              <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Respaldo en Auditorías</h4>
             </div>
             <p className="text-xs text-slate-600 font-normal leading-relaxed font-inter">
-              Custodia digital inalterable de hojas de vida y certificados con cálculo estadístico, perfecto para atender auditorías de entes certificadores y regulatorios.
+              Custodia inalterable de certificados con cálculo estadístico ante entes certificadores y regulatorios.
             </p>
           </div>
-        </div>
-
-        {/* Cita Editorial en Barra Limpia */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm flex items-center gap-4 text-xs sm:text-sm font-inter text-slate-700 font-light">
-          <div className="w-1.5 h-10 bg-[#f7931b] rounded-full shrink-0" />
-          <p className="italic">
-            "Más de {getExperienceYears()} años brindando aseguramiento metrológico para industrias donde el margen de error no es una opción."
-          </p>
         </div>
 
       </div>
@@ -273,7 +262,7 @@ const NosotrosSection = () => (
 const EquipoSection = () => (
   <section className="bg-[#F8F9FB] py-20 lg:py-24 border-t border-slate-200">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="text-center mb-16 space-y-2">
+      <div className="text-center mb-14 space-y-2">
         <span className="text-mjm-orange font-mono uppercase tracking-[0.25em] text-xs font-bold block">Talento & Laboratorio</span>
         <h2 className="text-3xl sm:text-5xl font-space font-extrabold text-mjm-navy tracking-tight uppercase leading-none">
           Equipo <span className="font-light text-slate-500">Especializado</span>
@@ -281,27 +270,28 @@ const EquipoSection = () => (
         <div className="w-12 h-1 bg-mjm-orange mx-auto mt-4 rounded-full" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
         {[
           { 
             img: '/photos/verificacion_emision_acustica.jpg', 
             alt: 'Especialista metróloga realizando caracterización acústica y de señales', 
-            title: 'Especialistas en múltiples magnitudes físicas & ensayos.', 
-            desc: 'Metrólogos e ingenieros calificados en sitio para caracterización acústica, vibraciones, temperatura, presión y magnitudes eléctricas con instrumentación trazable ONAC / INM.' 
+            title: 'Ensayos y Caracterización Técnica', 
+            desc: 'Metrólogos e ingenieros calificados para caracterización acústica, dinámica y ensayos de precisión en planta.' 
           },
           { 
-            img: '/photos/mjm_expo_industrial.jpg', 
-            alt: 'Representante institucional de MJM en Expo Industrial Pacífico 2026', 
-            title: 'Autoridad y presencia en foros industriales.', 
-            desc: 'Participación y actualización continua en congresos científico-técnicos (CIMGA, Expo Industrial), garantizando criterios que superan auditorías de alta exigencia.' 
+            img: '/photos/mjm_foros_industriales.jpg', 
+            alt: 'Representante institucional de MJM en foros y congresos industriales', 
+            title: 'Presencia en Foros Técnico-Científicos', 
+            desc: 'Actualización continua en congresos especializados (CIMGA, ACIPET, Expo Industrial) transfiriendo mejores prácticas a su operación.',
+            position: 'object-[center_35%]'
           },
         ].map(item => (
-          <div key={item.alt} className="space-y-5 group">
+          <div key={item.alt} className="space-y-4 group">
             <div className="w-full h-80 bg-slate-900 rounded-2xl border border-slate-200 overflow-hidden relative shadow-md">
               <img
                 src={item.img}
                 alt={item.alt}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${item.position || 'object-center'}`}
                 loading="lazy"
                 decoding="async"
               />
@@ -353,33 +343,104 @@ const CTASection = () => (
   </section>
 );
 
-// ─── Logos Aliados con Máscara Gaussiana ───────────────────────────────────────
+// ─── Alianzas Industriales & Distribución Autorizada ──────────────────────────
 const BrandsCarousel = () => (
-  <section className="bg-white py-12 lg:py-16 border-y border-mjm-navy/5 overflow-hidden">
-    <div className="max-w-7xl mx-auto px-4 mb-8 text-center">
-      <span className="text-slate-400 font-mono font-bold uppercase tracking-[0.3em] text-[10px]">
-        Marcas & Fabricantes Suministrados y Respaldados
-      </span>
-    </div>
-    <div className="relative flex overflow-hidden w-full mask-gradient-x">
-      <motion.div
-        className="flex gap-20 items-center shrink-0"
-        style={{ minWidth: '200%' }}
-        animate={{ x: ['0%', '-50%'] }}
-        transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
-      >
-        {[...brandLogos, ...brandLogos].map((logo, idx) => (
-          <div key={idx} className="h-10 w-24 flex items-center justify-center shrink-0">
-            <img
-              src={logo}
-              alt="Marca Aliada"
-              className="max-h-full max-w-full object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-premium"
-              loading="lazy"
-              decoding="async"
+  <section className="bg-slate-50 py-16 lg:py-20 border-y border-slate-200 overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+      <div className="text-center space-y-2 mb-10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f7931b]/10 border border-[#f7931b]/30 text-[#f7931b] font-mono text-[10px] font-bold uppercase tracking-wider">
+          <Award className="w-3.5 h-3.5" />
+          <span>REPRESENTACIÓN DIRECTA & DISTRIBUCIÓN AUTORIZADA</span>
+        </div>
+        <h3 className="text-2xl sm:text-4xl font-space font-extrabold text-mjm-navy uppercase tracking-tight">
+          Distribuidores Autorizados de Fábrica
+        </h3>
+        <p className="text-xs sm:text-sm text-slate-600 font-light max-w-2xl mx-auto font-inter">
+          Canal oficial de suministro con garantía directa de fábrica, soporte técnico especializado y repuestos originales.
+        </p>
+      </div>
+
+      {/* 2 Tarjetas de Distribuidor Autorizado */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {/* CTC Card */}
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-red-500/50 hover:shadow-xl transition-all shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-5 group">
+          <div className="h-16 w-36 bg-slate-50 rounded-xl p-2.5 flex items-center justify-center border border-slate-200 shrink-0 group-hover:border-red-400 transition-colors">
+            <img 
+              src="/brands/ctc_logo.jpg" 
+              alt="CTC Connection Technology Center" 
+              className="max-h-full max-w-full object-contain" 
             />
           </div>
-        ))}
-      </motion.div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 font-mono text-[9px] font-bold tracking-wider uppercase">
+                DISTRIBUIDOR AUTORIZADO
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 font-medium">USA</span>
+            </div>
+            <h4 className="font-space font-bold text-mjm-navy text-sm uppercase tracking-tight">
+              CTC Vibration Analysis Hardware
+            </h4>
+            <p className="text-xs text-slate-600 font-light leading-relaxed font-inter">
+              Acelerómetros, cables mallados industriales, transmisores 4-20mA y cajas de conexión BNC con garantía directa de fábrica.
+            </p>
+          </div>
+        </div>
+
+        {/* Merit Instruments Card */}
+        <div className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-[#f7931b]/60 hover:shadow-xl transition-all shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-5 group">
+          <div className="h-16 w-36 bg-zinc-950 rounded-xl p-2.5 flex items-center justify-center border border-zinc-800 shrink-0 group-hover:border-[#f7931b]/60 transition-colors">
+            <img 
+              src="/brands/marca_m_gold.jpg" 
+              alt="Merit Instruments" 
+              className="max-h-full max-w-full object-contain rounded-md" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-mono text-[9px] font-bold tracking-wider uppercase">
+                DISTRIBUIDOR AUTORIZADO
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 font-medium">Presión & Temperatura</span>
+            </div>
+            <h4 className="font-space font-bold text-mjm-navy text-sm uppercase tracking-tight">
+              Merit Instruments
+            </h4>
+            <p className="text-xs text-slate-600 font-light leading-relaxed font-inter">
+              Manometría industrial con glicerina, termómetros y accesorios de presión certificados para servicio severo en planta.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Carrusel de Trazabilidad & Marcas Asistidas */}
+    <div className="border-t border-slate-200/80 pt-8">
+      <div className="max-w-7xl mx-auto px-4 mb-6 text-center">
+        <span className="text-slate-400 font-mono font-bold uppercase tracking-[0.25em] text-[10px]">
+          Soporte Metrológico, Calibración & Compatibilidad Multimarca
+        </span>
+      </div>
+      <div className="relative flex overflow-hidden w-full mask-gradient-x">
+        <motion.div
+          className="flex gap-20 items-center shrink-0"
+          style={{ minWidth: '200%' }}
+          animate={{ x: ['0%', '-50%'] }}
+          transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
+        >
+          {[...brandLogos, ...brandLogos].map((logo, idx) => (
+            <div key={idx} className="h-10 w-24 flex items-center justify-center shrink-0">
+              <img
+                src={logo}
+                alt="Marca Aliada"
+                className="max-h-full max-w-full object-contain grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-premium"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          ))}
+        </motion.div>
+      </div>
     </div>
   </section>
 );
@@ -440,7 +501,7 @@ const Footer = () => (
             'Capacitación Técnica Especializada',
             'Diagnóstico y Mantenimiento',
             'Suministro de Instrumentación',
-            'Custodia Digital Multi-Tenant'
+            'Custodia Digital'
           ].map((item, idx) => (
             <li key={idx}>
               <a href="#servicios" className="hover:text-[#f7931b] transition-colors flex items-center gap-2">
@@ -460,20 +521,43 @@ const Footer = () => (
             <MapPin className="w-4 h-4 text-[#f7931b] shrink-0 mt-0.5" />
             <span className="leading-relaxed font-light">Cl 2 #71d-84, Bogotá D.C., Colombia <br /><strong className="text-white font-medium">(Atención Presencial a Nivel Nacional)</strong></span>
           </div>
-          <div className="flex items-center gap-3">
-            <Phone className="w-4 h-4 text-[#f7931b] shrink-0" />
-            <a 
-              href="https://wa.me/573159253952" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="hover:text-[#f7931b] transition-colors"
-            >
-              Cel / WhatsApp: +57 315 9253952
-            </a>
+          <div className="flex items-start gap-3">
+            <Phone className="w-4 h-4 text-[#f7931b] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <a 
+                href="https://wa.me/573159253952" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block hover:text-[#f7931b] transition-colors"
+              >
+                Cel / WhatsApp: +57 315 9253952
+              </a>
+              <a 
+                href="https://wa.me/573137960800" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block hover:text-[#f7931b] transition-colors"
+              >
+                Cel / WhatsApp: +57 313 7960800
+              </a>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Mail className="w-4 h-4 text-[#f7931b] shrink-0" />
-            <span>comercial.asesoriasmjm@gmail.com</span>
+          <div className="flex items-start gap-3">
+            <Mail className="w-4 h-4 text-[#f7931b] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <a 
+                href="mailto:proyectos@asesoriasmjm.com" 
+                className="block hover:text-[#f7931b] transition-colors"
+              >
+                proyectos@asesoriasmjm.com
+              </a>
+              <a 
+                href="mailto:comercial.asesoriasmjm@gmail.com" 
+                className="block hover:text-[#f7931b] transition-colors text-zinc-400"
+              >
+                comercial.asesoriasmjm@gmail.com
+              </a>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <LinkedInIcon className="w-4 h-4 text-[#f7931b] shrink-0" />

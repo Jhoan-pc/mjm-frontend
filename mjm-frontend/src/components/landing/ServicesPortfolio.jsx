@@ -22,7 +22,8 @@ import {
   ChevronRight,
   Play,
   Star,
-  Loader2
+  Loader2,
+  Award
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
@@ -37,8 +38,8 @@ const services = [
     name: "Software de Gestión Metrológica, Hojas de Vida y Cronogramas",
     icon: Cpu,
     badge: "100% INCLUIDO EN PLAN ANUAL • ISO 10012",
-    description: "Plataforma digital en la nube con acceso multi-usuario para la custodia de hojas de vida, escaneo QR en planta, análisis estadístico y semaforización de vencimientos 24/7 sin costo de licencia mensual.",
-    longDesc: "El diferenciador definitivo de MJM: al contratar el aseguramiento técnico o calibración anual en planta, le entregamos la plataforma digital completa sin costos de suscripción mensual. Cero carpetas físicas extraviadas, cero pérdidas de tiempo buscando certificados ante auditores y control en vivo desde cualquier tablet o celular.",
+    description: "Plataforma en la nube para custodia de hojas de vida, escaneo QR en planta, análisis estadístico y semaforización 24/7, 100% incluida en su plan.",
+    longDesc: "Custodia digital inalterable de hojas de vida y certificados en la nube. Control en vivo desde cualquier tablet o celular, semaforización preventiva de vencimientos y respaldo total ante auditorías sin costos de licencia mensual.",
     image: "/demo/04_inventario.png",
     standardsTitle: "MODELO MULTI-TENANT SEGURO",
     standardsDesc: "Espacios de trabajo independientes y aislados por empresa, planta o filial corporativa.",
@@ -70,8 +71,8 @@ const services = [
     name: "Aseguramiento Metrológico Integral",
     icon: Target,
     badge: "SERVICIO CENTRAL / ISO 9001",
-    description: "Gestión integral de sus procesos de medición para garantizar conformidad y calidad bajo estándares ISO 9001 e ISO 10012.",
-    longDesc: "Diseñamos y estructuramos planes de aseguramiento metrológico en sitio. Levantamos la línea base técnica de su parque de instrumentos, establecemos intervalos de confirmación metrológica y definimos reglas de decisión para proteger a su empresa ante cualquier auditoría externa de ICONTEC o INVIMA.",
+    description: "Gestión integral de sus procesos de medición para asegurar conformidad y calidad bajo normas ISO 9001 e ISO 10012.",
+    longDesc: "Estructuramos su plan de aseguramiento en sitio: levantamiento de línea base técnica, tolerancias de proceso, intervalos de confirmación y reglas de decisión para blindar a su empresa ante cualquier auditoría.",
     image: "/photos/diagnostico_vibraciones_fluke.jpg",
     standardsTitle: "NORMA ISO 10012 & CONFIRMACIÓN METROLÓGICA",
     standardsDesc: "Evaluación matemática de error e incertidumbre frente a las tolerancias de su proceso industrial.",
@@ -95,8 +96,8 @@ const services = [
     name: "Calibración de Instrumentos",
     icon: Cog,
     badge: "5 MAGNITUDES FÍSICAS / NTC-ISO/IEC 17025",
-    description: "Servicios de calibración trazable y acreditada con laboratorios aliados para garantizar la exactitud en vibración, temperatura, longitud, presión y eléctricas.",
-    longDesc: "Ejecutamos calibraciones trazables bajo norma NTC-ISO/IEC 17025 con patrones de referencia de alta exactitud. Entregamos certificados oficiales con cálculo de incertidumbre expandida (GUM) y declaración de conformidad según criterios de aceptación técnica.",
+    description: "Calibración trazable y acreditada en 5 magnitudes físicas: vibración, temperatura, longitud, presión y eléctricas.",
+    longDesc: "Calibración bajo norma NTC-ISO/IEC 17025 con patrones de alta exactitud. Certificados oficiales con cálculo de incertidumbre expandida y declaración de conformidad según tolerancias técnicas de su proceso.",
     image: "/photos/calibracion_termografia_flir_cuerpo_negro.jpg",
     standardsTitle: "TRAZABILIDAD METROLÓGICA",
     standardsDesc: "Patrones de referencia calibrados periódicamente para asegurar repetibilidad y validez internacional.",
@@ -120,8 +121,8 @@ const services = [
     name: "Diagnóstico, Mantenimiento & Verificación",
     icon: Wrench,
     badge: "SERVICIO PREVENTIVO & CORRECTIVO",
-    description: "Evaluación técnica especializada, reparación de instrumentos críticos y verificación intermedia para extender la vida útil de sus activos.",
-    longDesc: "Un instrumento con desgaste silencioso genera pérdidas millonarias en lotes defectuosos. Realizamos diagnóstico exhaustivo de componentes electrónicos y mecánicos, limpieza metrológica, ajustes de cero y verificaciones intermedias en campo.",
+    description: "Diagnóstico especializado, reparación de instrumentos críticos y verificaciones intermedias para extender la vida útil de sus activos.",
+    longDesc: "Diagnóstico de componentes electrónicos y mecánicos, limpieza metrológica, ajustes de cero y verificaciones intermedias en campo para prevenir desviaciones y asegurar la continuidad operativa de su planta.",
     image: "/photos/analizador_vibraciones_skf.jpg",
     standardsTitle: "VERIFICACIONES INTERMEDIAS",
     standardsDesc: "Comprobación rápida entre calibraciones para detectar derivas antes de auditorías.",
@@ -145,8 +146,8 @@ const services = [
     name: "Capacitación Especializada en Metrología",
     icon: Users,
     badge: "PROGRAMAS TÉCNICOS A LA MEDIDA",
-    description: "Charlas y talleres prácticos de metrología, interpretación de certificados de calibración y normas de calidad dirigidos a personal técnico y administrativo.",
-    longDesc: "Fortalecemos las competencias técnicas de su equipo. Enseñamos a interpretar los certificados de calibración, entender los errores máximos permisibles (EMP) y aplicar buenas prácticas de laboratorio para evitar errores de medición en la operación diaria.",
+    description: "Charlas y talleres prácticos de metrología, interpretación de certificados y normas de calidad para personal técnico y operativo.",
+    longDesc: "Entrenamiento práctico en planta: interpretación de certificados, error máximo permisible (EMP), cálculo de incertidumbre y buenas prácticas de uso y conservación de instrumentos de medición.",
     image: "/photos/capacitacion_taller_temperatura.jpg",
     standardsTitle: "ALINEACIÓN ISO 9001 / ISO 17025",
     standardsDesc: "Capacitación orientada a superar preguntas de auditoría técnica con solidez conceptual.",
@@ -166,25 +167,20 @@ const services = [
   {
     id: "suministros",
     num: "06",
-    tag: "Equipamiento & Patrones",
-    name: "Suministros Técnicos & Equipos de Medición",
+    tag: "Abastecimiento & Solución de Planta",
+    name: "Suministros Industriales & Equipos de Medición",
     icon: Package,
-    badge: "DISTRIBUCIÓN DIRECTA MULTIMARCA",
-    description: "Provisión de instrumentos de medición, repuestos y accesorios de marcas líderes mundiales con garantía técnica.",
-    longDesc: "Proveemos instrumentos de medición de las marcas más prestigiosas de la industria (Fluke, SKF, Megger, FLIR, EasyLaser, Mitutoyo). Asesoramos técnicamente su compra para asegurar que el rango, resolución y precisión cumplan exactamente con la necesidad de su proceso.",
-    image: "/photos/espectrometro_xrf_aleaciones.jpg",
-    standardsTitle: "GARANTÍA TÉCNICA DE FÁBRICA",
-    standardsDesc: "Equipos 100% originales con respaldo de fabricante y opción de calibración inicial.",
+    badge: "SOLUCIÓN DE SUMINISTRO PARA SU PLANTA",
+    description: "Consecución y suministro ágil de instrumentos, sensores, manómetros y repuestos para resolver el abastecimiento de su planta.",
+    longDesc: "Resolvemos el abastecimiento técnico en planta: localizamos, homologamos y suministramos el instrumento, sensor o repuesto exacto que su proceso necesita. Asesoramos rangos y tolerancias, con opción de entrega calibrado y listo para operar.",
+    image: "/photos/suministro_manometro_glicerina_merit.jpg",
+    standardsTitle: "RESOLUCIÓN TÉCNICA DE ABASTECIMIENTO",
+    standardsDesc: "Canal oficial y distribución autorizada de sensórica CTC y manometría Merit Instruments, con homologación ágil para evitar tiempos de parada en planta.",
     gallery: [
-      { url: "/photos/espectrometro_xrf_aleaciones.jpg", title: "Suministro y Verificación de Analizadores XRF y Equipos Multimarca" },
-      { url: "/photos/calibracion_multimetro_fluke87v.jpg", title: "Multímetros Industriales Fluke 87V y Herramientas Eléctricas" },
-      { url: "/photos/calibrador_vibraciones_vc21.jpg", title: "Calibradores Patrón y Sensores Industriales con Garantía" }
-    ],
-    cards: [
-      { title: "Instrumentos de Medición", desc: "Calibradores, micrómetros, manómetros, termómetros, tacómetros.", icon: <Target className="w-4 h-4"/> },
-      { title: "Estuches de Protección", desc: "Cajas de alta resistencia, kits de limpieza metrológica y soportes.", icon: <Package className="w-4 h-4"/> },
-      { title: "Sensores & Repuestos", desc: "Acelerómetros piezoeléctricos, cables blindados y baterías originales.", icon: <Cog className="w-4 h-4"/> },
-      { title: "Asesoría de Selección", desc: "Acompañamiento técnico para elegir el instrumento exacto para su proceso.", icon: <Users className="w-4 h-4"/> }
+      { url: "/photos/suministro_manometro_glicerina_merit.jpg", title: "Manometría Industrial con Glicerina y Escala Dual Bar/PSI (Merit Instruments)" },
+      { url: "/photos/suministro_termohigrometro_elitech_ipt100.jpg", title: "Termohigrómetros Digitales Elitech IPT-100 para Control Ambiental y Cuartos Limpios" },
+      { url: "/photos/suministro_termometro_penetracion_deltatrak.jpg", title: "Termómetros Digitales de Penetración DeltaTrak con Sello Sanitario NSF" },
+      { url: "/photos/suministro_sensor_vibracion_ctc.jpg", title: "Sensores de Vibración y Ultrasonido CTC para Mantenimiento de Maquinaria" }
     ]
   },
 ];
@@ -349,6 +345,59 @@ const ServicesPortfolio = () => {
                 <div className="flex items-center gap-3 text-xs font-mono text-zinc-400 pt-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span>Soporte Metrológico 24/7 Disponible</span>
+                </div>
+              </div>
+
+              {/* Bloque Destacado: Distribución Autorizada de Fábrica (CTC & Merit Instruments) */}
+              <div className="pt-6 border-t border-white/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 text-white font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider">
+                    <Award className="w-3.5 h-3.5 text-[#f7931b]" />
+                    <span>DISTRIBUIDOR AUTORIZADO</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">
+                    Garantía de Fábrica
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {/* CTC Card */}
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-red-500/50 hover:bg-white/[0.06] transition-all group/bcard">
+                    <div className="h-10 w-full bg-white rounded-lg p-1.5 flex items-center justify-center mb-2 shadow-sm">
+                      <img 
+                        src="/brands/ctc_logo.jpg" 
+                        alt="CTC Connection Technology Center" 
+                        className="max-h-full max-w-full object-contain" 
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="block font-space font-bold text-white text-[11px] uppercase tracking-tight group-hover/bcard:text-red-400 transition-colors">
+                        CTC Hardware
+                      </span>
+                      <p className="text-[10px] text-zinc-400 font-light leading-snug">
+                        Sensores, cables y cajas BNC de vibración.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Merit Instruments Card */}
+                  <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-[#f7931b]/60 hover:bg-white/[0.06] transition-all group/bcard">
+                    <div className="h-10 w-full bg-zinc-950 rounded-lg p-1.5 flex items-center justify-center mb-2 border border-zinc-800 shadow-sm">
+                      <img 
+                        src="/brands/marca_m_gold.jpg" 
+                        alt="Merit Instruments" 
+                        className="max-h-full max-w-full object-contain rounded-sm" 
+                      />
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="block font-space font-bold text-white text-[11px] uppercase tracking-tight group-hover/bcard:text-[#f7931b] transition-colors">
+                        Merit Instruments
+                      </span>
+                      <p className="text-[10px] text-zinc-400 font-light leading-snug">
+                        Manometría con glicerina y termometría.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -626,66 +675,68 @@ const ServicesPortfolio = () => {
                         </div>
 
                         {/* Specs grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                          {service.cards ? (
-                            service.cards.map((c, i) => (
-                              <div 
-                                key={i} 
-                                onClick={() => c.isStar && handleCardClick(c)}
-                                className={`p-3.5 rounded-xl text-xs transition-all relative overflow-hidden flex flex-col justify-between ${
-                                  c.isStar 
-                                    ? 'bg-gradient-to-br from-[#f7931b]/20 via-orange-950/40 to-black/70 border-2 border-[#f7931b] shadow-[0_0_30px_rgba(247,147,27,0.3)] ring-1 ring-[#f7931b]/50 cursor-pointer hover:scale-[1.02] hover:border-amber-400 hover:shadow-[0_0_40px_rgba(247,147,27,0.5)] group/star' 
-                                    : 'bg-white/[0.02] border border-white/10'
-                                }`}
-                              >
-                                {isLaunchingDemo && c.isStar && (
-                                  <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center gap-2 text-[#f7931b] font-mono text-xs font-bold z-20">
-                                    <Loader2 className="w-4 h-4 animate-spin text-[#f7931b]" />
-                                    <span>Iniciando Demo...</span>
+                        {(service.cards?.length > 0 || service.features?.length > 0) && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            {service.cards ? (
+                              service.cards.map((c, i) => (
+                                <div 
+                                  key={i} 
+                                  onClick={() => c.isStar && handleCardClick(c)}
+                                  className={`p-3.5 rounded-xl text-xs transition-all relative overflow-hidden flex flex-col justify-between ${
+                                    c.isStar 
+                                      ? 'bg-gradient-to-br from-[#f7931b]/20 via-orange-950/40 to-black/70 border-2 border-[#f7931b] shadow-[0_0_30px_rgba(247,147,27,0.3)] ring-1 ring-[#f7931b]/50 cursor-pointer hover:scale-[1.02] hover:border-amber-400 hover:shadow-[0_0_40px_rgba(247,147,27,0.5)] group/star' 
+                                      : 'bg-white/[0.02] border border-white/10'
+                                  }`}
+                                >
+                                  {isLaunchingDemo && c.isStar && (
+                                    <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center gap-2 text-[#f7931b] font-mono text-xs font-bold z-20">
+                                      <Loader2 className="w-4 h-4 animate-spin text-[#f7931b]" />
+                                      <span>Iniciando Demo...</span>
+                                    </div>
+                                  )}
+                                  {c.isStar && (
+                                    <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                                      <span className="text-[8px] font-mono font-bold text-[#f7931b] uppercase tracking-wider opacity-0 group-hover/star:opacity-100 transition-opacity">
+                                        PROBAR AHORA
+                                      </span>
+                                      <Star className="w-4 h-4 text-[#f7931b] fill-[#f7931b] drop-shadow-[0_0_8px_rgba(247,147,27,0.9)] animate-pulse" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
+                                      <span className={c.isStar ? 'text-[#f7931b]' : 'text-mjm-orange'}>{c.icon}</span>
+                                      <span className={c.isStar ? 'text-[#f7931b] font-extrabold tracking-tight group-hover/star:text-amber-300 transition-colors' : ''}>{c.title}</span>
+                                    </div>
+                                    {c.subtitle && (
+                                      <p className="text-[9px] font-mono text-[#f7931b] font-extrabold uppercase tracking-wider mt-0.5">
+                                        {c.subtitle}
+                                      </p>
+                                    )}
                                   </div>
-                                )}
-                                {c.isStar && (
-                                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                                    <span className="text-[8px] font-mono font-bold text-[#f7931b] uppercase tracking-wider opacity-0 group-hover/star:opacity-100 transition-opacity">
-                                      PROBAR AHORA
-                                    </span>
-                                    <Star className="w-4 h-4 text-[#f7931b] fill-[#f7931b] drop-shadow-[0_0_8px_rgba(247,147,27,0.9)] animate-pulse" />
-                                  </div>
-                                )}
-                                <div>
-                                  <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
-                                    <span className={c.isStar ? 'text-[#f7931b]' : 'text-mjm-orange'}>{c.icon}</span>
-                                    <span className={c.isStar ? 'text-[#f7931b] font-extrabold tracking-tight group-hover/star:text-amber-300 transition-colors' : ''}>{c.title}</span>
-                                  </div>
-                                  {c.subtitle && (
-                                    <p className="text-[9px] font-mono text-[#f7931b] font-extrabold uppercase tracking-wider mt-0.5">
-                                      {c.subtitle}
-                                    </p>
+                                  <p className={`text-[10px] font-light mt-1.5 leading-relaxed ${c.isStar ? 'text-zinc-200' : 'text-zinc-400'}`}>{c.desc}</p>
+                                  {c.isStar && (
+                                    <div className="mt-2.5 pt-2 border-t border-[#f7931b]/30 flex items-center justify-between text-[10px] font-mono font-bold text-[#f7931b] group-hover/star:text-amber-300">
+                                      <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider">
+                                        ⚡ Entrar al modo de pruebas
+                                      </span>
+                                      <ArrowRight className="w-3.5 h-3.5 group-hover/star:translate-x-1 transition-transform" />
+                                    </div>
                                   )}
                                 </div>
-                                <p className={`text-[10px] font-light mt-1.5 leading-relaxed ${c.isStar ? 'text-zinc-200' : 'text-zinc-400'}`}>{c.desc}</p>
-                                {c.isStar && (
-                                  <div className="mt-2.5 pt-2 border-t border-[#f7931b]/30 flex items-center justify-between text-[10px] font-mono font-bold text-[#f7931b] group-hover/star:text-amber-300">
-                                    <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider">
-                                      ⚡ Entrar al modo de pruebas
-                                    </span>
-                                    <ArrowRight className="w-3.5 h-3.5 group-hover/star:translate-x-1 transition-transform" />
+                              ))
+                            ) : (
+                              service.features?.map((f, i) => (
+                                <div key={i} className="p-3 rounded-lg bg-white/[0.02] border border-white/10 text-xs">
+                                  <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
+                                    <CheckCircle className="w-3.5 h-3.5 text-mjm-orange shrink-0" />
+                                    <span>{f.title}</span>
                                   </div>
-                                )}
-                              </div>
-                            ))
-                          ) : (
-                            service.features?.map((f, i) => (
-                              <div key={i} className="p-3 rounded-lg bg-white/[0.02] border border-white/10 text-xs">
-                                <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
-                                  <CheckCircle className="w-3.5 h-3.5 text-mjm-orange shrink-0" />
-                                  <span>{f.title}</span>
+                                  <p className="text-[10px] text-zinc-400 font-light mt-0.5 leading-relaxed">{f.desc}</p>
                                 </div>
-                                <p className="text-[10px] text-zinc-400 font-light mt-0.5 leading-relaxed">{f.desc}</p>
-                              </div>
-                            ))
-                          )}
-                        </div>
+                              ))
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       {/* Action Bar */}
