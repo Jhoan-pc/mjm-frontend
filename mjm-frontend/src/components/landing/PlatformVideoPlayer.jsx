@@ -44,7 +44,7 @@ const CHAPTERS = [
   },
   {
     id: 'gum',
-    title: 'Criterio Matemático GUM & Incertidumbre',
+    title: 'Confirmación Metrológica & Criterio Estadístico',
     badge: 'CONFORMIDAD ALGORÍTMICA',
     route: 'https://app.mjmmetrologia.com/dashboard/aseguramiento',
     subtitle: 'Evaluación algorítmica de conformidad: compara el error instrumental e incertidumbre expandida contra la tolerancia del proceso.',
@@ -52,7 +52,7 @@ const CHAPTERS = [
     sidebarLabel: 'Aseguramiento',
     sidebarPos: { x: '5.8%', y: '36.5%' },
     actionPos: { x: '58%', y: '48%' },
-    actionText: 'Cálculo GUM: Error + U(k=2) ≤ Tolerancia'
+    actionText: 'Análisis Estadístico: Error + U(k=2) ≤ Tolerancia'
   },
   {
     id: 'kanban',

@@ -6,6 +6,12 @@ import { useAuthStore } from '../../store/authStore';
 import logoAzul from '../../assets/logo_azul_sin_fondo.png';
 import headerLogo0 from '../../assets/logo_final_2_0.png';
 
+const LinkedInIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+  </svg>
+);
+
 const LandingHeader = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -85,8 +91,23 @@ const LandingHeader = () => {
           <a className="text-zinc-400 hover:text-white transition-colors" href="#contacto">Contacto</a>
         </div>
 
-        {/* Acceso a Portal de Clientes */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* Acceso a Portal de Clientes & Redes Profesionales */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Botón LinkedIn Oficial */}
+          <a
+            href="https://www.linkedin.com/company/asesoriasmjm/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 sm:px-3 sm:py-2.5 rounded-lg sm:rounded-xl bg-white/[0.07] hover:bg-[#0077b5]/20 border border-white/15 hover:border-[#0077b5]/60 text-zinc-300 hover:text-white transition-all flex items-center gap-2 cursor-pointer group shadow-sm shrink-0"
+            title="Síguenos en LinkedIn Oficial (Asesorías Integrales MJM)"
+            aria-label="Perfil de LinkedIn de Asesorías Integrales MJM"
+          >
+            <LinkedInIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0077b5] group-hover:scale-110 transition-transform" />
+            <span className="hidden lg:inline text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-300 group-hover:text-white transition-colors">
+              LinkedIn
+            </span>
+          </a>
+
           <Link 
             to="/login" 
             className="bg-mjm-orange text-white px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-[0.15em] hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-500/25 flex items-center gap-1.5 sm:gap-2 cursor-pointer shrink-0 font-space"
@@ -135,6 +156,16 @@ const LandingHeader = () => {
                 {item.label}
               </a>
             ))}
+            <a
+              href="https://www.linkedin.com/company/asesoriasmjm/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2.5 w-full bg-[#0077b5]/15 hover:bg-[#0077b5]/25 border border-[#0077b5]/40 text-white py-3 rounded-xl font-space font-bold uppercase text-xs tracking-wider transition-colors"
+              onClick={closeMobile}
+            >
+              <LinkedInIcon className="w-4 h-4 text-[#0077b5]" />
+              <span>LinkedIn Oficial MJM</span>
+            </a>
             <Link
               to="/login"
               className="block w-full text-center bg-mjm-orange hover:bg-orange-600 text-white py-3.5 rounded-xl font-space font-bold uppercase tracking-wider shadow-lg shadow-orange-500/25"

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
+import manometroIndustrial from '../../assets/manometro_industrial.jpeg';
 
 const cleanUnitDisplay = (val) => {
   if (!val || val === 'N/A') return 'N/A';
@@ -88,7 +89,7 @@ export default function HojaDeVida() {
   }
 
   const isVigente = inst.estado !== 'Vencido';
-  const imgPlaceholder = "https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=2070&auto=format&fit=crop";
+  const imgPlaceholder = manometroIndustrial;
 
   return (
     <div className="min-h-screen bg-surface pb-24 lg:pb-12 animate-in fade-in duration-700">
@@ -144,7 +145,7 @@ export default function HojaDeVida() {
         <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-sm hover:shadow-md transition-shadow group">
           <div className="md:w-1/3 aspect-square md:aspect-auto relative bg-surface-container overflow-hidden">
             <img 
-              src={inst.imageUrl || imgPlaceholder} 
+              src={inst.imageUrl && !inst.imageUrl.includes('photo-1581092160562') && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : imgPlaceholder} 
               alt={inst.nombre} 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             />

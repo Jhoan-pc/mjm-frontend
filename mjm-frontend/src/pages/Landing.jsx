@@ -9,6 +9,12 @@ import {
   ChevronRight, ExternalLink
 } from 'lucide-react';
 
+const LinkedInIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+  </svg>
+);
+
 // Sub-componentes modulares (cada uno aislado con su propio estado)
 import LandingHeader     from '../components/landing/LandingHeader';
 import HeroSection       from '../components/landing/HeroSection';
@@ -105,17 +111,17 @@ const AlcanceSection = () => (
           </h2>
 
           <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-light font-inter">
-            Un certificado de calibración archivado en una carpeta física no protege a su empresa si no hay trazabilidad en planta. Cuando un instrumento se desvía en plena producción, el costo de lotes defectuosos y las no-conformidades ante auditores de <strong className="font-semibold text-mjm-navy">ICONTEC, INVIMA o ISO 9001</strong> es devastador.
+            Un certificado de calibración archivado en una carpeta física no protege a su empresa si no hay trazabilidad en planta. Cuando un instrumento se desvía en plena producción, el costo de lotes defectuosos y las no-conformidades ante auditores de <strong className="font-semibold text-mjm-navy">entes certificadores y/o regulatorios</strong> es devastador.
           </p>
 
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-light">
-            Rompemos el esquema de los talleres tradicionales que solo entregan hojas impresas. En MJM enviamos al metrólogo a su planta para calibrar en sitio e <strong className="text-mjm-navy font-semibold">integramos el software de gobernanza digital</strong> para que cualquier auditor o jefe de calidad escanee el QR del equipo y verifique su vigencia en 3 segundos.
+            Rompemos el esquema de los talleres tradicionales que solo entregan hojas impresas. En MJM generamos entregables de mantenimiento, verificación o calibración listos para ser presentados en auditoría, e <strong className="text-mjm-navy font-semibold">integramos el software de gobernanza digital</strong> para que cualquier auditor o jefe de calidad escanee el QR del equipo y verifique su vigencia en 3 segundos.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
             {[
-              { num: '01', title: 'Criterio Técnico & GUM', desc: 'Determinación matemática de conformidad confrontando la incertidumbre expandida contra la tolerancia del proceso para prevenir paradas.' },
-              { num: '02', title: 'Gobernanza & QR en Sitio', desc: 'Hojas de vida inalterables y certificados oficiales en la nube, listos para auditoría sin buscar carpetas extraviadas.' },
+              { num: '01', title: 'Criterio Técnico y Estadístico', desc: 'Determinación matemática de conformidad confrontando la incertidumbre expandida contra la tolerancia del proceso para prevenir paradas.' },
+              { num: '02', title: 'Gestión Documental', desc: 'Hojas de vida inalterables y certificados oficiales en la nube, listos para auditoría sin buscar carpetas extraviadas.' },
             ].map(item => (
               <div key={item.num} className="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm space-y-2">
                 <div className="flex items-center gap-2.5">
@@ -138,9 +144,9 @@ const MetricsProofBar = () => (
   <section className="bg-[#050b14] border-y border-white/10 py-10 px-6 relative z-20">
     <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
       <div className="space-y-1">
-        <span className="block font-space font-black text-3xl sm:text-4xl text-[#f7931b]">+4,800</span>
+        <span className="block font-space font-black text-3xl sm:text-4xl text-[#f7931b]">+3,800</span>
         <span className="block font-mono text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 font-bold">
-          Instrumentos Calibrados
+          Instrumentos Atendidos
         </span>
         <span className="block text-[11px] text-zinc-500 font-light">En planta y laboratorio</span>
       </div>
@@ -154,7 +160,7 @@ const MetricsProofBar = () => (
       <div className="space-y-1">
         <span className="block font-space font-black text-3xl sm:text-4xl text-[#f7931b]">100%</span>
         <span className="block font-mono text-[10px] sm:text-xs uppercase tracking-widest text-zinc-300 font-bold">
-          Trazabilidad ONAC / INM
+          Trazabilidad Metrológica
         </span>
         <span className="block text-[11px] text-zinc-500 font-light">Cadena ininterrumpida</span>
       </div>
@@ -181,8 +187,8 @@ const NosotrosSection = () => (
 
         <div className="aspect-[4/5] sm:aspect-square rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 relative bg-slate-50 p-2">
           <img
-            src="/nosotros/cimga.jpg"
-            alt="Autoridad Técnica MJM en Congreso CIMGA"
+            src="/photos/mjm_expo_industrial.jpg"
+            alt="Autoridad y Liderazgo Técnico MJM en Expo Industrial"
             className="w-full h-full object-cover rounded-2xl contrast-[1.04] brightness-[0.98] group-hover:scale-105 transition-transform duration-700"
             loading="lazy"
             decoding="async"
@@ -191,7 +197,7 @@ const NosotrosSection = () => (
           {/* Badge de Rigor Superior */}
           <div className="absolute top-5 left-5 z-10 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-mjm-navy/90 border border-white/20 backdrop-blur-md text-[10px] font-mono text-white shadow-xl">
             <span className="w-2 h-2 rounded-full bg-[#f7931b] animate-pulse shrink-0"></span>
-            <span>PARTICIPACIÓN CIENTÍFICA • CIMGA</span>
+            <span>PRESENCIA INDUSTRIAL • EXPO INDUSTRIAL</span>
           </div>
         </div>
 
@@ -245,7 +251,7 @@ const NosotrosSection = () => (
               <h4 className="text-xs font-bold font-space uppercase tracking-wider text-mjm-navy">Aseguramiento en Auditorías</h4>
             </div>
             <p className="text-xs text-slate-600 font-normal leading-relaxed font-inter">
-              Custodia digital inalterable de hojas de vida y certificados con cálculo GUM para auditorías ICONTEC e INVIMA.
+              Custodia digital inalterable de hojas de vida y certificados con cálculo estadístico, perfecto para atender auditorías de entes certificadores y regulatorios.
             </p>
           </div>
         </div>
@@ -468,6 +474,17 @@ const Footer = () => (
           <div className="flex items-center gap-3">
             <Mail className="w-4 h-4 text-[#f7931b] shrink-0" />
             <span>comercial.asesoriasmjm@gmail.com</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <LinkedInIcon className="w-4 h-4 text-[#f7931b] shrink-0" />
+            <a 
+              href="https://www.linkedin.com/company/asesoriasmjm/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="hover:text-[#f7931b] transition-colors"
+            >
+              LinkedIn: Asesorías Integrales MJM
+            </a>
           </div>
         </div>
       </div>

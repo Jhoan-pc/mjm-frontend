@@ -20,8 +20,12 @@ import {
   Mail,
   Eye,
   ChevronRight,
-  Play
+  Play,
+  Star,
+  Loader2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 import PlatformVideoPlayer from './PlatformVideoPlayer';
 
 const services = [
@@ -30,10 +34,10 @@ const services = [
     num: "01",
     tag: "Ventaja Exclusiva • Incluido en su Plan",
     isFeatured: true,
-    name: "Software de Gobernanza Metrológica & Hojas de Vida QR",
+    name: "Software de Gestión Metrológica, Hojas de Vida y Cronogramas",
     icon: Cpu,
     badge: "100% INCLUIDO EN PLAN ANUAL • ISO 10012",
-    description: "Plataforma digital en la nube con acceso multi-usuario para la custodia de hojas de vida, escaneo QR en planta, cálculo GUM y semaforización de vencimientos 24/7 sin costo de licencia mensual.",
+    description: "Plataforma digital en la nube con acceso multi-usuario para la custodia de hojas de vida, escaneo QR en planta, análisis estadístico y semaforización de vencimientos 24/7 sin costo de licencia mensual.",
     longDesc: "El diferenciador definitivo de MJM: al contratar el aseguramiento técnico o calibración anual en planta, le entregamos la plataforma digital completa sin costos de suscripción mensual. Cero carpetas físicas extraviadas, cero pérdidas de tiempo buscando certificados ante auditores y control en vivo desde cualquier tablet o celular.",
     image: "/demo/04_inventario.png",
     standardsTitle: "MODELO MULTI-TENANT SEGURO",
@@ -41,14 +45,21 @@ const services = [
     gallery: [
       { url: "/demo/04_inventario.png", type: "image", title: "Inventario Maestro de Activos Trazables en Planta" },
       { url: "/demo/03_dashboard_kpis.png", type: "image", title: "Panel Central de Control & KPIs Metrológicos en Vivo" },
-      { url: "/demo/05_aseguramiento_gum.png", type: "image", title: "Evaluación Matemática de Conformidad (Criterio GUM)" },
+      { url: "/demo/05_aseguramiento_gum.png", type: "image", title: "Evaluación Matemática de Conformidad (Criterio Estadístico)" },
       { url: "/demo/06_kanban.png", type: "image", title: "Tablero Kanban de Calibración en Laboratorio" },
       { url: "/demo/07_calendario.png", type: "image", title: "Planificador y Calendario Preventivo de Paradas" }
     ],
     cards: [
       { title: "Hojas de Vida con Código QR", desc: "Registro inalterable con tolerancias, datos de placa y certificados adjuntos escaneables en planta.", icon: <Target className="w-4 h-4"/> },
       { title: "Planificador Metrológico", desc: "Cronogramas automatizados con semáforo preventivo a 30, 60 y 90 días.", icon: <Calendar className="w-4 h-4"/> },
-      { title: "Cálculo GUM / ISO 10012", desc: "Evaluación algorítmica de Error + Incertidumbre frente a la tolerancia del proceso.", icon: <Shield className="w-4 h-4"/> },
+      { 
+        title: "Confirmación Metrológica", 
+        subtitle: "Potenciada por Algoritmo",
+        desc: "Evaluación estadística algorítmica de Error + Incertidumbre frente a la tolerancia del proceso.", 
+        icon: <Shield className="w-4 h-4"/>,
+        isStar: true,
+        badge: "SERVICIO ESTRELLA"
+      },
       { title: "Licencia Anual 100% Incluida", desc: "Sin costos mensuales recurrentes. Incluido al contratar el aseguramiento técnico en planta.", icon: <Cpu className="w-4 h-4"/> }
     ]
   },
@@ -74,7 +85,7 @@ const services = [
       { title: "Clasificación Técnica", desc: "Inventario maestro y clasificación de criticidad para instrumentos en planta." },
       { title: "Línea Base & Tolerancias", desc: "Recopilación de tolerancias de proceso y especificaciones del fabricante." },
       { title: "Cronogramas de Rutina", desc: "Planificación estratégica para minimizar tiempos de parada en producción." },
-      { title: "Indicadores de Gestión", desc: "Métricas de conformidad (Cl. 7.1) y cumplimiento de calibraciones en tiempo real." }
+      { title: "Indicadores de Gestión", desc: "Métricas de conformidad y cumplimiento de calibraciones en tiempo real." }
     ]
   },
   {
@@ -84,10 +95,10 @@ const services = [
     name: "Calibración de Instrumentos",
     icon: Cog,
     badge: "5 MAGNITUDES FÍSICAS / NTC-ISO/IEC 17025",
-    description: "Servicios de calibración trazable y acreditada con laboratorios aliados para garantizar la exactitud en vibración, temperatura, longitud y presión.",
+    description: "Servicios de calibración trazable y acreditada con laboratorios aliados para garantizar la exactitud en vibración, temperatura, longitud, presión y eléctricas.",
     longDesc: "Ejecutamos calibraciones trazables bajo norma NTC-ISO/IEC 17025 con patrones de referencia de alta exactitud. Entregamos certificados oficiales con cálculo de incertidumbre expandida (GUM) y declaración de conformidad según criterios de aceptación técnica.",
     image: "/photos/calibracion_termografia_flir_cuerpo_negro.jpg",
-    standardsTitle: "TRAZABILIDAD ONAC / NIST",
+    standardsTitle: "TRAZABILIDAD METROLÓGICA",
     standardsDesc: "Patrones de referencia calibrados periódicamente para asegurar repetibilidad y validez internacional.",
     gallery: [
       { url: "/photos/calibracion_termografia_flir_cuerpo_negro.jpg", title: "Calibración de Temperatura & Infrarrojos con Cavidad de Cuerpo Negro a 50.0°C" },
@@ -96,10 +107,10 @@ const services = [
       { url: "/photos/calibracion_vibracion_fluke805.jpg", title: "Verificación Metrológica de Medidores Fluke 805 a 320 Hz" }
     ],
     cards: [
-      { title: "Medidores & Sensores de Vibración", desc: "Verificación de acelerómetros, sensores de proximidad y monitoreo predictivo.", icon: <Target className="w-4 h-4"/> },
+      { title: "Medidores & Sensores de Vibración", desc: "Verificación por calibración de acelerómetros, sensores de proximidad y monitoreo predictivo.", icon: <Target className="w-4 h-4"/> },
       { title: "Analizadores de Vibración Multicanal", desc: "Calibración de colectores y sistemas dinámicos para mantenimiento.", icon: <Clock className="w-4 h-4"/> },
-      { title: "Termometría & Cámaras Termográficas", desc: "Ajuste de emisividad, verificación de sensores infrarrojos y termocuplas.", icon: <Thermometer className="w-4 h-4"/> },
-      { title: "Alineadores Laser de Ejes", desc: "Verificación de coplanaridad y precisión en maquinaria rotativa.", icon: <Ruler className="w-4 h-4"/> }
+      { title: "Termómetros Infrarrojos & Cámaras Termográficas", desc: "Calibración con cavidad de cuerpo negro, ajuste de emisividad y exactitud radiométrica.", icon: <Thermometer className="w-4 h-4"/> },
+      { title: "Alineadores Laser de Ejes", desc: "Verificación por calibración en longitud para maquinaria rotativa.", icon: <Ruler className="w-4 h-4"/> }
     ]
   },
   {
@@ -134,7 +145,7 @@ const services = [
     name: "Capacitación Especializada en Metrología",
     icon: Users,
     badge: "PROGRAMAS TÉCNICOS A LA MEDIDA",
-    description: "Talleres prácticos de metrología, interpretación de certificados de calibración y normas de calidad dirigidos al personal técnico de planta.",
+    description: "Charlas y talleres prácticos de metrología, interpretación de certificados de calibración y normas de calidad dirigidos a personal técnico y administrativo.",
     longDesc: "Fortalecemos las competencias técnicas de su equipo. Enseñamos a interpretar los certificados de calibración, entender los errores máximos permisibles (EMP) y aplicar buenas prácticas de laboratorio para evitar errores de medición en la operación diaria.",
     image: "/photos/capacitacion_taller_temperatura.jpg",
     standardsTitle: "ALINEACIÓN ISO 9001 / ISO 17025",
@@ -159,7 +170,7 @@ const services = [
     name: "Suministros Técnicos & Equipos de Medición",
     icon: Package,
     badge: "DISTRIBUCIÓN DIRECTA MULTIMARCA",
-    description: "Provisión de instrumentos de medición de alta gama, patrones de referencia y accesorios de marcas líderes mundiales con garantía técnica.",
+    description: "Provisión de instrumentos de medición, repuestos y accesorios de marcas líderes mundiales con garantía técnica.",
     longDesc: "Proveemos instrumentos de medición de las marcas más prestigiosas de la industria (Fluke, SKF, Megger, FLIR, EasyLaser, Mitutoyo). Asesoramos técnicamente su compra para asegurar que el rango, resolución y precisión cumplan exactamente con la necesidad de su proceso.",
     image: "/photos/espectrometro_xrf_aleaciones.jpg",
     standardsTitle: "GARANTÍA TÉCNICA DE FÁBRICA",
@@ -167,8 +178,7 @@ const services = [
     gallery: [
       { url: "/photos/espectrometro_xrf_aleaciones.jpg", title: "Suministro y Verificación de Analizadores XRF y Equipos Multimarca" },
       { url: "/photos/calibracion_multimetro_fluke87v.jpg", title: "Multímetros Industriales Fluke 87V y Herramientas Eléctricas" },
-      { url: "/photos/calibrador_vibraciones_vc21.jpg", title: "Calibradores Patrón y Sensores Industriales con Garantía" },
-      { url: "/photos/mjm_expo_industrial.jpg", title: "Representación y Alianzas Comerciales en Expo Industrial" }
+      { url: "/photos/calibrador_vibraciones_vc21.jpg", title: "Calibradores Patrón y Sensores Industriales con Garantía" }
     ],
     cards: [
       { title: "Instrumentos de Medición", desc: "Calibradores, micrómetros, manómetros, termómetros, tacómetros.", icon: <Target className="w-4 h-4"/> },
@@ -181,6 +191,9 @@ const services = [
 
 // ─── PORTAFOLIO PRINCIPAL: SPLIT-SCREEN STICKY PINNED CON FEED CONTINUO (INGYEMEL ENGINE) ────
 const ServicesPortfolio = () => {
+  const navigate = useNavigate();
+  const loginDemo = useAuthStore(state => state.loginDemo);
+  const [isLaunchingDemo, setIsLaunchingDemo] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [activeFocusedServiceId, setActiveFocusedServiceId] = useState("aseguramiento");
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -192,6 +205,67 @@ const ServicesPortfolio = () => {
     suministros: 0,
     saas: 0
   });
+  const [mainMediaIndices, setMainMediaIndices] = useState({
+    aseguramiento: 0,
+    calibracion: 0,
+    mantenimiento: 0,
+    capacitacion: 0,
+    suministros: 0,
+    saas: 0
+  });
+
+  // Auto-carrusel continuo en modal para todas las secciones excepto 'saas'
+  useEffect(() => {
+    if (!selectedService) return;
+
+    const timer = setInterval(() => {
+      setModalMediaIndices(prev => {
+        const next = { ...prev };
+        services.forEach(s => {
+          if (s.id !== 'saas' && s.gallery && s.gallery.length > 1) {
+            const current = prev[s.id] || 0;
+            next[s.id] = (current + 1) % s.gallery.length;
+          }
+        });
+        return next;
+      });
+    }, 4200);
+
+    return () => clearInterval(timer);
+  }, [selectedService]);
+
+  // Auto-carrusel continuo en tarjetas principales (todas excepto 'saas')
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMainMediaIndices(prev => {
+        const next = { ...prev };
+        services.forEach(s => {
+          if (s.id !== 'saas' && s.gallery && s.gallery.length > 1) {
+            const current = prev[s.id] || 0;
+            next[s.id] = (current + 1) % s.gallery.length;
+          }
+        });
+        return next;
+      });
+    }, 4800);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleCardClick = async (card) => {
+    if (card?.isStar) {
+      try {
+        setIsLaunchingDemo(true);
+        await loginDemo();
+        navigate('/dashboard/ia-lab');
+      } catch (err) {
+        console.error("Error al iniciar demo:", err);
+        navigate('/dashboard/ia-lab');
+      } finally {
+        setIsLaunchingDemo(false);
+      }
+    }
+  };
 
   // Auto scroll & Intersection Observer for Modal Spotlight Focus Effect (Ingyemel Architecture)
   useEffect(() => {
@@ -307,13 +381,20 @@ const ServicesPortfolio = () => {
                       </div>
                     ) : (
                       <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black/60 border border-white/15">
-                        <img
-                          src={service.image}
-                          alt={service.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
-                          loading="lazy"
-                          decoding="async"
-                        />
+                        <AnimatePresence mode="wait">
+                          <motion.img
+                            key={`${service.id}-${mainMediaIndices[service.id] || 0}`}
+                            src={service.gallery?.[mainMediaIndices[service.id] || 0]?.url || service.image}
+                            alt={service.name}
+                            initial={{ opacity: 0.5, scale: 1.03 }}
+                            animate={{ opacity: 0.95, scale: 1 }}
+                            exit={{ opacity: 0.5, scale: 0.98 }}
+                            transition={{ duration: 0.75, ease: "easeInOut" }}
+                            className="w-full h-full object-cover object-center absolute inset-0"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </AnimatePresence>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
                         
                         <div className="absolute top-4 left-4 z-20">
@@ -321,6 +402,20 @@ const ServicesPortfolio = () => {
                             {service.tag}
                           </span>
                         </div>
+
+                        {/* Indicadores de 4 fotos normalizadas */}
+                        {service.gallery && (
+                          <div className="absolute bottom-3.5 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/15">
+                            {service.gallery.map((_, dotIdx) => (
+                              <span 
+                                key={dotIdx} 
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                  (mainMediaIndices[service.id] || 0) === dotIdx ? 'w-4 bg-[#f7931b]' : 'w-1.5 bg-white/30'
+                                }`} 
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -416,59 +511,83 @@ const ServicesPortfolio = () => {
                     }`}
                   >
                     {/* Left Column: Widescreen Media Viewer & Thumbnails */}
-                    <div className="lg:w-7/12 min-h-[320px] sm:min-h-[420px] lg:min-h-[500px] relative bg-zinc-950 flex flex-col justify-between p-3 sm:p-6">
-                      <div className="absolute inset-0 z-0">
+                    <div className={`lg:w-7/12 min-h-[340px] sm:min-h-[440px] lg:min-h-[520px] relative bg-zinc-950 flex flex-col justify-between ${
+                      service.id === 'saas' ? 'p-0 overflow-hidden' : 'p-3 sm:p-5'
+                    }`}>
+                      <div className="absolute inset-0 z-0 overflow-hidden">
                         {service.id === 'saas' ? (
                           <div className="w-full h-full" onClick={(e) => e.stopPropagation()}>
                             <PlatformVideoPlayer isEmbedded={true} />
                           </div>
                         ) : (
-                          <img 
-                            src={service.gallery?.[currentMediaIndex]?.url || service.image} 
-                            alt={service.name} 
-                            loading="lazy" 
-                            decoding="async" 
-                            className="w-full h-full object-cover animate-in fade-in duration-500" 
-                          />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-black/40 pointer-events-none" />
-                      </div>
-
-                      {/* Top Media Title Badge & Slide Counter */}
-                      <div className="relative z-10 flex items-center justify-between w-full pr-2 sm:pr-4">
-                        <div className="bg-black/75 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border border-white/10 text-[10px] sm:text-xs font-medium text-white max-w-[75%] truncate shadow-lg">
-                          <span className="text-mjm-orange font-bold font-mono">
-                            {service.gallery?.[currentMediaIndex]?.title || service.name}
-                          </span>
-                        </div>
-                        {service.gallery && (
-                          <div className="bg-black/75 backdrop-blur-md px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-white/10 text-[10px] sm:text-xs font-mono text-zinc-300 font-bold">
-                            0{currentMediaIndex + 1} / 0{service.gallery.length}
+                          <div className="w-full h-full relative">
+                            <AnimatePresence mode="wait">
+                              <motion.img 
+                                key={`${service.id}-${currentMediaIndex}`}
+                                src={service.gallery?.[currentMediaIndex]?.url || service.image} 
+                                alt={service.gallery?.[currentMediaIndex]?.title || service.name} 
+                                initial={{ opacity: 0, scale: 1.05 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.97 }}
+                                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                                className="w-full h-full object-cover object-center absolute inset-0" 
+                              />
+                            </AnimatePresence>
                           </div>
                         )}
+                        {service.id !== 'saas' && (
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/40 pointer-events-none" />
+                        )}
                       </div>
 
-                      {/* Bottom Thumbnail Gallery Selector */}
-                      {service.gallery && service.gallery.length > 1 && (
-                        <div className="relative z-10 flex gap-2 w-full p-2 bg-black/75 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/10 mt-auto overflow-x-auto">
-                          {service.gallery.map((media, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setModalMediaIndices(prev => ({ ...prev, [service.id]: idx }))}
-                              className={`relative h-12 w-20 sm:h-14 sm:w-24 rounded-lg overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                                currentMediaIndex === idx ? 'border-mjm-orange scale-105 shadow-xl shadow-orange-500/30' : 'border-transparent opacity-50 hover:opacity-100'
-                              }`}
-                            >
-                              {media.type === 'video' ? (
-                                <div className="w-full h-full bg-[#070b14] flex flex-col items-center justify-center text-white relative">
-                                  <Play size={16} className="text-[#f7931b] fill-[#f7931b]" />
-                                  <span className="text-[8px] font-mono font-bold text-[#f7931b] uppercase mt-0.5">VIDEO</span>
-                                </div>
-                              ) : (
-                                <img src={media.url} alt={media.title} className="w-full h-full object-cover" />
-                              )}
-                            </button>
-                          ))}
+                      {/* Top Media Title Badge & Slide Counter (Oculto en SaaS para dejar libre el reproductor) */}
+                      {service.id !== 'saas' && (
+                        <div className="relative z-10 flex items-center justify-between w-full pr-1 sm:pr-2">
+                          <div className="bg-black/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/15 text-[11px] font-medium text-white max-w-[75%] truncate shadow-lg">
+                            <span className="text-[#f7931b] font-bold font-mono">
+                              {service.gallery?.[currentMediaIndex]?.title || service.name}
+                            </span>
+                          </div>
+                          {service.gallery && (
+                            <div className="bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 text-[11px] font-mono text-white font-bold flex items-center gap-1 shadow-lg">
+                              <span className="text-[#f7931b]">0{currentMediaIndex + 1}</span>
+                              <span className="text-zinc-500">/</span>
+                              <span>0{service.gallery.length}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Bottom Thumbnail Gallery Selector (4 fotos normalizadas y 100% centradas en grid simétrico) */}
+                      {service.id !== 'saas' && service.gallery && service.gallery.length > 1 && (
+                        <div className="relative z-10 grid grid-cols-4 gap-2 sm:gap-2.5 w-full p-2 bg-black/85 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/15 mt-auto shadow-2xl">
+                          {service.gallery.map((media, idx) => {
+                            const isCurrent = currentMediaIndex === idx;
+                            return (
+                              <button
+                                key={idx}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setModalMediaIndices(prev => ({ ...prev, [service.id]: idx }));
+                                }}
+                                className={`relative h-12 sm:h-14 w-full rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                                  isCurrent 
+                                    ? 'border-[#f7931b] scale-[1.02] shadow-[0_0_20px_rgba(247,147,27,0.5)] ring-1 ring-[#f7931b]/60 opacity-100' 
+                                    : 'border-white/10 opacity-50 hover:opacity-90 hover:border-white/40'
+                                }`}
+                                title={media.title}
+                              >
+                                <img 
+                                  src={media.url} 
+                                  alt={media.title} 
+                                  className="w-full h-full object-cover object-center" 
+                                />
+                                {isCurrent && (
+                                  <div className="absolute inset-0 bg-gradient-to-t from-[#f7931b]/25 to-transparent pointer-events-none" />
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -510,12 +629,49 @@ const ServicesPortfolio = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                           {service.cards ? (
                             service.cards.map((c, i) => (
-                              <div key={i} className="p-3 rounded-lg bg-white/[0.02] border border-white/10 text-xs">
-                                <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
-                                  <span className="text-mjm-orange">{c.icon}</span>
-                                  <span>{c.title}</span>
+                              <div 
+                                key={i} 
+                                onClick={() => c.isStar && handleCardClick(c)}
+                                className={`p-3.5 rounded-xl text-xs transition-all relative overflow-hidden flex flex-col justify-between ${
+                                  c.isStar 
+                                    ? 'bg-gradient-to-br from-[#f7931b]/20 via-orange-950/40 to-black/70 border-2 border-[#f7931b] shadow-[0_0_30px_rgba(247,147,27,0.3)] ring-1 ring-[#f7931b]/50 cursor-pointer hover:scale-[1.02] hover:border-amber-400 hover:shadow-[0_0_40px_rgba(247,147,27,0.5)] group/star' 
+                                    : 'bg-white/[0.02] border border-white/10'
+                                }`}
+                              >
+                                {isLaunchingDemo && c.isStar && (
+                                  <div className="absolute inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center gap-2 text-[#f7931b] font-mono text-xs font-bold z-20">
+                                    <Loader2 className="w-4 h-4 animate-spin text-[#f7931b]" />
+                                    <span>Iniciando Demo...</span>
+                                  </div>
+                                )}
+                                {c.isStar && (
+                                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
+                                    <span className="text-[8px] font-mono font-bold text-[#f7931b] uppercase tracking-wider opacity-0 group-hover/star:opacity-100 transition-opacity">
+                                      PROBAR AHORA
+                                    </span>
+                                    <Star className="w-4 h-4 text-[#f7931b] fill-[#f7931b] drop-shadow-[0_0_8px_rgba(247,147,27,0.9)] animate-pulse" />
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="font-bold text-white uppercase flex items-center gap-1.5 text-[11px]">
+                                    <span className={c.isStar ? 'text-[#f7931b]' : 'text-mjm-orange'}>{c.icon}</span>
+                                    <span className={c.isStar ? 'text-[#f7931b] font-extrabold tracking-tight group-hover/star:text-amber-300 transition-colors' : ''}>{c.title}</span>
+                                  </div>
+                                  {c.subtitle && (
+                                    <p className="text-[9px] font-mono text-[#f7931b] font-extrabold uppercase tracking-wider mt-0.5">
+                                      {c.subtitle}
+                                    </p>
+                                  )}
                                 </div>
-                                <p className="text-[10px] text-zinc-400 font-light mt-0.5 leading-relaxed">{c.desc}</p>
+                                <p className={`text-[10px] font-light mt-1.5 leading-relaxed ${c.isStar ? 'text-zinc-200' : 'text-zinc-400'}`}>{c.desc}</p>
+                                {c.isStar && (
+                                  <div className="mt-2.5 pt-2 border-t border-[#f7931b]/30 flex items-center justify-between text-[10px] font-mono font-bold text-[#f7931b] group-hover/star:text-amber-300">
+                                    <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider">
+                                      ⚡ Entrar al modo de pruebas
+                                    </span>
+                                    <ArrowRight className="w-3.5 h-3.5 group-hover/star:translate-x-1 transition-transform" />
+                                  </div>
+                                )}
                               </div>
                             ))
                           ) : (

@@ -19,6 +19,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
 import heroImage from '../../assets/login-hero.png';
+import manometroIndustrial from '../../assets/manometro_industrial.jpeg';
 import {
   Search, Plus, ChevronRight, ChevronDown, Eye,
   CheckCircle, Clock, AlertCircle, X, Building2, MapPin, Globe,
@@ -293,7 +294,7 @@ const BulkUploadModal = ({ onClose }) => {
 
 // --- INSTRUMENT CARD ---
 const InstrumentCard = ({ inst, onNavigate }) => {
-  const imgPlaceholder = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800";
+  const imgPlaceholder = manometroIndustrial;
   
   // Limpieza de caracteres extraños del Excel (Especialmente para DeltaSandbox)
   const cleanText = (text) => {
@@ -316,7 +317,11 @@ const InstrumentCard = ({ inst, onNavigate }) => {
       className="premium-card overflow-hidden group cursor-pointer flex flex-col h-full hover:scale-[1.02] transition-all"
     >
       <div className="h-44 relative overflow-hidden bg-[var(--surface-alt)]">
-        <img src={inst.imageUrl || imgPlaceholder} alt={inst.nombre} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+        <img 
+          src={inst.imageUrl && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : imgPlaceholder} 
+          alt={inst.nombre} 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] to-transparent opacity-40" />
         
         {/* BADGE DE CÓDIGO (INTENSE DARK GLASS EFFECT WITH PRIMARY TEXT) */}
@@ -1029,7 +1034,11 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                   onClick={handlePhotoClick}
                   className={`flex-shrink-0 w-44 h-44 bg-white rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#D4AF37]/35 overflow-hidden relative group/img transition-all flex items-center justify-center ${isEditing ? 'cursor-pointer hover:border-[var(--primary)] hover:scale-105' : ''}`}
                 >
-                  <img className="max-w-full max-h-full object-contain mix-blend-multiply" src={form.imageUrl || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500"} alt="Inst" />
+                  <img 
+                    className="max-w-full max-h-full object-contain mix-blend-multiply" 
+                    src={form.imageUrl && !form.imageUrl.includes('photo-1581091226825') ? form.imageUrl : manometroIndustrial} 
+                    alt="Inst" 
+                  />
                   {isEditing && (
                     <div className="absolute inset-0 bg-[#0B1326]/75 flex flex-col items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity">
                        <ImageIcon size={28} className="text-[#D4AF37] mb-2" />
@@ -1240,7 +1249,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                 {/* Imagen Principal */}
                 <div className="relative group rounded-2xl overflow-hidden bg-white border border-[#D4AF37]/50 aspect-square p-4 flex items-center justify-center shadow-lg">
                   <img 
-                    src={form.imageUrl || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=500"} 
+                    src={form.imageUrl && !form.imageUrl.includes('photo-1581091226825') ? form.imageUrl : manometroIndustrial} 
                     alt="Principal" 
                     className="max-w-full max-h-full object-contain mix-blend-multiply" 
                   />
