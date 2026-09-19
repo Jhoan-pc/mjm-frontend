@@ -1405,13 +1405,35 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
 
 export default function Inventario() {
   const navigate = useNavigate();
-  const { tenant, isSuperAdmin } = useAuthStore();
+  const { tenant, isSuperAdmin, isDemoMode, user } = useAuthStore();
   const { instruments, loading, loadInstruments } = useInventoryStore();
   const [search, setSearch] = useState('');
   const [showWizard, setShowWizard] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [viewMode, setViewMode] = useState('table'); // 'table' | 'grid'
+
+  const isDemo = Boolean(isDemoMode || user?.id === 'sandbox-dev-001' || tenant?.id === 'sandboxdemo');
+
+  // Vista Lista (Tabla) por defecto para entornos operativos; Tarjetas para Demo sin preferencia previa
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mjm_inventory_view_mode');
+      if (saved === 'table' || saved === 'grid') return saved;
+    } catch (e) {
+      console.warn('Error al leer mjm_inventory_view_mode:', e);
+    }
+    return isDemo ? 'grid' : 'table';
+  });
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('mjm_inventory_view_mode', mode);
+    } catch (e) {
+      console.warn('Error al guardar mjm_inventory_view_mode:', e);
+    }
+  };
+
   const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'Activo' | 'Próximo Vencimiento' | 'Vencido'
 
   React.useEffect(() => {
@@ -1524,10 +1546,10 @@ export default function Inventario() {
          <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
             <div className="flex items-center gap-0.5 bg-[var(--surface-alt)] p-0.5 rounded-lg border border-[var(--outline-color)]/30">
               <button
-                onClick={() => setViewMode('table')}
-                className={`p-1.5 rounded-md transition-all ${
+                onClick={() => handleViewModeChange('table')}
+                className={`p-1.5 rounded-md transition-all cursor-pointer ${
                   viewMode === 'table'
-                    ? 'bg-[var(--surface)] text-[var(--primary)] shadow-xs'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] shadow-xs font-bold'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
                 title="Vista de Tabla de Precisión (Alta Densidad)"
@@ -1535,13 +1557,13 @@ export default function Inventario() {
                 <List size={14} />
               </button>
               <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-md transition-all ${
+                onClick={() => handleViewModeChange('grid')}
+                className={`p-1.5 rounded-md transition-all cursor-pointer ${
                   viewMode === 'grid'
-                    ? 'bg-[var(--surface)] text-[var(--primary)] shadow-xs'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] shadow-xs font-bold'
                     : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
                 }`}
-                title="Vista en Cuadrícula"
+                title="Vista en Cuadrícula (Tarjetas)"
               >
                 <LayoutGrid size={14} />
               </button>
