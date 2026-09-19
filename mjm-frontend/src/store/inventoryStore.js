@@ -392,14 +392,20 @@ export const useInventoryStore = create((set, get) => ({
     
     let newLog = null;
     if (status === 'done' && instrumentId) {
+      const declaracion = updateData.declaracion_conformidad || updateData.conformidad_metrologica || 'Conforme';
       newLog = {
         fecha: updateData.fecha_ejecucion || new Date().toISOString().split('T')[0],
         tipo: activity?.tipo || 'Calibración',
-        laboratorio: updateData.laboratorio_ejecutor || 'Laboratorio Metrológico MJM',
-        error: updateData.error_encontrado !== undefined ? updateData.error_encontrado : 0.02,
-        incertidumbre: updateData.incertidumbre_medicion !== undefined ? updateData.incertidumbre_medicion : 0.01,
-        certificado_url: updateData.certificado_url || 'https://firebasestorage.googleapis.com/v0/b/mjm-core-bd.firebasestorage.app/o/Certificado_MJM_Demo.pdf',
-        declaracion_conformidad: updateData.declaracion_conformidad || 'Conforme'
+        laboratorio: updateData.laboratorio_ejecutor || updateData.laboratorio || 'Laboratorio Metrológico MJM',
+        error: updateData.error_encontrado !== undefined && updateData.error_encontrado !== null ? updateData.error_encontrado : 0.00,
+        incertidumbre: updateData.incertidumbre_medicion !== undefined && updateData.incertidumbre_medicion !== null 
+          ? updateData.incertidumbre_medicion 
+          : (updateData.incertidumbre !== undefined && updateData.incertidumbre !== null ? updateData.incertidumbre : 0.00),
+        certificado: updateData.certificado || updateData.certificado_numero || (updateData.certificado_url ? 'CERT-REGISTRADO' : 'CERT-INT-001'),
+        certificado_url: updateData.certificado_url || null,
+        declaracion_conformidad: declaracion,
+        conformidad_metrologica: declaracion,
+        patron_referencia: updateData.patron_referencia || null
       };
     }
     
@@ -461,12 +467,32 @@ export const useInventoryStore = create((set, get) => ({
         const instSnap = await getDoc(instRef);
         if (instSnap.exists()) {
           const currentHistorial = instSnap.data().historial || [];
+          const newStatus = (newLog.declaracion_conformidad === 'Conforme' || newLog.conformidad_metrologica === 'Conforme') ? 'Activo' : 'No Conforme';
           await updateDoc(instRef, {
             historial: [newLog, ...currentHistorial],
-            lastStatus: newLog.declaracion_conformidad === 'Conforme' ? 'Activo' : 'No Conforme'
+            lastStatus: newStatus,
+            estado: newStatus
           });
         }
       }
+
+      // Sincronizar estado local en memoria de Zustand para reactividad instantánea en la UI
+      set(state => ({
+        activities: state.activities.map(act => act.id === activityId ? { ...act, ...updateData } : act),
+        instruments: state.instruments.map(inst => {
+          if (inst.id === instrumentId && newLog) {
+            const currentHistorial = inst.historial || [];
+            const newStatus = (newLog.declaracion_conformidad === 'Conforme' || newLog.conformidad_metrologica === 'Conforme') ? 'Activo' : 'No Conforme';
+            return {
+              ...inst,
+              historial: [newLog, ...currentHistorial],
+              lastStatus: newStatus,
+              estado: newStatus
+            };
+          }
+          return inst;
+        })
+      }));
     } catch (e) {
       console.warn("Aviso al actualizar en Firestore:", e.message);
     }

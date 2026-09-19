@@ -23,6 +23,7 @@ import {
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
 import { sendMetrologyEmailAlert } from '../../services/emailAlertService';
+import ClosureModal from '../../components/dashboard/ClosureModal';
 
 export default function Calendario() {
   const { activities, loadActivities, instruments, loadInstruments, addActivity, updateActivityStatus } = useInventoryStore();
@@ -31,11 +32,12 @@ export default function Calendario() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Estados para Modal de Nueva Actividad y Alertas
+  // Estados para Modal de Nueva Actividad, Cierre y Alertas
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [alertSuccessToast, setAlertSuccessToast] = useState('');
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [closureAct, setClosureAct] = useState(null);
 
   const todayStr = useMemo(() => {
     return new Date().toISOString().split('T')[0];
@@ -441,13 +443,14 @@ export default function Calendario() {
                         )}
                         {act.estado !== 'done' && (
                           <button
-                            onClick={async (e) => {
+                            onClick={(e) => {
                               e.stopPropagation();
-                              await updateActivityStatus(act.id, 'done');
+                              setClosureAct(act);
                             }}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider transition-all"
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
+                            title="Completar y Registrar Certificado Metrológico"
                           >
-                            Completar
+                            <CheckCircle2 size={12} /> Completar
                           </button>
                         )}
                         <button
@@ -475,28 +478,54 @@ export default function Calendario() {
           })()}
         </div>
 
-        {/* QUICK STATS IN SIDEBAR */}
-        <div className="p-6 bg-[var(--sidebar-bg)] text-white shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
-           <div className="flex items-center gap-3 mb-6">
-              <AlertCircle size={22} className="text-[var(--tertiary)]" />
-              <h4 className="font-black text-sm uppercase tracking-widest">Alertas Críticas</h4>
+        {/* QUICK STATS IN SIDEBAR (Efecto Glass Azul Industrial) */}
+        <div className="p-4 m-4 rounded-2xl text-white backdrop-blur-2xl border border-sky-400/30 shadow-[0_20px_50px_rgba(10,25,47,0.85),0_0_30px_rgba(56,189,248,0.2)] overflow-hidden bg-gradient-to-b from-[#14284b]/95 via-[#0d1d36]/95 to-[#091528]/95 relative before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.2),_transparent_70%)] before:pointer-events-none shrink-0">
+           <div className="flex items-center gap-2.5 mb-3 border-b border-sky-400/20 pb-2.5 relative">
+              <div className="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.35)]">
+                 <AlertCircle size={15} />
+              </div>
+              <div>
+                 <h4 className="font-space font-bold text-xs uppercase tracking-wider text-white">Alertas Críticas</h4>
+                 <p className="text-[9px] font-inter text-sky-300/70 font-medium">Estado del Plan Metrológico</p>
+              </div>
            </div>
-           <div className="space-y-4">
-              <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                 <span className="text-xs font-bold opacity-60">Vencimientos</span>
-                 <span className={`${stats.vencidos > 0 ? 'bg-red-500 animate-pulse' : 'bg-neutral-600'} px-2.5 py-1 rounded text-xs font-black text-white`}>
+           <div className="space-y-2 font-inter relative">
+              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                 <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${stats.vencidos > 0 ? 'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)] animate-pulse' : 'bg-slate-500'}`} />
+                    <span className="text-xs font-medium text-slate-200">Vencimientos</span>
+                 </div>
+                 <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                   stats.vencidos > 0 
+                     ? 'bg-red-500/25 text-red-300 border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse' 
+                     : 'bg-white/10 text-slate-300 border border-white/10'
+                 }`}>
                     {String(stats.vencidos).padStart(2, '0')}
                  </span>
               </div>
-              <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                 <span className="text-xs font-bold opacity-60">Programados Hoy</span>
-                 <span className="bg-[var(--primary)] px-2.5 py-1 rounded text-xs font-black text-[#1A202C]">
+              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                 <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${stats.hoy > 0 ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] animate-pulse' : 'bg-slate-500'}`} />
+                    <span className="text-xs font-medium text-slate-200">Programados Hoy</span>
+                 </div>
+                 <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                   stats.hoy > 0 
+                     ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)]' 
+                     : 'bg-white/10 text-slate-300 border border-white/10'
+                 }`}>
                     {String(stats.hoy).padStart(2, '0')}
                  </span>
               </div>
-              <div className="flex justify-between items-center">
-                 <span className="text-xs font-bold opacity-60">En Proceso</span>
-                 <span className="bg-[var(--tertiary)] px-2.5 py-1 rounded text-xs font-black text-[#1A202C]">
+              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                 <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${stats.enProceso > 0 ? 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]' : 'bg-slate-500'}`} />
+                    <span className="text-xs font-medium text-slate-200">En Proceso</span>
+                 </div>
+                 <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                   stats.enProceso > 0 
+                     ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.3)]' 
+                     : 'bg-white/10 text-slate-300 border border-white/10'
+                 }`}>
                     {String(stats.enProceso).padStart(2, '0')}
                  </span>
               </div>
@@ -672,6 +701,52 @@ export default function Calendario() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* MODAL DE CIERRE METROLÓGICO (ISO 10012) */}
+      {closureAct && (
+        <ClosureModal 
+          activity={closureAct} 
+          onClose={() => setClosureAct(null)} 
+          onFinish={async (data) => {
+            await updateActivityStatus(closureAct.id, 'done', {
+              error_encontrado: data.error_encontrado,
+              incertidumbre_medicion: data.incertidumbre,
+              declaracion_conformidad: data.conformidad_metrologica,
+              fecha_ejecucion: data.fecha_ejecucion,
+              laboratorio_ejecutor: data.laboratorio,
+              certificado_url: data.certificado_url,
+              certificado_numero: data.certificado_numero,
+              patron_referencia: data.patron_referencia,
+              laboratorio_tipo: data.laboratorio_tipo,
+              criterio_tipo: data.criterio_tipo,
+              criterio_valor: data.criterio_valor
+            });
+
+            // Si es NO CONFORME, generar tarea correctiva automáticamente
+            if (data.conformidad_metrologica === 'No Conforme') {
+              const tenantId = closureAct.tenantId || tenant?.id;
+              const nextWeekDate = new Date();
+              nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
+              const dateStr = nextWeekDate.toISOString().split('T')[0];
+
+              await addActivity({
+                tenantId,
+                instrumentId: closureAct.instrumentId,
+                instrumentNombre: closureAct.instrumentNombre,
+                codigoMJM: closureAct.codigoMJM || '',
+                tipo: 'Mantenimiento',
+                estado: 'todo',
+                fechaProgramada: dateStr,
+                priority: 'high',
+                notas: `Generado automáticamente por desviación metrológica crítica detectada en calibración/verificación del activo. Tolerancia excedida.`
+              });
+            }
+
+            setClosureAct(null);
+            setSelectedActivity(null);
+          }}
+        />
       )}
 
     </div>
