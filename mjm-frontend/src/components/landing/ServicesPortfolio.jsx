@@ -309,7 +309,7 @@ const ServicesPortfolio = () => {
       {/* 5. NUESTROS SERVICIOS SECTION (Dual-Column Pinned Scroll Gallery Ingyemel Style) */}
       <section 
         id="servicios" 
-        className="py-28 md:py-36 bg-gradient-to-b from-[#121214] via-[#09090B] to-[#070708] relative z-20 shadow-2xl border-t-2 border-white/20 rounded-t-[44px] md:rounded-t-[64px]"
+        className="py-28 md:py-36 bg-gradient-to-b from-[#121214] via-[#09090B] to-[#070708] relative z-20 shadow-2xl border-t border-white/10"
       >
         <div className="max-w-[1440px] mx-auto px-6 md:px-12">
           

@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Lightbulb,
   AlertCircle,
-  ArrowLeft
+  ArrowLeft,
+  Sparkles
 } from 'lucide-react';
 import mjmLogo from '../assets/logo_final_2.0.png';
 import heroImage from '../assets/metrology_bg_real.jpg';
@@ -188,6 +189,30 @@ export default function Login() {
                     Ingresar a la Plataforma <ArrowRight size={15} />
                   </>
                 )}
+              </button>
+
+              <div className="relative flex py-1 items-center">
+                <div className="flex-grow border-t border-slate-200"></div>
+                <span className="flex-shrink mx-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">O</span>
+                <div className="flex-grow border-t border-slate-200"></div>
+              </div>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    await useAuthStore.getState().loginDemo();
+                    navigate('/dashboard');
+                  } catch (_) {
+                    setError('No se pudo iniciar el modo demo.');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-[#f7931b] border border-[#f7931b]/30 font-bold text-xs uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+              >
+                <Sparkles size={15} /> Explorar como Visitante Demo
               </button>
            </form>
 

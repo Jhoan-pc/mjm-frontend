@@ -12,26 +12,26 @@ const cleanUnitDisplay = (val) => {
 const HojaDeVidaPrint = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { instruments, loadInstruments } = useInventoryStore();
+  const { instruments, loadInstruments, getInstrumentFromFirestore } = useInventoryStore();
   const { tenant } = useAuthStore();
   const [inst, setInst] = useState(null);
 
   useEffect(() => {
     // Asegurar que los instrumentos estén cargados para el tenant actual o el sandbox
-    const activeTenantId = tenant?.id || 'deltapruebas-sandbox';
+    const activeTenantId = tenant?.id || 'sandboxdemo';
     loadInstruments(activeTenantId);
-  }, [tenant]);
+  }, [tenant, loadInstruments]);
 
   useEffect(() => {
     const found = instruments.find(i => i.id === id);
     if (found) {
       setInst(found);
-      // Lanzar impresión automáticamente después de renderizar
-      setTimeout(() => {
-        // window.print();
-      }, 1000);
+    } else if (getInstrumentFromFirestore) {
+      getInstrumentFromFirestore(id).then(item => {
+        if (item) setInst(item);
+      });
     }
-  }, [id, instruments]);
+  }, [id, instruments, getInstrumentFromFirestore]);
 
   if (!inst) return <div className="p-20 text-center font-black animate-pulse uppercase tracking-widest text-[var(--primary)]">Generando Reporte Metrológico...</div>;
 
@@ -229,30 +229,54 @@ const HojaDeVidaPrint = () => {
            </div>
         </section>
 
-        {/* HISTORIAL */}
-        <section className="flex flex-col gap-3 flex-grow justify-end">
+        {/* HISTORIAL TÉCNICO Y TRAZABILIDAD (ISO 10012) */}
+        <section className="flex flex-col gap-2 flex-grow justify-end">
           <div className="flex justify-between items-end">
-             <h3 className="text-[9px] text-[#0B1326] font-bold uppercase tracking-[0.3em] border-l-2 border-slate-400 pl-3">Registro Histórico de Calibración</h3>
-             <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest font-mono">Página 01 de 01</span>
+             <h3 className="text-[9px] text-[#0B1326] font-bold uppercase tracking-[0.3em] border-l-2 border-slate-400 pl-3">Registro Histórico de Calibración & Mantenimiento</h3>
+             <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest font-mono">Trazabilidad ISO 10012</span>
           </div>
           <div className="overflow-hidden border border-slate-200 rounded-xl">
              <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50 border-b border-slate-200 font-mono text-[8px] font-bold text-slate-400 uppercase tracking-widest">
                    <tr>
-                      <th className="px-6 py-2.5">Fecha</th>
-                      <th className="px-6 py-2.5">Certificado No.</th>
-                      <th className="px-6 py-2.5">Proveedor / Lab</th>
-                      <th className="px-6 py-2.5">Error Máx</th>
-                      <th className="px-6 py-2.5">Acciones</th>
+                      <th className="px-4 py-2">Fecha</th>
+                      <th className="px-4 py-2">Actividad</th>
+                      <th className="px-4 py-2">Certificado No.</th>
+                      <th className="px-4 py-2">Laboratorio / Proveedor</th>
+                      <th className="px-4 py-2 text-center">Error / Desviación</th>
+                      <th className="px-4 py-2 text-right">Dictamen</th>
                    </tr>
                 </thead>
-                <tbody>
-                   <tr className="border-b border-slate-50">
-                      <td colSpan="5" className="px-6 py-8 text-center">
-                         <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono mb-0.5">Sin registros previos en base de datos</p>
-                         <p className="text-[10px] text-slate-400 italic">El activo no cuenta con calibraciones registradas en el periodo actual.</p>
-                      </td>
-                   </tr>
+                <tbody className="divide-y divide-slate-100 font-mono text-[8px]">
+                   {(inst.historial || []).length > 0 ? (
+                     (inst.historial).slice(0, 5).map((reg, idx) => (
+                       <tr key={idx} className="hover:bg-slate-50/50">
+                         <td className="px-4 py-2 font-bold text-slate-700">{reg.fecha || 'N/A'}</td>
+                         <td className="px-4 py-2 font-black uppercase text-slate-800">{reg.tipo || 'Calibración'}</td>
+                         <td className="px-4 py-2 text-slate-600">{reg.certificado || (reg.certificado_url ? 'CERT-REGISTRADO' : 'CERT-INT-001')}</td>
+                         <td className="px-4 py-2 text-slate-600 uppercase">{reg.laboratorio || reg.ejecutor || 'Laboratorio Metrológico MJM'}</td>
+                         <td className="px-4 py-2 text-center text-slate-600">
+                           {reg.error !== undefined ? `±${reg.error}` : '0.00'}
+                         </td>
+                         <td className="px-4 py-2 text-right">
+                           <span className={`px-2 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider border ${
+                             (reg.declaracion_conformidad === 'No Conforme' || reg.resultado === 'No Conforme')
+                               ? 'bg-red-50 text-red-700 border-red-200'
+                               : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                           }`}>
+                             {reg.declaracion_conformidad || reg.resultado || 'Conforme'}
+                           </span>
+                         </td>
+                       </tr>
+                     ))
+                   ) : (
+                     <tr className="border-b border-slate-50">
+                        <td colSpan="6" className="px-6 py-6 text-center">
+                           <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.4em] font-mono mb-0.5">Sin registros previos en base de datos</p>
+                           <p className="text-[9px] text-slate-400 italic">El activo no cuenta con calibraciones registradas en el periodo actual.</p>
+                        </td>
+                     </tr>
+                   )}
                 </tbody>
              </table>
           </div>

@@ -302,55 +302,56 @@ export default function HojaDeVida() {
         </div>
 
         {/* Event History Table */}
-        <div className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm overflow-hidden mb-12">
-          <div className="p-stack-lg flex justify-between items-center border-b border-outline-variant/50">
-            <div className="flex items-center gap-stack-sm">
-              <History className="text-primary" size={22} />
-              <h3 className="font-headline-md text-on-surface">Historial de rutinas</h3>
+        {/* Event History Table */}
+        <div className="lg:col-span-12 bg-surface-container-lowest border border-outline-variant/30 rounded-xl shadow-sm overflow-hidden mb-8">
+          <div className="px-5 py-3.5 flex justify-between items-center border-b border-outline-variant/20">
+            <div className="flex items-center gap-2">
+              <History className="text-primary" size={18} />
+              <h3 className="font-bold text-sm text-[var(--text-main)] uppercase tracking-wider">Historial de Rutinas & Calibraciones</h3>
             </div>
-            <button className="text-primary font-bold text-xs uppercase tracking-widest hover:underline transition-all">Ver Historial Completo</button>
+            <span className="text-[10px] font-mono text-[var(--text-muted)] font-bold">Total: {inst.historial?.length || 0} registros</span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-surface-container-high/50 text-[10px] font-label-caps text-on-surface-variant uppercase tracking-widest">
+            <table className="w-full text-xs">
+              <thead className="bg-[var(--surface-alt)] text-[9px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider border-b border-outline-variant/20">
                 <tr>
-                  <th className="px-stack-lg py-4">Fecha</th>
-                  <th className="px-stack-lg py-4">Descripción de la Actividad</th>
-                  <th className="px-stack-lg py-4">Tipo</th>
-                  <th className="px-stack-lg py-4">Estado</th>
-                  <th className="px-stack-lg py-4 text-right">Acciones</th>
+                  <th className="px-4 py-2.5 text-left">Fecha</th>
+                  <th className="px-4 py-2.5 text-left">Descripción de la Actividad</th>
+                  <th className="px-4 py-2.5 text-center">Tipo</th>
+                  <th className="px-4 py-2.5 text-center">Dictamen</th>
+                  <th className="px-4 py-2.5 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-outline-variant/10 font-body-md text-sm">
-                {(inst.historial || []).slice(0, 5).map((log, idx) => (
-                  <tr key={idx} className="hover:bg-surface-container-low transition-colors group">
-                    <td className="px-stack-lg py-4 font-data-md">{formatDateYYYYMMDD(log.fecha)}</td>
-                    <td className="px-stack-lg py-4 font-medium text-on-surface">{log.tipo} - {log.laboratorio || 'MJM Internal'}</td>
-                    <td className="px-stack-lg py-4">
-                      <span className="px-2 py-1 rounded bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase">
+              <tbody className="divide-y divide-outline-variant/10 text-xs">
+                {(inst.historial || []).slice(0, 10).map((log, idx) => (
+                  <tr key={idx} className="hover:bg-[var(--surface-alt)]/50 transition-colors group">
+                    <td className="px-4 py-2.5 font-mono text-[var(--text-main)]">{formatDateYYYYMMDD(log.fecha)}</td>
+                    <td className="px-4 py-2.5 font-medium text-[var(--text-main)]">{log.tipo} - {log.laboratorio || 'MJM Metrología'}</td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className="px-2 py-0.5 rounded bg-[var(--surface-alt)] text-[var(--text-muted)] text-[9px] font-mono font-bold uppercase border border-[var(--outline-color)]/20">
                         {log.tipo}
                       </span>
                     </td>
-                    <td className="px-stack-lg py-4">
-                      <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                        <CheckCircle2 size={14} /> Aprobado
+                    <td className="px-4 py-2.5 text-center">
+                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                        <CheckCircle2 size={13} /> {log.conformidad_metrologica || log.declaracion_conformidad || 'Conforme'}
                       </span>
                     </td>
-                     <td className="px-stack-lg py-4 text-right">
+                    <td className="px-4 py-2.5 text-right">
                       {log.certificado_url || log.certificadoUrl ? (
                         <button 
                           onClick={() => {
                             setPdfModalUrl(log.certificado_url || log.certificadoUrl);
                             setIsPdfModalOpen(true);
                           }}
-                          className="p-2 text-primary hover:text-primary-dark transition-colors"
+                          className="p-1 text-primary hover:text-primary-dark transition-colors inline-flex items-center gap-1 text-[10px] font-bold"
                           title="Ver Certificado PDF"
                         >
-                          <FileText size={18} />
+                          <FileText size={15} /> Ver PDF
                         </button>
                       ) : (
-                        <span className="p-2 text-on-surface-variant/20 cursor-not-allowed" title="Sin PDF Adjunto">
-                          <FileText size={18} />
+                        <span className="p-1 text-on-surface-variant/30 cursor-not-allowed text-[10px]" title="Sin PDF Adjunto">
+                          Sin Adjunto
                         </span>
                       )}
                     </td>
@@ -358,7 +359,7 @@ export default function HojaDeVida() {
                 ))}
                 {(!inst.historial || inst.historial.length === 0) && (
                   <tr>
-                    <td colSpan="5" className="px-stack-lg py-12 text-center text-on-surface-variant opacity-40 italic">
+                    <td colSpan="5" className="px-4 py-8 text-center text-on-surface-variant/40 italic">
                       No se registran eventos previos para este instrumento.
                     </td>
                   </tr>

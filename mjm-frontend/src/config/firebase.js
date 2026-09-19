@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 // Configuración de Firebase para "MJM Sistema 2026"
 // Estas variables deben venir del entorno para mayor seguridad en producción
@@ -11,15 +12,27 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "mjm-core-bd",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "mjm-core-bd.firebasestorage.app",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "481709719870",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:481709719870:web:2aa45c88d89b719d6bec6f"
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:481709719870:web:2aa45c88d89b719d6bec6f",
+  measurementId: "G-DZZPT3KJ20"
 };
 
 // Inicializar la aplicación
 const app = initializeApp(firebaseConfig);
 
 // Instanciar los servicios requeridos
+export { firebaseConfig };
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Inicializar Analytics si el navegador lo soporta
+export let analytics = null;
+if (typeof window !== "undefined") {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  });
+}
 
 export default app;

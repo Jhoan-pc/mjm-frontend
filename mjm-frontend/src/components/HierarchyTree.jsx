@@ -41,7 +41,7 @@ const TreeNode = ({ node, level, onAddChild, onFilterChange, activeFilter, onTog
     if (node.type === 'mjm') {
       return true; // Todos los del Hub
     }
-    if (node.type === 'cliente' && (i.tenantId === node.id || node.id === 'deltapruebas-sandbox')) {
+    if (node.type === 'cliente' && (i.tenantId === node.id || node.id === 'sandboxdemo' || node.id === 'deltapruebas-sandbox')) {
       return true;
     }
     if (node.id.startsWith('pais_default_') || node.id.startsWith('planta_default_') || node.id.startsWith('area_default_')) {
@@ -254,7 +254,7 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
 
         // Autogenerar estructura basada en los instrumentos si no hay jerarquías explísitas guardadas
         if (hierarchyDocs.length === 0 && instruments && instruments.length > 0) {
-          const tenantId = tenant?.id || 'deltapruebas-sandbox';
+          const tenantId = tenant?.id || 'sandboxdemo';
           const defaultPaisId = `pais_default_${tenantId}`;
           const defaultPlantaId = `planta_default_${tenantId}`;
           const defaultAreaId = `area_default_${tenantId}`;
@@ -452,7 +452,7 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col h-[650px] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col h-[650px] overflow-hidden">
       <div className="p-6 bg-gray-50 border-b border-gray-100 flex justify-between items-center shrink-0">
         <div>
           <h4 className="font-black text-mjm-navy uppercase text-sm flex items-center gap-2">
@@ -510,7 +510,7 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
 
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[150] p-4 animate-in fade-in duration-300">
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm animate-in zoom-in-95 duration-300">
+          <div className="bg-white p-7 rounded-2xl shadow-2xl w-full max-w-sm animate-in zoom-in-95 duration-300 border border-slate-200">
             <h3 className="text-xl font-black text-mjm-navy uppercase tracking-tighter mb-1">Añadir {modalType === 'cliente' ? 'Cliente' : LEVEL_CONFIG[modalType]?.label}</h3>
             <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-6">MJM Core Cloud Registry</p>
             

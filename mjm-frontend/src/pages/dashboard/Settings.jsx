@@ -2,14 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Settings as SettingsIcon, Map, Layout, Sliders, ChevronRight, Globe, FileText, Database,
   ShieldCheck, Building, Users, Check, MapPin, X, Loader2, Mail, Phone, Calendar as CalendarIcon, ExternalLink, Wrench,
-  Terminal, Globe2, Briefcase, Lock, Fingerprint, Palette, TerminalSquare, Plus, Key, Eye, EyeOff, DollarSign, Power, Percent
+  Terminal, Globe2, Briefcase, Lock, Fingerprint, Palette, TerminalSquare, Plus, Key, Eye, EyeOff, DollarSign, Power, Percent,
+  Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useContentStore } from '../../store/contentStore';
 import HierarchyTree from '../../components/HierarchyTree';
 import { collection, addDoc, serverTimestamp, getDocs, getDoc, query, where, deleteDoc, doc, updateDoc, setDoc } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { db, auth } from '../../config/firebase';
+import { initializeApp, getApps } from 'firebase/app';
+import { createUserWithEmailAndPassword, getAuth, signOut } from 'firebase/auth';
+import { db, auth, firebaseConfig } from '../../config/firebase';
 import { useAuthStore } from '../../store/authStore';
 import Cotizador from './Cotizador';
 import { useInventoryStore } from '../../store/inventoryStore';
@@ -59,6 +61,144 @@ const BrandingConfig = () => {
           <button onClick={handleSave} className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 ${saved ? 'bg-green-500 text-white' : 'bg-mjm-navy text-white hover:bg-mjm-orange shadow-xl shadow-mjm-navy/10'}`}>
             {saved ? <><Check size={16} /> Cambios Aplicados</> : 'Actualizar Portal'}
           </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── CONFIGURACIÓN DE ALERTAS POR CORREO ELECTRÓNICO (ISO 10012) ───
+const NotificationAlertsConfig = () => {
+  const { tenant } = useAuthStore();
+  const [emailAlertas, setEmailAlertas] = useState(tenant?.email_alertas || tenant?.email_contacto || '');
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
+
+  useEffect(() => {
+    if (tenant) {
+      setEmailAlertas(tenant.email_alertas || tenant.email_contacto || '');
+    }
+  }, [tenant]);
+
+  const handleSaveAlertEmail = async () => {
+    if (!emailAlertas || !emailAlertas.includes('@')) {
+      alert("Por favor ingrese un correo electrónico válido.");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (tenant?.id && tenant.id !== 'sandboxdemo') {
+        await updateDoc(doc(db, 'tenants', tenant.id), {
+          email_alertas: emailAlertas.trim()
+        });
+      }
+      useAuthStore.setState(state => ({
+        tenant: { ...state.tenant, email_alertas: emailAlertas.trim() }
+      }));
+      setStatusMsg('✅ Correo de alertas actualizado exitosamente.');
+      setTimeout(() => setStatusMsg(''), 4000);
+    } catch (err) {
+      console.error(err);
+      alert("Error al actualizar el correo de alertas: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestAlert = async () => {
+    setTesting(true);
+    setStatusMsg('');
+    try {
+      const { sendMetrologyEmailAlert } = await import('../../services/emailAlertService');
+      const testActivity = {
+        id: 'test_alert_' + Date.now(),
+        instrumentNombre: 'Balanza Analítica Sartorius (Equipo de Verificación)',
+        codigoMJM: 'BAL-001',
+        tipo: 'Calibración Periódica',
+        fechaProgramada: new Date().toISOString().split('T')[0],
+        priority: 'high',
+        notas: 'Alerta de prueba emitida desde el panel de configuración de alertas de ' + (tenant?.nombre_empresa || 'la empresa') + '.'
+      };
+      const res = await sendMetrologyEmailAlert({
+        activity: testActivity,
+        tenant: { ...tenant, email_alertas: emailAlertas },
+        reason: 'verificacion_configuracion'
+      });
+      setStatusMsg(`📧 ${res.message || 'Alerta encolada exitosamente en Firebase.'}`);
+      setTimeout(() => setStatusMsg(''), 6000);
+    } catch (err) {
+      console.error(err);
+      alert("Error al enviar alerta de prueba: " + err.message);
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 font-sans">
+      <SectionHeader 
+        title="Alertas & Notificaciones por Email (ISO 10012)" 
+        subtitle="Configure el buzón donde se recibirán las alertas automáticas de vencimiento, mantenimientos y no conformidades."
+        icon={Bell}
+      />
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 space-y-6">
+        <div className="p-4 bg-sky-50 rounded-2xl border border-sky-100 flex items-start gap-3">
+          <div className="p-2 rounded-xl bg-sky-500/10 text-sky-600 mt-0.5">
+            <Mail size={18} />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-xs font-black uppercase tracking-wider text-sky-900">
+              Integración Nativa con Firebase Trigger Email
+            </h4>
+            <p className="text-xs text-sky-800/80 mt-1 leading-relaxed">
+              Cada vez que se programa una actividad de alta prioridad, se detecta un activo próximo a vencer o se registra una calibración no conforme, Firebase encola automáticamente un correo con la plantilla corporativa de <strong>{tenant?.nombre_empresa}</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 flex items-center justify-between">
+            <span>Buzón de Recepción de Alertas Metrológicas</span>
+            <span className="text-[9px] font-mono text-mjm-orange font-bold">EMPRESA: {tenant?.nombre_empresa}</span>
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input 
+              type="email" 
+              value={emailAlertas} 
+              onChange={(e) => setEmailAlertas(e.target.value)} 
+              placeholder="ej. alertas.calidad@empresa.com"
+              className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-mjm-orange/20 outline-none transition-all font-bold text-mjm-navy text-sm" 
+            />
+          </div>
+          <p className="text-[11px] text-gray-400">
+            Puedes especificar un correo individual del Jefe de Metrología o una lista de distribución (ej. <code>calidad-alertas@empresa.com</code>).
+          </p>
+        </div>
+
+        {statusMsg && (
+          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold animate-in fade-in">
+            {statusMsg}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-4 pt-2">
+          <button 
+            disabled={saving}
+            onClick={handleSaveAlertEmail} 
+            className="px-8 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest bg-mjm-navy text-white hover:bg-mjm-orange shadow-lg shadow-mjm-navy/10 transition-all active:scale-95 flex items-center gap-2 cursor-pointer"
+          >
+            {saving ? <Loader2 size={16} className="animate-spin" /> : <><Check size={16} /> Guardar Configuración</>}
+          </button>
+
+          <button 
+            disabled={testing}
+            onClick={handleTestAlert}
+            className="px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            {testing ? <Loader2 size={16} className="animate-spin" /> : <><Bell size={16} /> Enviar Alerta de Prueba Ahora</>}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -127,14 +267,34 @@ const CRMAdminView = () => {
   // Modales
   const [showUserModal, setShowUserModal] = useState(false);
   const [showPayModal, setShowPayModal] = useState(false);
+  const [showNewTenantModal, setShowNewTenantModal] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState(null);
+
+  // Formulario de Nueva Empresa / Tenant
+  const [newTenantForm, setNewTenantForm] = useState({
+    nombre_empresa: '',
+    nit: '',
+    email_contacto: '',
+    email_alertas: '',
+    telefono_contacto: '',
+    direccion: '',
+    ciudad: 'Bogotá',
+    color_principal: '#234c74',
+    color_secundario: '#f7931b',
+    logo_url: '',
+    suscripcion_monto: '5000000',
+    admin_nombre: '',
+    admin_email: '',
+    admin_password: '',
+  });
+  const [newTenantSaving, setNewTenantSaving] = useState(false);
   
   // Formulario de Usuario nuevo
   const [userForm, setUserForm] = useState({
     nombre: '',
     email: '',
     password: '',
-    rol: 'cliente_planta', 
+    rol: 'cliente_admin', 
     plantaAsignada: '',
     seccionAsignada: ''
   });
@@ -176,29 +336,129 @@ const CRMAdminView = () => {
     fetchTenants();
   }, []);
 
+  // Crear Nueva Empresa (Tenant) con opción de usuario inicial
+  const handleCreateTenant = async () => {
+    if (!newTenantForm.nombre_empresa.trim()) {
+      alert("Por favor ingrese el nombre o razón social de la empresa.");
+      return;
+    }
+    setNewTenantSaving(true);
+    try {
+      const montoCobrado = Number(newTenantForm.suscripcion_monto) || 0;
+      const tenantPayload = {
+        nombre_empresa: newTenantForm.nombre_empresa.trim(),
+        nit: newTenantForm.nit ? newTenantForm.nit.trim() : 'Sin Registrar',
+        email_contacto: newTenantForm.email_contacto ? newTenantForm.email_contacto.trim() : '',
+        email_alertas: newTenantForm.email_alertas ? newTenantForm.email_alertas.trim() : (newTenantForm.email_contacto ? newTenantForm.email_contacto.trim() : ''),
+        telefono_contacto: newTenantForm.telefono_contacto ? newTenantForm.telefono_contacto.trim() : '',
+        direccion: newTenantForm.direccion ? newTenantForm.direccion.trim() : '',
+        ciudad: newTenantForm.ciudad ? newTenantForm.ciudad.trim() : 'Colombia',
+        logo_url: newTenantForm.logo_url || `https://placehold.co/200x60/234c74/white?text=${encodeURIComponent(newTenantForm.nombre_empresa.trim())}`,
+        color_institucional_principal: newTenantForm.color_principal || '#234c74',
+        color_institucional_secundario: newTenantForm.color_secundario || '#f7931b',
+        suscripcion_activa: true,
+        suscripcion_monto: montoCobrado,
+        suscripcion_socio_monto: montoCobrado * 0.5,
+        suscripcion_inicio: new Date().toISOString().split('T')[0],
+        suscripcion_fin: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+        createdAt: serverTimestamp(),
+      };
+
+      const docRef = await addDoc(collection(db, 'tenants'), tenantPayload);
+      const newTenantId = docRef.id;
+
+      // Crear usuario administrador inicial de la empresa de forma segura (sin desloguear al superadmin)
+      if (newTenantForm.admin_email && newTenantForm.admin_password) {
+        try {
+          let secondaryApp = getApps().find((a) => a.name === 'SecondaryUserCreator');
+          if (!secondaryApp) {
+            secondaryApp = initializeApp(firebaseConfig, 'SecondaryUserCreator');
+          }
+          const secondaryAuth = getAuth(secondaryApp);
+          const cred = await createUserWithEmailAndPassword(
+            secondaryAuth,
+            newTenantForm.admin_email.trim(),
+            newTenantForm.admin_password
+          );
+
+          await setDoc(doc(db, 'usuarios', cred.user.uid), {
+            nombre: newTenantForm.admin_nombre || newTenantForm.nombre_empresa,
+            email: newTenantForm.admin_email.trim(),
+            tenantId: newTenantId,
+            rol: 'cliente_admin',
+            createdAt: serverTimestamp(),
+            activo: true,
+          });
+
+          await signOut(secondaryAuth);
+        } catch (uErr) {
+          console.warn("Usuario inicial no se pudo crear en Firebase Auth:", uErr);
+          alert(`Empresa creada con ID [${newTenantId}], pero la creación del usuario inicial reportó: ${uErr.message}`);
+        }
+      }
+
+      alert(`✅ Empresa "${tenantPayload.nombre_empresa}" creada exitosamente.`);
+      setShowNewTenantModal(false);
+      setNewTenantForm({
+        nombre_empresa: '',
+        nit: '',
+        email_contacto: '',
+        email_alertas: '',
+        telefono_contacto: '',
+        direccion: '',
+        ciudad: 'Bogotá',
+        color_principal: '#234c74',
+        color_secundario: '#f7931b',
+        logo_url: '',
+        suscripcion_monto: '5000000',
+        admin_nombre: '',
+        admin_email: '',
+        admin_password: '',
+      });
+
+      await fetchTenants();
+      const fetchAll = useAuthStore.getState().fetchAllTenants;
+      if (fetchAll) await fetchAll();
+    } catch (e) {
+      console.error("Error al crear tenant:", e);
+      alert(`Error al crear empresa: ${e.message}`);
+    } finally {
+      setNewTenantSaving(false);
+    }
+  };
+
+  // Crear Usuario asociado a un Tenant (sin perder la sesión del SuperAdmin)
   const handleCreateUser = async () => {
     if (!userForm.email || !userForm.password || !userForm.nombre) {
-      alert("Por favor complete todos los datos");
+      alert("Por favor complete todos los datos requeridos");
       return;
     }
     setUserSaving(true);
     try {
-      const credential = await createUserWithEmailAndPassword(auth, userForm.email, userForm.password);
+      let secondaryApp = getApps().find((a) => a.name === 'SecondaryUserCreator');
+      if (!secondaryApp) {
+        secondaryApp = initializeApp(firebaseConfig, 'SecondaryUserCreator');
+      }
+      const secondaryAuth = getAuth(secondaryApp);
+      const credential = await createUserWithEmailAndPassword(secondaryAuth, userForm.email.trim(), userForm.password);
       const uid = credential.user.uid;
 
       await setDoc(doc(db, 'usuarios', uid), {
-        nombre: userForm.nombre,
-        email: userForm.email,
+        nombre: userForm.nombre.trim(),
+        email: userForm.email.trim(),
         tenantId: selectedTenant.id,
         rol: userForm.rol,
         planta: userForm.plantaAsignada || null,
         seccion: userForm.seccionAsignada || null,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        activo: true,
       });
 
-      alert("Usuario registrado y vinculado exitosamente");
+      await signOut(secondaryAuth);
+
+      alert(`✅ Usuario ${userForm.email} registrado y vinculado a ${selectedTenant.nombre_empresa} exitosamente`);
       setShowUserModal(false);
-      setUserForm({ nombre: '', email: '', password: '', rol: 'cliente_planta', plantaAsignada: '', seccionAsignada: '' });
+      setUserForm({ nombre: '', email: '', password: '', rol: 'cliente_admin', plantaAsignada: '', seccionAsignada: '' });
     } catch (error) {
       console.error(error);
       alert(`Error al crear usuario: ${error.message}`);
@@ -265,11 +525,20 @@ const CRMAdminView = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 font-sans">
-      <SectionHeader 
-        title="CRM & Control Total Multi-tenant" 
-        subtitle="Administre el acceso de cada cliente y el balance de ganancias compartidas (50/50)."
-        icon={Briefcase}
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <SectionHeader 
+          title="CRM & Control Total Multi-tenant" 
+          subtitle="Administre el acceso de cada cliente y el balance de ganancias compartidas (50/50)."
+          icon={Briefcase}
+        />
+        <button
+          onClick={() => setShowNewTenantModal(true)}
+          className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-emerald-600/20 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer shrink-0 mb-6 sm:mb-0"
+        >
+          <Plus size={16} strokeWidth={3} />
+          <span>+ Nueva Empresa (Tenant)</span>
+        </button>
+      </div>
 
       {/* BALANCE PANEL GENERAL (SOCIO / DESARROLLO) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -399,7 +668,7 @@ const CRMAdminView = () => {
       {/* MODAL CREAR USUARIO */}
       {showUserModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[150] p-4 animate-in fade-in duration-300">
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-300">
+          <div className="bg-white p-7 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-300 border border-slate-200">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-xl font-black text-mjm-navy uppercase tracking-tighter">Vincular Usuario</h3>
@@ -498,7 +767,7 @@ const CRMAdminView = () => {
       {/* MODAL CONFIGURAR PLAN / SUSCRIPCIÓN */}
       {showPayModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[150] p-4 animate-in fade-in duration-300">
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm animate-in zoom-in-95 duration-300">
+          <div className="bg-white p-7 rounded-2xl shadow-2xl w-full max-w-sm animate-in zoom-in-95 duration-300 border border-slate-200">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h3 className="text-xl font-black text-mjm-navy uppercase tracking-tighter">Plan de Suscripción</h3>
@@ -559,6 +828,209 @@ const CRMAdminView = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL CREAR NUEVA EMPRESA / TENANT */}
+      {showNewTenantModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[150] p-4 animate-in fade-in duration-300">
+          <div className="bg-white p-7 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300 border border-slate-200">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="text-xl font-black text-mjm-navy uppercase tracking-tighter">Registrar Nueva Empresa (Tenant)</h3>
+                <p className="text-[10px] text-mjm-orange font-black uppercase tracking-widest mt-1">Aseguramiento Multi-Tenant MJM</p>
+              </div>
+              <button onClick={() => setShowNewTenantModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer"><X size={24}/></button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Datos Corporativos */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">Nombre / Razón Social *</label>
+                  <input 
+                    type="text" 
+                    value={newTenantForm.nombre_empresa}
+                    onChange={e => setNewTenantForm({...newTenantForm, nombre_empresa: e.target.value})}
+                    className="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-mjm-navy/20"
+                    placeholder="Ej: Metrología Alimentos S.A.S."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">NIT / ID Tributario</label>
+                  <input 
+                    type="text" 
+                    value={newTenantForm.nit}
+                    onChange={e => setNewTenantForm({...newTenantForm, nit: e.target.value})}
+                    className="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-mjm-navy/20"
+                    placeholder="901.234.567-8"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">Correo de Contacto</label>
+                  <input 
+                    type="email" 
+                    value={newTenantForm.email_contacto}
+                    onChange={e => setNewTenantForm({...newTenantForm, email_contacto: e.target.value})}
+                    className="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-mjm-navy/20"
+                    placeholder="calidad@empresa.com"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">WhatsApp / Teléfono (E.164)</label>
+                  <input 
+                    type="tel" 
+                    value={newTenantForm.telefono_contacto}
+                    onChange={e => setNewTenantForm({...newTenantForm, telefono_contacto: e.target.value})}
+                    className="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-mjm-navy/20"
+                    placeholder="+573001234567"
+                  />
+                </div>
+              </div>
+
+              {/* Buzón de Alertas Metrológicas (Email ISO 10012) */}
+              <div className="p-3.5 bg-sky-50/70 rounded-2xl border border-sky-100 space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-sky-900 tracking-wider flex items-center gap-1.5">
+                  <Bell size={13} className="text-mjm-orange" />
+                  <span>Correo para Alertas Metrológicas (ISO 10012)</span>
+                </label>
+                <input 
+                  type="email" 
+                  value={newTenantForm.email_alertas}
+                  onChange={e => setNewTenantForm({...newTenantForm, email_alertas: e.target.value})}
+                  className="w-full p-2.5 bg-white border border-sky-200/80 rounded-xl text-xs font-bold outline-none text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-sky-400/20"
+                  placeholder="ej. alertas.calidad@empresa.com (Buzón de recepción de alertas)"
+                />
+                <p className="text-[9px] text-sky-800/80 font-medium leading-relaxed">
+                  Este buzón recibirá automáticamente las alertas enviadas desde Firebase cuando una calibración o mantenimiento requiera atención en planta.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">Ciudad / Sede Principal</label>
+                  <input 
+                    type="text" 
+                    value={newTenantForm.ciudad}
+                    onChange={e => setNewTenantForm({...newTenantForm, ciudad: e.target.value})}
+                    className="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-mjm-navy/20"
+                    placeholder="Bogotá / Medellín / Cali"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">Suscripción Anual (COP)</label>
+                  <input 
+                    type="number" 
+                    value={newTenantForm.suscripcion_monto}
+                    onChange={e => setNewTenantForm({...newTenantForm, suscripcion_monto: e.target.value})}
+                    className="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-mjm-navy/20"
+                    placeholder="5000000"
+                  />
+                </div>
+              </div>
+
+              {/* Colores Corporativos */}
+              <div className="grid grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">Color Principal</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <input 
+                      type="color" 
+                      value={newTenantForm.color_principal}
+                      onChange={e => setNewTenantForm({...newTenantForm, color_principal: e.target.value})}
+                      className="w-9 h-9 rounded-xl border border-gray-200 cursor-pointer p-0.5"
+                    />
+                    <input 
+                      type="text" 
+                      value={newTenantForm.color_principal}
+                      onChange={e => setNewTenantForm({...newTenantForm, color_principal: e.target.value})}
+                      className="w-full p-2 bg-gray-50 border-none rounded-xl text-xs font-mono font-bold uppercase"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase text-gray-400 tracking-wider">Color Secundario</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <input 
+                      type="color" 
+                      value={newTenantForm.color_secundario}
+                      onChange={e => setNewTenantForm({...newTenantForm, color_secundario: e.target.value})}
+                      className="w-9 h-9 rounded-xl border border-gray-200 cursor-pointer p-0.5"
+                    />
+                    <input 
+                      type="text" 
+                      value={newTenantForm.color_secundario}
+                      onChange={e => setNewTenantForm({...newTenantForm, color_secundario: e.target.value})}
+                      className="w-full p-2 bg-gray-50 border-none rounded-xl text-xs font-mono font-bold uppercase"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Usuario Administrador del Cliente (Opcional) */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 mt-2">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                  <Key size={13} className="text-mjm-orange" />
+                  <span>Usuario Administrador Inicial para el Cliente (Opcional)</span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[8px] font-bold uppercase text-slate-400">Nombre Contacto</label>
+                    <input 
+                      type="text" 
+                      value={newTenantForm.admin_nombre}
+                      onChange={e => setNewTenantForm({...newTenantForm, admin_nombre: e.target.value})}
+                      placeholder="Ej: Juan Pérez"
+                      className="w-full mt-1 p-2 bg-white border border-slate-200 rounded-lg text-xs font-medium outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[8px] font-bold uppercase text-slate-400">Email Acceso</label>
+                    <input 
+                      type="email" 
+                      value={newTenantForm.admin_email}
+                      onChange={e => setNewTenantForm({...newTenantForm, admin_email: e.target.value})}
+                      placeholder="admin@empresa.com"
+                      className="w-full mt-1 p-2 bg-white border border-slate-200 rounded-lg text-xs font-medium outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[8px] font-bold uppercase text-slate-400">Contraseña</label>
+                    <input 
+                      type="password" 
+                      value={newTenantForm.admin_password}
+                      onChange={e => setNewTenantForm({...newTenantForm, admin_password: e.target.value})}
+                      placeholder="••••••••"
+                      className="w-full mt-1 p-2 bg-white border border-slate-200 rounded-lg text-xs font-medium outline-none"
+                    />
+                  </div>
+                </div>
+                <p className="text-[8px] text-slate-400 font-medium">
+                  Este usuario se registrará con sesión independiente y tendrá acceso exclusivo al espacio de esta empresa.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end gap-3">
+              <button 
+                onClick={() => setShowNewTenantModal(false)} 
+                className="px-5 py-2 text-[10px] font-black uppercase text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button 
+                disabled={newTenantSaving}
+                onClick={handleCreateTenant} 
+                className="px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-emerald-600/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {newTenantSaving ? <Loader2 size={16} className="animate-spin" /> : 'Crear Empresa (Tenant)'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -566,22 +1038,25 @@ const CRMAdminView = () => {
 // ─── Main Settings Component ───────────────────────────────────────────────
 
 const Settings = () => {
-  const [activeCategory, setActiveCategory] = useState('platform'); // 'platform' | 'organization' | 'clients' | 'security'
-  const [activeSub, setActiveSub] = useState('rules');
+  const { isSuperAdmin } = useAuthStore();
+  const [activeCategory, setActiveCategory] = useState(isSuperAdmin ? 'clients' : 'platform');
+  const [activeSub, setActiveSub] = useState(isSuperAdmin ? 'crm' : 'rules');
 
   const categories = [
     { id: 'platform', name: 'Plataforma', icon: <TerminalSquare size={20} />, color: 'bg-blue-500' },
     { id: 'organization', name: 'Organización', icon: <Building size={20} />, color: 'bg-mjm-orange' },
-    { id: 'clients', name: 'Cuentas / CRM', icon: <Briefcase size={20} />, color: 'bg-emerald-500' },
+    ...(isSuperAdmin ? [{ id: 'clients', name: 'Cuentas / CRM', icon: <Briefcase size={20} />, color: 'bg-emerald-500' }] : []),
     { id: 'security', name: 'Seguridad', icon: <Lock size={20} />, color: 'bg-red-500' },
   ];
 
   const subMenus = {
     platform: [
       { id: 'rules', name: 'Parámetros Técnicos', icon: <Sliders size={14} />, component: <PlatformRules /> },
+      { id: 'alerts', name: 'Alertas por Email (ISO)', icon: <Bell size={14} />, component: <NotificationAlertsConfig /> },
       { id: 'branding', name: 'Identidad Visual', icon: <Palette size={14} />, component: <BrandingConfig /> },
     ],
     organization: [
+      { id: 'alerts', name: 'Canal de Alertas (Email)', icon: <Bell size={14} />, component: <NotificationAlertsConfig /> },
       { id: 'geo', name: 'Jerarquía Local', icon: <MapPin size={14} />, component: <GeographicView /> },
       { id: 'sites', name: 'Gestión de Sedes', icon: <Globe size={14} />, component: <div className="p-20 text-center opacity-30 font-black">Módulo en Desarrollo</div> },
     ],

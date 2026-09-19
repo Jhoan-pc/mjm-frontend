@@ -25,19 +25,20 @@ import {
   CheckCircle, Clock, AlertCircle, X, Building2, MapPin, Globe,
   Cpu, Layers, Wrench, ShieldCheck, Barcode, Tag,
   Activity, ArrowLeft, Image as ImageIcon, Check,
-  AlertTriangle, Filter, Loader2, Archive, FileText, Lock, FileUp
+  AlertTriangle, Filter, Loader2, Archive, FileText, Lock, FileUp,
+  LayoutGrid, List
 } from 'lucide-react';
 
 // --- ESTADO BADGE (METROLOGY PRECISION STYLE) ---
 const EstadoBadge = ({ estado }) => {
   const config = {
-    'Activo':             { bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-500/20', icon: <CheckCircle size={12}/> },
-    'Próximo Vencimiento':{ bg: 'bg-[var(--tertiary)]/10', text: 'text-[var(--tertiary)]', border: 'border-[var(--tertiary)]/20', icon: <Clock size={12}/> },
-    'Vencido':            { bg: 'bg-error/10', text: 'text-error', border: 'border-error/20', icon: <AlertCircle size={12}/> },
+    'Activo':             { bg: 'bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-500/20', icon: <CheckCircle size={11}/> },
+    'Próximo Vencimiento':{ bg: 'bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-500/20', icon: <Clock size={11}/> },
+    'Vencido':            { bg: 'bg-red-500/10', text: 'text-red-600 dark:text-red-400', border: 'border-red-500/20', icon: <AlertCircle size={11}/> },
   };
   const c = config[estado] || config['Activo'];
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border ${c.bg} ${c.text} ${c.border}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8.5px] font-bold uppercase tracking-wider border ${c.bg} ${c.text} ${c.border} whitespace-nowrap`}>
       {c.icon} {estado}
     </span>
   );
@@ -172,48 +173,48 @@ const IndustrialWizard = ({ onClose }) => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-       <div className="bg-[var(--surface)] shadow-2xl rounded-[2.5rem] border border-[var(--outline-color)] w-full max-w-xl overflow-hidden flex flex-col transition-colors duration-500">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+       <div className="bg-[var(--surface)] shadow-2xl rounded-2xl border border-[var(--outline-color)]/30 w-full max-w-xl overflow-hidden flex flex-col transition-colors duration-200">
           
-          <div className="p-8 border-b border-[var(--outline-color)] flex justify-between items-center bg-[var(--surface-alt)]">
-             <div className="flex items-center gap-4">
-                <div className="p-3 bg-[var(--primary)] text-[#1A202C] rounded-2xl shadow-lg shadow-[var(--primary)]/20"><Plus size={24}/></div>
+          <div className="p-6 border-b border-[var(--outline-color)]/20 flex justify-between items-center bg-[var(--surface-alt)]">
+             <div className="flex items-center gap-3.5">
+                <div className="p-2.5 bg-[var(--primary)] text-[#1A202C] rounded-xl shadow-md shadow-[var(--primary)]/20"><Plus size={20}/></div>
                 <div>
-                   <h2 className="font-space font-bold text-[var(--text-main)] text-lg uppercase tracking-tight">Nuevo Activo</h2>
-                   <p className="text-[10px] font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">Registro de Activo Metrológico</p>
+                   <h2 className="font-bold text-[var(--text-main)] text-base uppercase tracking-tight">Nuevo Activo</h2>
+                   <p className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Registro de Activo Metrológico</p>
                 </div>
              </div>
-             <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><X size={24}/></button>
+             <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded-lg transition-colors"><X size={20}/></button>
           </div>
 
-          <div className="flex justify-between px-10 py-6 bg-[var(--background)]/50 border-b border-[var(--outline-color)]">
+          <div className="flex justify-between px-6 py-4 bg-[var(--background)]/50 border-b border-[var(--outline-color)]/20">
              {steps.map(s => (
                <div 
                 key={s.id} 
                 onClick={() => setStep(s.id)}
-                className="flex flex-col items-center gap-2 cursor-pointer group/step"
+                className="flex flex-col items-center gap-1.5 cursor-pointer group/step"
                >
-                  <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 ${step >= s.id ? 'bg-[var(--primary)] text-[#1A202C] shadow-lg shadow-[var(--primary)]/30' : 'bg-[var(--surface-alt)] text-[var(--text-muted)] border border-[var(--outline-color)] group-hover/step:border-[var(--primary)]'}`}>
-                    {step > s.id ? <Check size={20}/> : s.icon}
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${step >= s.id ? 'bg-[var(--primary)] text-[#1A202C] shadow-sm shadow-[var(--primary)]/30' : 'bg-[var(--surface-alt)] text-[var(--text-muted)] border border-[var(--outline-color)]/30 group-hover/step:border-[var(--primary)]'}`}>
+                    {step > s.id ? <Check size={16}/> : s.icon}
                   </div>
-                  <span className={`text-[8px] font-black uppercase tracking-widest ${step === s.id ? 'text-[var(--primary)]' : 'text-[var(--text-muted)] opacity-50'}`}>{s.title}</span>
+                  <span className={`text-[8px] font-bold uppercase tracking-wider ${step === s.id ? 'text-[var(--primary)]' : 'text-[var(--text-muted)] opacity-50'}`}>{s.title}</span>
                </div>
              ))}
           </div>
 
-          <div className="p-10 flex-1 min-h-[350px]">{renderStep()}</div>
+          <div className="p-6 sm:p-7 flex-1 min-h-[300px]">{renderStep()}</div>
 
-          <div className="p-10 bg-[var(--surface-alt)] border-t border-[var(--outline-color)] flex justify-between gap-4">
-             <button onClick={prevStep} disabled={step === 1 || loading} className="btn-secondary py-4 px-8 disabled:opacity-0">REGRESAR</button>
+          <div className="p-5 sm:p-6 bg-[var(--surface-alt)] border-t border-[var(--outline-color)]/20 flex justify-between gap-3">
+             <button onClick={prevStep} disabled={step === 1 || loading} className="btn-precision-secondary py-2 px-6 text-xs font-bold uppercase tracking-wider disabled:opacity-0">REGRESAR</button>
              {step < 4 ? (
-               <button onClick={nextStep} className="btn-primary py-4 px-12">SIGUIENTE</button>
+               <button onClick={nextStep} className="btn-precision-primary py-2 px-8 text-xs font-bold uppercase tracking-wider">SIGUIENTE</button>
              ) : (
                <button 
                 onClick={handleFinish} 
                 disabled={loading}
-                className="btn-primary bg-[#1A202C] text-white py-4 px-12 shadow-xl shadow-black/20 flex items-center gap-3"
+                className="btn-precision-primary py-2 px-8 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
                >
-                 {loading ? <Loader2 className="animate-spin" size={20}/> : 'FINALIZAR REGISTRO'}
+                 {loading ? <Loader2 className="animate-spin" size={16}/> : 'FINALIZAR REGISTRO'}
                </button>
              )}
           </div>
@@ -235,18 +236,18 @@ const BulkUploadModal = ({ onClose }) => {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-       <div className="bg-[var(--surface)] shadow-2xl rounded-[2.5rem] border border-[var(--outline-color)] w-full max-w-lg overflow-hidden flex flex-col transition-colors duration-500">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+       <div className="bg-[var(--surface)] shadow-2xl rounded-2xl border border-[var(--outline-color)]/30 w-full max-w-lg overflow-hidden flex flex-col transition-colors duration-200">
           
-          <div className="p-8 border-b border-[var(--outline-color)] flex justify-between items-center bg-[var(--surface-alt)]">
-             <div className="flex items-center gap-4">
-                <div className="p-3 bg-[var(--primary)] text-[#1A202C] rounded-2xl shadow-lg shadow-[var(--primary)]/20"><FileText size={24}/></div>
+          <div className="p-6 border-b border-[var(--outline-color)]/20 flex justify-between items-center bg-[var(--surface-alt)]">
+             <div className="flex items-center gap-3.5">
+                <div className="p-2.5 bg-[var(--primary)] text-[#1A202C] rounded-xl shadow-md shadow-[var(--primary)]/20"><FileText size={20}/></div>
                 <div>
-                   <h2 className="font-space font-bold text-[var(--text-main)] text-lg uppercase tracking-tight">Carga Masiva</h2>
-                   <p className="text-[10px] font-mono font-medium text-[var(--text-muted)] uppercase tracking-wider">Asistente de Importación Masiva</p>
+                   <h2 className="font-bold text-[var(--text-main)] text-base uppercase tracking-tight">Carga Masiva</h2>
+                   <p className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Asistente de Importación Masiva</p>
                 </div>
              </div>
-             <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors"><X size={24}/></button>
+             <button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-main)] p-1 rounded-lg transition-colors"><X size={20}/></button>
           </div>
 
           <div className="p-10 space-y-8 flex-1">
@@ -314,53 +315,144 @@ const InstrumentCard = ({ inst, onNavigate }) => {
   return (
     <div 
       onClick={() => onNavigate(inst.id)}
-      className="premium-card overflow-hidden group cursor-pointer flex flex-col h-full hover:scale-[1.02] transition-all"
+      className="premium-card overflow-hidden group cursor-pointer flex flex-col h-full hover:translate-y-[-2px] hover:shadow-md transition-all duration-200"
     >
-      <div className="h-44 relative overflow-hidden bg-[var(--surface-alt)]">
+      <div className="h-32 relative overflow-hidden bg-[var(--surface-alt)] flex items-center justify-center p-2">
         <img 
           src={inst.imageUrl && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : imgPlaceholder} 
           alt={inst.nombre} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+          className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 mix-blend-multiply dark:mix-blend-normal" 
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] to-transparent opacity-40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface)] to-transparent opacity-20 pointer-events-none" />
         
-        {/* BADGE DE CÓDIGO (INTENSE DARK GLASS EFFECT WITH PRIMARY TEXT) */}
-        <div className="absolute top-4 right-4">
-          <span className="bg-[#1A202C]/90 backdrop-blur-xl border border-[var(--primary)]/30 text-[var(--primary)] font-black text-[10px] px-4 py-1.5 rounded-xl shadow-xl shadow-[#1A202C]/10 tracking-[0.2em] uppercase transition-all group-hover:bg-[var(--primary)] group-hover:text-[#1A202C] group-hover:scale-105 group-hover:shadow-[var(--primary)]/30">
+        {/* BADGE DE CÓDIGO */}
+        <div className="absolute top-2.5 right-2.5">
+          <span className="bg-[#0F172A]/90 dark:bg-black/90 backdrop-blur-md border border-white/10 text-white dark:text-[#f7931b] font-mono font-bold text-[9px] px-2.5 py-0.5 rounded-md tracking-wider uppercase shadow-xs">
             {inst.codigo || inst.codigoMJM || 'S/N'}
           </span>
         </div>
       </div>
 
-      <div className="p-6 flex-1 flex flex-col gap-6">
+      <div className="p-3.5 flex-1 flex flex-col justify-between gap-2.5">
         <div>
-           <h4 className="text-[var(--text-main)] font-black text-sm uppercase tracking-tight truncate">
+           <h4 className="text-[var(--text-main)] font-space font-bold text-xs uppercase tracking-tight truncate group-hover:text-blue-600 dark:group-hover:text-[#f7931b] transition-colors">
              {cleanText(inst.nombre)}
            </h4>
-           <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1 flex items-center justify-between gap-2">
-             <span>{inst.marca || 'GENERIC MANUFACTURER'}</span>
-             {inst.serie && <span className="font-mono text-[10px] text-[var(--text-main)] bg-[var(--surface-alt)] px-2 py-0.5 rounded border border-[var(--outline-color)]/30">Serial: {inst.serie}</span>}
+           <p className="text-[9px] font-medium text-[var(--text-muted)] uppercase tracking-wider mt-0.5 flex items-center justify-between gap-1.5">
+             <span className="truncate">{inst.marca || 'GENERIC'}</span>
+             {inst.serie && <span className="font-mono text-[8.5px] text-[var(--text-main)] bg-[var(--surface-alt)] px-1.5 py-0.5 rounded border border-[var(--outline-color)] shrink-0">S/N: {inst.serie}</span>}
            </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-[var(--background)] rounded-2xl p-3 border border-[var(--outline-color)]">
-            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Magnitud</p>
-            <p className="text-[10px] font-black text-[var(--primary)] truncate uppercase tracking-tighter">{inst.magnitud}</p>
+        <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+          <div className="bg-[var(--background)] rounded-lg p-2 border border-[var(--outline-color)]">
+            <p className="text-[7px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Magnitud</p>
+            <p className="font-bold text-[var(--text-main)] truncate uppercase text-[9.5px]">{inst.magnitud || 'General'}</p>
           </div>
-          <div className="bg-[var(--background)] rounded-2xl p-3 border border-[var(--outline-color)] text-right">
-            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Capacidad</p>
-            <p className="text-[10px] font-data text-[var(--text-main)] truncate tracking-tighter">
+          <div className="bg-[var(--background)] rounded-lg p-2 border border-[var(--outline-color)] text-right">
+            <p className="text-[7px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Capacidad</p>
+            <p className="font-mono font-bold text-[var(--text-main)] truncate text-[9.5px]">
               {inst.rango_max || inst.capacidadMaxima || '--'}
             </p>
           </div>
         </div>
 
-        <div className="mt-auto flex items-center justify-between pt-4 border-t border-[var(--outline-color)]/30">
+        <div className="pt-2 border-t border-[var(--outline-color)]/60 flex items-center justify-between">
            <EstadoBadge estado={inst.estado || inst.estado_operativo || 'Activo'} />
-           <ChevronRight size={18} className="text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-all translate-x-[-4px] group-hover:translate-x-0" />
+           <ChevronRight size={14} className="text-[var(--text-muted)] group-hover:text-[var(--primary)] dark:group-hover:text-[#f7931b] transition-transform group-hover:translate-x-0.5" />
         </div>
       </div>
+    </div>
+  );
+};
+
+// --- SWISS PRECISION TABLE VIEW (ALTA DENSIDAD) ---
+const PrecisionTableView = ({ instruments, onSelect, onNavigateDetail }) => {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-[var(--outline-color)] bg-[var(--surface)] shadow-xs">
+      <table className="w-full text-left border-collapse table-precision">
+        <thead>
+          <tr className="bg-[var(--surface-alt)] border-b border-[var(--outline-color)] text-[var(--text-muted)]">
+            <th className="px-3.5 py-2.5 text-left">Código / ID</th>
+            <th className="px-3.5 py-2.5 text-left">Activo & Marca</th>
+            <th className="px-3.5 py-2.5 text-center">Magnitud</th>
+            <th className="px-3.5 py-2.5 text-center">Serie</th>
+            <th className="px-3.5 py-2.5 text-left">Ubicación</th>
+            <th className="px-3.5 py-2.5 text-right">Capacidad / Rango</th>
+            <th className="px-3.5 py-2.5 text-center">Estado</th>
+            <th className="px-3.5 py-2.5 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--outline-color)]/50 text-xs font-inter">
+          {instruments.map((inst) => (
+            <tr 
+              key={inst.id}
+              onClick={() => onSelect(inst.id)}
+              className="hover:bg-[var(--surface-alt)]/60 transition-colors group cursor-pointer"
+            >
+              <td className="px-3.5 py-2 font-mono font-bold text-[11px] whitespace-nowrap">
+                <span className="px-2 py-0.5 rounded bg-[var(--background)] border border-[var(--outline-color)] text-mjm-navy dark:text-[#f7931b] group-hover:border-[#f7931b]/50 transition-colors">
+                  {inst.codigo || inst.codigoMJM || 'S/N'}
+                </span>
+              </td>
+              <td className="px-3.5 py-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded bg-[var(--surface-alt)] border border-[var(--outline-color)]/50 overflow-hidden shrink-0 flex items-center justify-center p-0.5">
+                    <img 
+                      src={inst.imageUrl && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : manometroIndustrial} 
+                      alt="" 
+                      className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-[var(--text-main)] truncate max-w-[200px] sm:max-w-[280px] text-xs leading-tight">
+                      {cleanText(inst.nombre)}
+                    </p>
+                    <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
+                      {inst.marca || 'MJM'} {inst.modelo ? `• ${inst.modelo}` : ''}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td className="px-3.5 py-2 text-center whitespace-nowrap">
+                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                  {inst.magnitud || 'General'}
+                </span>
+              </td>
+              <td className="px-3.5 py-2 text-center font-mono text-[10.5px] text-[var(--text-muted)] whitespace-nowrap">
+                {inst.serie || '---'}
+              </td>
+              <td className="px-3.5 py-2 text-[var(--text-muted)] text-[11px] truncate max-w-[140px]">
+                {inst.ubicacion || inst.jerarquia?.ubicacion || inst.jerarquia?.area || 'Planta'}
+              </td>
+              <td className="px-3.5 py-2 text-right font-mono text-[11px] text-[var(--text-main)] whitespace-nowrap">
+                {inst.rango_max || inst.capacidadMaxima || '---'}
+              </td>
+              <td className="px-3.5 py-2 text-center whitespace-nowrap">
+                <EstadoBadge estado={inst.estado || inst.estado_operativo || 'Activo'} />
+              </td>
+              <td className="px-3.5 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-end gap-1">
+                  <button
+                    onClick={() => onNavigateDetail(inst.id)}
+                    className="p-1.5 hover:bg-[var(--surface-alt)] text-[var(--text-muted)] hover:text-blue-600 dark:hover:text-[#f7931b] rounded transition-colors"
+                    title="Ver Ficha Técnica Completa"
+                  >
+                    <Eye size={14} />
+                  </button>
+                  <button
+                    onClick={() => window.open(`/dashboard/hoja-de-vida/print/${inst.id}`, '_blank')}
+                    className="p-1.5 hover:bg-[var(--surface-alt)] text-[var(--text-muted)] hover:text-blue-600 dark:hover:text-[#f7931b] rounded transition-colors"
+                    title="Imprimir Hoja de Vida ISO 10012"
+                  >
+                    <FileText size={14} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -958,7 +1050,7 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
         <div className="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-10">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-7 relative overflow-hidden rounded-[2.5rem] h-[360px] group shadow-2xl bg-[#0B1326]">
+            <div className="lg:col-span-7 relative overflow-hidden rounded-2xl h-[360px] group shadow-2xl bg-[#0B1326]">
               {/* IMAGEN DE FONDO DE LOGIN (NÍTIDA CON AJUSTE DE MEZCLA PARA ALTO CONTRASTE) */}
               <div className="absolute inset-0 z-0">
                 <img 
@@ -1049,12 +1141,12 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
               </div>
             </div>
 
-            <div className="lg:col-span-5 bg-white rounded-[2.5rem] p-8 border border-[var(--outline-color)]/30 flex flex-col shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h4 className="font-black text-xl text-[var(--text-main)] uppercase tracking-tighter">Gestión de activo</h4>
-                <Building2 size={20} className="text-[var(--primary)]"/>
+            <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-xl p-5 border border-[var(--outline-color)] flex flex-col shadow-xs">
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--outline-color)]/50">
+                <h4 className="font-space font-bold text-sm text-[var(--text-main)] uppercase tracking-tight">Gestión de activo</h4>
+                <Building2 size={16} className="text-[var(--primary)]"/>
               </div>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-1">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
                 <EditableItem label="País" field="jerarquia_pais" isEditing={false} form={{ jerarquia_pais: form.jerarquia?.pais || 'Colombia' }} icon={<Globe size={14}/>} />
                 <EditableItem label="Planta" field="jerarquia_planta" isEditing={false} form={{ jerarquia_planta: form.jerarquia?.planta || 'Planta Principal' }} icon={<Building2 size={14}/>} />
                 <EditableItem label="Área / Sección" field="jerarquia_area" isEditing={false} form={{ jerarquia_area: form.jerarquia?.area || 'Área General' }} icon={<Layers size={14}/>} />
@@ -1065,29 +1157,29 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-[2.5rem] border border-[var(--outline-color)]/20 shadow-sm relative">
-               <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
-               <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Capacidad Operativa</h4>
-               <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-[var(--outline-color)] shadow-xs relative">
+               <div className="absolute top-0 left-0 w-1.5 h-full bg-[var(--primary)]/30 rounded-l-xl" />
+               <h4 className="font-mono font-bold text-[9px] text-[var(--text-muted)] uppercase tracking-wider mb-4">Capacidad Operativa</h4>
+               <div className="space-y-1">
                   <EditableItem label="Capacidad Mínima" field="rango_min" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
                   <EditableItem label="Capacidad Máxima" field="rango_max" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
                   <EditableItem label="Resolución" field="resolucion" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
                </div>
             </div>
-            <div className="bg-white p-8 rounded-[2.5rem] border border-[var(--outline-color)]/20 shadow-sm relative">
-               <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
-               <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Parámetros Técnicos</h4>
-               <div className="space-y-2">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-[var(--outline-color)] shadow-xs relative">
+               <div className="absolute top-0 left-0 w-1.5 h-full bg-[var(--primary)]/30 rounded-l-xl" />
+               <h4 className="font-mono font-bold text-[9px] text-[var(--text-muted)] uppercase tracking-wider mb-4">Parámetros Técnicos</h4>
+               <div className="space-y-1">
                   <EditableItem label="Incertidumbre requerida" field="incertidumbre" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
                   <EditableItem label="Criticidad" field="criticidad" isEditing={isEditing} form={form} handleChange={handleChange} options={['Alta', 'Media', 'Baja', 'Muy baja']} />
                   <EditableItem label="Tolerancia de proceso" field="tolerancia_proceso" hasUnit={true} isEditing={isEditing} form={form} handleChange={handleChange} />
                </div>
             </div>
-            <div className="bg-white p-8 rounded-[2.5rem] border border-[var(--outline-color)]/20 shadow-sm relative">
-               <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]/10" />
-               <h4 className="font-black text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] mb-6">Control Metrológico</h4>
-               <div className="space-y-2">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-xl border border-[var(--outline-color)] shadow-xs relative">
+               <div className="absolute top-0 left-0 w-1.5 h-full bg-[var(--primary)]/30 rounded-l-xl" />
+               <h4 className="font-mono font-bold text-[9px] text-[var(--text-muted)] uppercase tracking-wider mb-4">Control Metrológico</h4>
+               <div className="space-y-1">
                   <EditableItem label="Frecuencia calibración (meses)" field="frecuencia_meses" type="number" isEditing={isEditing} form={form} handleChange={handleChange} />
                   <EditableItem label="Proceso Vinculado" field="proceso" isEditing={isEditing} form={form} handleChange={handleChange} />
                   <EditableItem label="Responsable" field="responsable" isEditing={isEditing} form={form} handleChange={handleChange} />
@@ -1096,12 +1188,12 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
           </div>
 
           {/* GESTIÓN DE RUTINAS E HERENCIA */}
-          <div className="bg-white rounded-[2.5rem] border border-[var(--outline-color)]/30 overflow-hidden shadow-lg relative">
-            <div className="absolute top-0 left-0 w-2 h-full bg-[var(--primary)]" />
-            <div className="px-10 py-6 bg-[var(--surface-alt)] flex flex-col md:flex-row md:items-center justify-between border-b border-[var(--outline-color)]/30 gap-4">
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-[var(--primary)]/10 text-[var(--primary)] rounded-xl"><Activity size={20}/></div>
-                <h4 className="font-black text-xl text-[var(--text-main)] uppercase tracking-tighter">Gestión de Rutinas</h4>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-[var(--outline-color)] overflow-hidden shadow-xs relative">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-[var(--primary)]" />
+            <div className="px-6 py-3 bg-[var(--surface-alt)] flex flex-col md:flex-row md:items-center justify-between border-b border-[var(--outline-color)] gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 bg-[var(--primary)]/10 text-[var(--primary)] rounded-lg"><Activity size={16}/></div>
+                <h4 className="font-space font-bold text-sm text-[var(--text-main)] uppercase tracking-tight">Gestión de Rutinas</h4>
               </div>
               
               {/* Botón / Select de Herencia (Removed) */}
@@ -1312,74 +1404,181 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
 
 
 export default function Inventario() {
+  const navigate = useNavigate();
   const { tenant, isSuperAdmin } = useAuthStore();
   const { instruments, loading, loadInstruments } = useInventoryStore();
   const [search, setSearch] = useState('');
   const [showWizard, setShowWizard] = useState(false);
   const [showBulk, setShowBulk] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [viewMode, setViewMode] = useState('table'); // 'table' | 'grid'
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'Activo' | 'Próximo Vencimiento' | 'Vencido'
 
   React.useEffect(() => {
     if (tenant) loadInstruments(tenant.id, isSuperAdmin);
   }, [tenant, isSuperAdmin, loadInstruments]);
 
+  // Conteos en vivo
+  const counts = useMemo(() => {
+    const nonArchived = instruments.filter(i => !i.archivado);
+    const activos = nonArchived.filter(i => i.estado === 'Activo' || !i.estado).length;
+    const proximos = nonArchived.filter(i => i.estado === 'Próximo Vencimiento').length;
+    const vencidos = nonArchived.filter(i => i.estado === 'Vencido').length;
+    return {
+      total: nonArchived.length,
+      activos,
+      proximos,
+      vencidos
+    };
+  }, [instruments]);
+
   const filtered = useMemo(() => {
     const searchLower = search.toLowerCase();
-    return instruments.filter(i => 
-      !i.archivado && 
-      [i.nombre, i.codigo, i.marca, i.serie].some(f => 
+    return instruments.filter(i => {
+      if (i.archivado) return false;
+      
+      // Filtro de Estado
+      if (statusFilter !== 'ALL') {
+        const actualStatus = i.estado || 'Activo';
+        if (actualStatus !== statusFilter) return false;
+      }
+
+      // Filtro de Búsqueda
+      return [i.nombre, i.codigo, i.codigoMJM, i.marca, i.serie, i.ubicacion, i.magnitud].some(f => 
         f != null && String(f).toLowerCase().includes(searchLower)
-      )
-    );
-  }, [instruments, search]);
+      );
+    });
+  }, [instruments, search, statusFilter]);
 
   return (
-    <div className="space-y-gutter animate-in fade-in duration-500">
+    <div className="animate-in fade-in duration-300">
       
-      {/* Title */}
-      <div className="mb-6">
-         <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Inventario <span className="text-[var(--primary)] italic">de Activos</span></h1>
+      {/* Header Compacto de Sección */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+        <div>
+           <h1 className="font-space font-bold text-[var(--text-main)] text-xl sm:text-2xl tracking-tight uppercase">
+             Inventario <span className="text-mjm-navy dark:text-[#f7931b]">de Activos</span>
+           </h1>
+           <p className="text-[10.5px] font-mono text-[var(--text-muted)] uppercase tracking-wider mt-0.5">
+             Catálogo Central Metrológico &bull; NTC-ISO 10012:2003
+           </p>
+        </div>
+
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          <button 
+            onClick={() => setShowBulk(true)} 
+            className="btn-precision-secondary py-1.5 px-3 text-[11px]"
+            title="Importar catálogo masivo vía Excel"
+          >
+            <FileText size={13} /> Carga Masiva
+          </button>
+        </div>
       </div>
 
-      {/* Search & Actions */}
-      <section className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-16">
-         <div className="relative group flex-1">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" size={20} />
+      {/* BARRA DE COMANDOS SELLADA AL TOP (FLUSH STICKY HEADER) */}
+      <div className="sticky top-0 z-30 -mx-3.5 sm:-mx-5 lg:-mx-6 px-3.5 sm:px-5 lg:px-6 py-2.5 bg-white/95 dark:bg-[#070C18]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-all flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 mb-4 shadow-xs before:absolute before:-top-10 before:left-0 before:right-0 before:h-10 before:bg-white/95 dark:before:bg-[#070C18]/95 before:backdrop-blur-md before:pointer-events-none">
+         
+         {/* Buscador Integrado */}
+         <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={14} />
             <input 
-             value={search} onChange={e => setSearch(e.target.value)}
-             placeholder="Buscar por ID, Nombre o Marca..." 
-             className="w-full bg-[var(--surface)] border border-[var(--outline-color)] rounded-2xl pl-14 pr-8 py-5 text-[var(--text-main)] focus:ring-4 focus:ring-[var(--primary)]/10 focus:border-[var(--primary)] transition-all shadow-sm font-medium" />
+              value={search} 
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por código, nombre, serie, marca..." 
+              className="w-full h-8 pl-8 pr-3 text-xs bg-[var(--surface)] border border-[var(--outline-color)]/30 rounded-lg text-[var(--text-main)] placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[var(--primary)] transition-all font-medium" 
+            />
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+              >
+                <X size={12} />
+              </button>
+            )}
          </div>
-         <div className="flex gap-4 shrink-0 items-center">
-             <button 
-               onClick={() => setShowBulk(true)} 
-               className="h-14 px-5 bg-[var(--surface-alt)] border border-[var(--outline-color)] text-[var(--text-main)] rounded-xl font-inter font-semibold text-[10px] uppercase tracking-wider hover:brightness-105 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-             >
-               <FileText size={14} /> Carga Masiva
-             </button>
-             <button 
-               onClick={() => setShowWizard(true)} 
-               className="btn-primary h-14 px-10 shadow-xl shadow-[var(--primary)]/20 flex items-center justify-center gap-2 cursor-pointer"
-             >
-               <Plus size={20}/> Nuevo Activo
-             </button>
-         </div>
-      </section>
 
-      {/* Main Grid */}
-      <section className="pb-12">
+         {/* Píldoras de Filtro Rápido */}
+         <div className="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+            {[
+              { id: 'ALL', label: `Todos (${counts.total})`, dot: null },
+              { id: 'Activo', label: `Vigentes (${counts.activos})`, dot: 'bg-emerald-500' },
+              { id: 'Próximo Vencimiento', label: `Próximos (${counts.proximos})`, dot: 'bg-amber-500' },
+              { id: 'Vencido', label: `Vencidos (${counts.vencidos})`, dot: 'bg-red-500' }
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setStatusFilter(f.id)}
+                className={`h-7 px-2.5 rounded-lg text-[10.5px] font-space font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer ${
+                  statusFilter === f.id
+                    ? 'bg-[var(--text-main)] text-[var(--surface)] shadow-xs'
+                    : 'bg-[var(--surface)]/80 text-[var(--text-muted)] border border-[var(--outline-color)]/30 hover:bg-[var(--surface-alt)] hover:text-[var(--text-main)]'
+                }`}
+              >
+                {f.dot && <span className={`w-1.5 h-1.5 rounded-full ${f.dot}`} />}
+                <span>{f.label}</span>
+              </button>
+            ))}
+         </div>
+
+         {/* Controles de Acción y Alternador de Vista */}
+         <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+            <div className="flex items-center gap-0.5 bg-[var(--surface-alt)] p-0.5 rounded-lg border border-[var(--outline-color)]/30">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 rounded-md transition-all ${
+                  viewMode === 'table'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] shadow-xs'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                }`}
+                title="Vista de Tabla de Precisión (Alta Densidad)"
+              >
+                <List size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-1.5 rounded-md transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-[var(--surface)] text-[var(--primary)] shadow-xs'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                }`}
+                title="Vista en Cuadrícula"
+              >
+                <LayoutGrid size={14} />
+              </button>
+            </div>
+
+            <button 
+              onClick={() => setShowWizard(true)} 
+              className="btn-precision-primary py-1.5 px-3 text-[10.5px] uppercase tracking-wider flex items-center gap-1.5 shadow-xs shrink-0"
+              title="Registrar nuevo equipo"
+            >
+              <Plus size={13} /> Nuevo Activo
+            </button>
+         </div>
+
+      </div>
+
+      {/* ÁREA DE RESULTADOS */}
+      <section className="pb-10">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 gap-6">
-            <div className="w-12 h-12 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin shadow-lg shadow-[var(--primary)]/20" />
-            <p className="text-[var(--text-muted)] font-black text-[10px] uppercase tracking-[0.4em]">Sincronizando Laboratorio...</p>
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
+            <p className="text-[var(--text-muted)] font-mono text-[9px] uppercase tracking-widest">Consultando Inventario...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 text-[var(--text-muted)] opacity-30">
-             <AlertTriangle size={64} className="mb-4" />
-             <p className="font-black text-xl uppercase tracking-tighter">No se encontraron resultados</p>
+          <div className="flex flex-col items-center justify-center py-16 text-[var(--text-muted)] opacity-60 bg-[var(--surface)] border border-[var(--outline-color)] rounded-xl">
+             <AlertTriangle size={32} className="mb-2 text-amber-500" />
+             <p className="font-space font-bold text-sm uppercase tracking-tight text-[var(--text-main)]">Sin resultados para la búsqueda</p>
+             <p className="text-xs text-[var(--text-muted)] mt-0.5">Intenta con otros términos o limpia los filtros activos.</p>
           </div>
+        ) : viewMode === 'table' ? (
+          <PrecisionTableView 
+            instruments={filtered} 
+            onSelect={setSelectedId} 
+            onNavigateDetail={(id) => navigate(`/dashboard/inventario/${id}`)}
+          />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
             {filtered.map(inst => (
               <InstrumentCard key={inst.id} inst={inst} onNavigate={setSelectedId} />
             ))}
@@ -1391,7 +1590,7 @@ export default function Inventario() {
       
       {showBulk && <BulkUploadModal onClose={() => setShowBulk(false)} />}
       
-      {/* DETALLE DEL INSTRUMENTO (MODAL NUEVO) */}
+      {/* DETALLE DEL INSTRUMENTO (MODAL TÉCNICO) */}
       {selectedId && (
         <InstrumentDetailsModal 
           instrumentId={selectedId} 
