@@ -20,42 +20,116 @@ import {
   Wrench,
   ChevronDown,
   Sparkles,
-  Loader2
+  Loader2,
+  RotateCcw
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
 import { storage } from '../../config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { analyzeMetrologyCertificateWithGemini } from '../../services/geminiMetrologyService';
 
-// --- SUB-COMPONENTE: COMPARADOR ISO ---
-const ISOComparator = ({ error, uncertainty, tolerance, unit, veredicto, riesgo, puntos }) => {
-  const compliance = veredicto === 'Conforme';
-  const totalError = parseFloat(error) + parseFloat(uncertainty);
+// --- SUB-COMPONENTE: COMPARADOR ISO & DICTAMEN TÉCNICO DE LA IA ---
+const ISOComparator = ({ 
+  error, 
+  uncertainty, 
+  tolerance, 
+  unit, 
+  veredicto, 
+  riesgo, 
+  dictamen_parrafo, 
+  norma_referencia, 
+  aptitud_de_uso, 
+  puntos 
+}) => {
+  const isAprobado = veredicto === 'Conforme' || veredicto === 'Aprobado';
+  const isDuda = veredicto === 'Zona de Duda' || veredicto?.toLowerCase().includes('duda');
+  const numError = parseFloat(error) || 0;
+  const numUncertainty = parseFloat(uncertainty) || 0;
+  const numTol = parseFloat(tolerance) || 0;
+  const totalDeviation = (numError + numUncertainty).toFixed(4);
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--outline-color)]/30 rounded-2xl p-6 shadow-sm space-y-6">
-      <div className="flex justify-between items-center pb-4 border-b border-[var(--outline-color)]/20">
-        <h3 className="text-[10px] font-mono font-bold text-[var(--text-main)] uppercase tracking-wider">Evaluación de Conformidad (ISO 10012 Cl. 7.1)</h3>
-        <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${compliance ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-sm'}`}>
-          {veredicto}
+    <div className="bg-[var(--surface)] border border-[var(--outline-color)]/30 rounded-2xl p-5 sm:p-6 shadow-sm space-y-6">
+      {/* Header con Veredicto Metrológico y Norma */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 pb-4 border-b border-[var(--outline-color)]/20">
+        <div>
+          <h3 className="text-xs font-mono font-bold text-[var(--text-main)] uppercase tracking-wider">
+            Evaluación de Conformidad (ISO/IEC 17025 & JCGM 106)
+          </h3>
+          {norma_referencia && (
+            <p className="text-[10px] font-mono text-slate-500 dark:text-zinc-400 mt-0.5">
+              Norma de Referencia: <span className="font-semibold text-[var(--text-main)]">{norma_referencia}</span>
+            </p>
+          )}
+        </div>
+        <span className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest text-center self-start sm:self-auto shadow-sm ${
+          isAprobado 
+            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' 
+            : isDuda
+            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+            : 'bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30'
+        }`}>
+          {isAprobado ? '✅ APROBADO (CONFORME)' : isDuda ? '⚠️ ZONA DE DUDA (GUARD BAND)' : '❌ REPROBADO (NO CONFORME)'}
         </span>
       </div>
       
-      <div className="grid grid-cols-3 gap-6 text-center">
-        <div className="space-y-1">
-          <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Error Máx. Encontrado</p>
-          <p className="text-lg font-black text-[var(--text-main)] tracking-tight">{error} {unit}</p>
+      {/* 3 Métricas Clave */}
+      <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
+        <div className="p-3 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--outline-color)]/10 space-y-1">
+          <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-70">Error Máx. Encontrado</p>
+          <p className="text-base sm:text-lg font-black text-[var(--text-main)] font-mono">{error} {unit}</p>
         </div>
         
-        <div className="space-y-1">
-          <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Incertidumbre Máx. (U)</p>
-          <p className="text-lg font-black text-[var(--text-muted)] tracking-tight">+ {uncertainty} {unit}</p>
+        <div className="p-3 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--outline-color)]/10 space-y-1">
+          <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-70">Incertidumbre Máx. (U)</p>
+          <p className="text-base sm:text-lg font-black text-[var(--text-muted)] font-mono">± {uncertainty} {unit}</p>
         </div>
 
-        <div className="space-y-1">
-          <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Tolerancia Límite</p>
-          <p className="text-lg font-black text-[var(--text-main)] tracking-tight">± {tolerance} {unit}</p>
+        <div className="p-3 rounded-xl bg-[var(--surface-alt)]/60 border border-[var(--outline-color)]/10 space-y-1">
+          <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-70">Tolerancia Límite (EMP)</p>
+          <p className="text-base sm:text-lg font-black text-[var(--text-main)] font-mono">± {tolerance} {unit}</p>
         </div>
+      </div>
+
+      {/* DICTAMEN TÉCNICO OFICIAL DE LA IA (Párrafo explicativo solicitado por el usuario) */}
+      <div className={`p-4 sm:p-5 rounded-xl border text-left space-y-2.5 transition-all shadow-sm ${
+        isAprobado 
+          ? 'bg-emerald-500/[0.04] border-emerald-500/25' 
+          : isDuda
+          ? 'bg-amber-500/[0.04] border-amber-500/25'
+          : 'bg-red-500/[0.04] border-red-500/25'
+      }`}>
+        <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="text-[#f7931b]" size={15} />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--text-main)]">
+              Dictamen Metrológico Formal (Análisis IA)
+            </span>
+          </div>
+          <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-black/5 dark:bg-white/10 text-[var(--text-muted)] font-bold">
+            Motor Gemini 3.6
+          </span>
+        </div>
+
+        <p className="text-xs sm:text-[13px] text-[var(--text-main)] leading-relaxed font-sans">
+          {dictamen_parrafo || riesgo}
+        </p>
+
+        {aptitud_de_uso && (
+          <div className="pt-2 flex flex-wrap items-center gap-2 text-xs font-mono border-t border-black/5 dark:border-white/10">
+            <span className="text-[var(--text-muted)] uppercase text-[10px] font-bold">Aptitud Operativa en Planta:</span>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+              isAprobado 
+                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' 
+                : isDuda 
+                ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300' 
+                : 'bg-red-500/20 text-red-700 dark:text-red-300'
+            }`}>
+              {aptitud_de_uso}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* TABLA DE PUNTOS DE CALIBRACIÓN */}
@@ -74,9 +148,9 @@ const ISOComparator = ({ error, uncertainty, tolerance, unit, veredicto, riesgo,
             </thead>
             <tbody className="divide-y divide-[var(--outline-color)]/20 font-medium text-[var(--text-main)]">
               {puntos.map((p, i) => {
-                const errVal = Math.abs(parseFloat(p.error));
-                const uncVal = parseFloat(p.incertidumbre);
-                const tolVal = parseFloat(tolerance);
+                const errVal = Math.abs(parseFloat(p.error) || 0);
+                const uncVal = parseFloat(p.incertidumbre) || 0;
+                const tolVal = numTol || 0.001;
                 const isPointCompliant = (errVal + uncVal) <= tolVal;
                 
                 return (
@@ -105,27 +179,14 @@ const ISOComparator = ({ error, uncertainty, tolerance, unit, veredicto, riesgo,
         </div>
       )}
 
+      {/* Análisis Matemático Guard Band */}
       <div className="bg-[var(--surface-alt)] p-4 rounded-xl border border-[var(--outline-color)]/20 space-y-2 text-left">
-        <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Análisis Matemático General</p>
+        <p className="text-[9px] text-[var(--text-muted)] font-black uppercase tracking-widest opacity-60">Análisis Matemático de Incertidumbre Combinada (JCGM 106:2012)</p>
         <p className="text-xs font-semibold text-[var(--text-main)] leading-relaxed">
-          {error} (Error) + {uncertainty} (Incertidumbre) = <span className="font-bold">{(parseFloat(error) + parseFloat(uncertainty)).toFixed(4)} {unit}</span> de Desviación Acumulada.
+          {error} (Error) + {uncertainty} (Incertidumbre) = <span className="font-bold">{totalDeviation} {unit}</span> de Desviación Acumulada.
           <br />
-          Criterio General: <span className="font-bold">{(parseFloat(error) + parseFloat(uncertainty)).toFixed(4)} {unit} {compliance ? '≤' : '>'} {tolerance} {unit}</span>
+          Criterio con Banda de Guarda: <span className="font-bold">{totalDeviation} {unit} {isAprobado ? '≤' : '>'} {tolerance} {unit}</span>
         </p>
-      </div>
-
-      <div className="pt-4 border-t border-[var(--outline-color)]/20 text-left">
-        <div className="flex items-start gap-3">
-          {compliance ? (
-            <CheckCircle className="text-emerald-500 shrink-0 mt-0.5" size={16} />
-          ) : (
-            <AlertCircle className="text-red-500 shrink-0" size={16} />
-          )}
-          <div>
-            <p className="text-[10px] font-mono font-bold text-[var(--text-main)] uppercase tracking-wider mb-1">Dictamen de Aptitud Metrológica y Riesgo de Proceso (ISO 10012)</p>
-            <p className="text-xs text-[var(--text-muted)] leading-relaxed italic">{riesgo}</p>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -139,6 +200,7 @@ export default function IAVerificationLab() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [parsedData, setParsedData] = useState(null);
+  const [analysisError, setAnalysisError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   
@@ -161,142 +223,30 @@ export default function IAVerificationLab() {
     }
   }, [tenant?.id, loadInstruments]);
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
     if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('Por favor selecciona un archivo PDF de certificado metrológico válido.');
+      return;
+    }
+
     setSelectedFile(file);
     setPdfUrl(URL.createObjectURL(file));
     setStatus('scanning');
+    setAnalysisError(null);
     
-    // Simular lectura metrológica con Gemini
-    setTimeout(() => {
-      const fileName = file.name.toLowerCase();
-      let extractedData = {};
-      
-      if (fileName.includes('le-') || fileName.includes('0139')) {
-        extractedData = {
-          instrumento: 'Pinza Voltiamperimétrica',
-          marca: 'UNI-T',
-          serie: '12370034',
-          modelo: 'UT202A+',
-          laboratorio: 'Laboratorio de Electricidad Industria y Metrología Ltda.',
-          laboratorio_tipo: 'Acreditado',
-          patron: 'Multímetro Calibrador Fluke 5522A (Traceable to INM)',
-          error_maximo: '0.18',
-          incertidumbre: '0.08',
-          criterio_tipo: 'emp',
-          criterio_valor: '0.50',
-          veredicto: 'Conforme',
-          riesgo: 'El instrumento de medición de corriente cumple satisfactoriamente con la tolerancia del proceso de ±0.50 A. Apto para uso.',
-          unidad: 'A',
-          puntos: [
-            { nominal: '10.0', patron: '10.00', instrumento: '9.92', error: '-0.08', incertidumbre: '0.02' },
-            { nominal: '50.0', patron: '50.00', instrumento: '49.82', error: '-0.18', incertidumbre: '0.05' },
-            { nominal: '100.0', patron: '100.00', instrumento: '100.12', error: '0.12', incertidumbre: '0.08' }
-          ]
-        };
-      } else if (fileName.includes('micrometro') || fileName.includes('cd-11184') || fileName.includes('metrotest')) {
-        extractedData = {
-          instrumento: 'Comparador de Carátula',
-          marca: 'INSIZE',
-          serie: 'A840379',
-          modelo: 'CD-11184',
-          laboratorio: 'LABORATORIO DIMENSIONAL METROTEST LTDA',
-          laboratorio_tipo: 'Acreditado',
-          patron: 'Banco con Cabeza Micrómetrica (Traceable to INM)',
-          error_maximo: '0.0119',
-          incertidumbre: '0.0039',
-          criterio_tipo: 'emp',
-          criterio_valor: '0.0150',
-          veredicto: 'Conforme',
-          riesgo: 'El comparador mantiene su exactitud operativa dentro del límite máximo permisible establecido. Apto para uso sin restricciones.',
-          unidad: 'mm',
-          puntos: [
-            { nominal: '0.10', patron: '0.100', instrumento: '0.104', error: '0.0036', incertidumbre: '0.0038' },
-            { nominal: '0.50', patron: '0.500', instrumento: '0.512', error: '0.0119', incertidumbre: '0.0038' },
-            { nominal: '1.00', patron: '1.000', instrumento: '1.012', error: '0.0119', incertidumbre: '0.0038' },
-            { nominal: '2.00', patron: '2.000', instrumento: '2.012', error: '0.0119', incertidumbre: '0.0038' },
-            { nominal: '10.00', patron: '10.000', instrumento: '10.012', error: '0.0119', incertidumbre: '0.0039' }
-          ]
-        };
-      } else if (fileName.includes('lt-19') || fileName.includes('termometro') || fileName.includes('temperatura')) {
-        if (fileName.includes('1918')) {
-          extractedData = {
-            instrumento: 'Termómetro Digital',
-            marca: 'MadgeTech',
-            serie: 'T17311',
-            modelo: 'TCTempX4',
-            laboratorio: 'Laboratorio de Temperatura Industria y Metrología Ltda.',
-            laboratorio_tipo: 'Acreditado',
-            patron: 'Termómetro con Sensor RTD Pt-100 (Traceable to INMET)',
-            error_maximo: '0.64',
-            incertidumbre: '0.11',
-            criterio_tipo: 'tolerancia',
-            criterio_valor: '1.0',
-            veredicto: 'Conforme',
-            riesgo: 'El sensor de temperatura digital se mantiene dentro de la tolerancia de pasteurización de 1.0°C. No se identifican riesgos operacionales.',
-            unidad: '°C',
-            puntos: [
-              { nominal: '20.0', patron: '20.07', instrumento: '20.1', error: '0.03', incertidumbre: '0.10' },
-              { nominal: '30.0', patron: '30.04', instrumento: '30.3', error: '-0.26', incertidumbre: '0.10' },
-              { nominal: '40.0', patron: '40.08', instrumento: '40.3', error: '-0.22', incertidumbre: '0.10' },
-              { nominal: '50.0', patron: '50.01', instrumento: '50.5', error: '-0.49', incertidumbre: '0.10' },
-              { nominal: '60.0', patron: '60.06', instrumento: '60.6', error: '-0.54', incertidumbre: '0.11' },
-              { nominal: '70.0', patron: '70.06', instrumento: '70.7', error: '-0.64', incertidumbre: '0.11' }
-            ]
-          };
-        } else {
-          extractedData = {
-            instrumento: 'Termómetro Digital',
-            marca: 'MadgeTech',
-            serie: 'T17319',
-            modelo: 'TCTempX4',
-            laboratorio: 'Laboratorio de Temperatura Industria y Metrología Ltda.',
-            laboratorio_tipo: 'Acreditado',
-            patron: 'Termómetro con Sensor RTD Pt-100 (Traceable to INMET)',
-            error_maximo: '1.15',
-            incertidumbre: '0.12',
-            criterio_tipo: 'tolerancia',
-            criterio_valor: '1.0',
-            veredicto: 'No Conforme',
-            riesgo: 'Se ha detectado una desviación crítica. El error acumulado (1.27°C) supera la tolerancia admisible de 1.0°C. Riesgo: Desviaciones en pasteurización y potencial pérdida de lotes por choque térmico no registrado.',
-            unidad: '°C',
-            puntos: [
-              { nominal: '20.0', patron: '20.07', instrumento: '20.1', error: '0.03', incertidumbre: '0.10' },
-              { nominal: '30.0', patron: '30.04', instrumento: '30.3', error: '-0.26', incertidumbre: '0.10' },
-              { nominal: '45.0', patron: '45.02', instrumento: '46.1', error: '1.08', incertidumbre: '0.11' },
-              { nominal: '60.0', patron: '60.06', instrumento: '61.2', error: '1.14', incertidumbre: '0.11' },
-              { nominal: '70.0', patron: '70.06', instrumento: '71.2', error: '1.14', incertidumbre: '0.12' }
-            ]
-          };
-        }
-      } else {
-        extractedData = {
-          instrumento: 'Manómetro Industrial',
-          marca: 'Wika',
-          serie: 'W-' + Math.floor(Math.random() * 10000),
-          modelo: 'CPG1500',
-          laboratorio: 'Servicios de Metrología Wika S.A.S.',
-          laboratorio_tipo: 'Trazable',
-          patron: 'Balanza de pesos muertos Wika (Traceable to NIST)',
-          error_maximo: '0.08',
-          incertidumbre: '0.015',
-          criterio_tipo: 'emp',
-          criterio_valor: '0.1',
-          veredicto: 'Conforme',
-          riesgo: 'El manómetro opera con un margen de seguridad aceptable para el lazo de presión neumática de la planta principal.',
-          unidad: 'bar',
-          puntos: [
-            { nominal: '0.0', patron: '0.00', instrumento: '0.00', error: '0.00', incertidumbre: '0.010' },
-            { nominal: '2.5', patron: '2.51', instrumento: '2.55', error: '0.04', incertidumbre: '0.012' },
-            { nominal: '5.0', patron: '5.01', instrumento: '5.09', error: '0.08', incertidumbre: '0.015' }
-          ]
-        };
-      }
-      
-      setParsedData(extractedData);
+    try {
+      // Llamada al motor real de IA de Google Gemini 3.6 Flash
+      const realData = await analyzeMetrologyCertificateWithGemini(file);
+      setParsedData(realData);
       setStatus('verified');
-    }, 3000);
+    } catch (err) {
+      console.error("Error analizando certificado con Gemini:", err);
+      setAnalysisError(err.message || "Error procesando el certificado con el motor de IA.");
+      setStatus('error');
+    }
   };
 
   const handleReset = () => {
@@ -307,6 +257,7 @@ export default function IAVerificationLab() {
     setSelectedFile(null);
     setPdfUrl(null);
     setParsedData(null);
+    setAnalysisError(null);
   };
 
   const handleLeadSubmit = async (e) => {
@@ -531,7 +482,7 @@ export default function IAVerificationLab() {
                       <FileText size={13} /> Pantalla Completa
                     </button>
                   )}
-                  {status === 'verified' && (
+                  {(status === 'verified' || status === 'error') && (
                     <button onClick={handleReset} className="p-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-md text-slate-400 hover:text-red-500 transition-all cursor-pointer" title="Reiniciar">
                       <X size={16} />
                     </button>
@@ -593,6 +544,28 @@ export default function IAVerificationLab() {
                     </p>
                  </div>
              </div>
+           ) : status === 'error' ? (
+             <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-red-200 dark:border-red-900/50 shadow-sm space-y-4 animate-in fade-in duration-300">
+                <div className="flex items-center gap-3 pb-3.5 border-b border-red-100 dark:border-red-900/30">
+                   <div className="w-10 h-10 bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-lg flex items-center justify-center shadow-sm">
+                      <AlertCircle size={20} />
+                   </div>
+                   <div>
+                      <h3 className="font-space font-bold text-red-700 dark:text-red-400 text-sm">Error en Confirmación Metrológica IA</h3>
+                      <p className="text-[9px] font-mono text-slate-400 dark:text-slate-500 uppercase tracking-wider">Diagnóstico de Procesamiento</p>
+                   </div>
+                </div>
+                <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200/60 dark:border-red-900/40 rounded-lg text-xs text-red-700 dark:text-red-300 leading-relaxed font-mono">
+                   {analysisError || "No se pudo interpretar el archivo PDF o no contiene datos metrológicos legibles."}
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="w-full py-2.5 px-4 bg-slate-900 dark:bg-zinc-800 hover:bg-slate-800 dark:hover:bg-zinc-700 text-white font-semibold text-xs rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer font-space"
+                >
+                  <RotateCcw size={14} />
+                  <span>Reintentar con otro Certificado</span>
+                </button>
+             </div>
            ) : (
              <div className="space-y-5">
                 <div className="bg-white dark:bg-zinc-900 rounded-xl p-5 border border-slate-200 dark:border-zinc-800 shadow-sm space-y-4">
@@ -650,6 +623,9 @@ export default function IAVerificationLab() {
                                 unit={parsedData.unidad}
                                 veredicto={parsedData.veredicto}
                                 riesgo={parsedData.riesgo}
+                                dictamen_parrafo={parsedData.dictamen_parrafo}
+                                norma_referencia={parsedData.norma_referencia}
+                                aptitud_de_uso={parsedData.aptitud_de_uso}
                                 puntos={parsedData.puntos}
                               />
                            </div>
@@ -697,6 +673,9 @@ export default function IAVerificationLab() {
                             unit={parsedData.unidad}
                             veredicto={parsedData.veredicto}
                             riesgo={parsedData.riesgo}
+                            dictamen_parrafo={parsedData.dictamen_parrafo}
+                            norma_referencia={parsedData.norma_referencia}
+                            aptitud_de_uso={parsedData.aptitud_de_uso}
                             puntos={parsedData.puntos}
                           />
                        </div>
