@@ -310,7 +310,7 @@ export default function DashboardLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         
         {/* TOPBAR COMPACTO Y ELEGANTE (52px) */}
-        <header className="h-13 bg-[var(--surface)] border-b border-[var(--outline-color)] flex items-center justify-between px-4 sm:px-6 transition-colors duration-300 shrink-0">
+        <header className="h-[52px] bg-[var(--surface)] border-b border-[var(--outline-color)] flex items-center justify-between px-4 sm:px-6 transition-colors duration-300 shrink-0">
            <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
               {/* BOTÓN HAMBURGUESA PARA ESCOGER SI VER O NO EL SIDEBAR */}
               <button 

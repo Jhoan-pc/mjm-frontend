@@ -1454,12 +1454,12 @@ export default function Inventario() {
     <div className="animate-in fade-in duration-300">
       
       {/* Header Compacto de Sección */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pt-1 sm:pt-2">
         <div>
-           <h1 className="font-space font-bold text-[var(--text-main)] text-xl sm:text-2xl tracking-tight uppercase">
+           <h1 className="font-space font-bold text-[var(--text-main)] text-xl sm:text-2xl tracking-tight uppercase leading-tight">
              Inventario <span className="text-mjm-navy dark:text-[#f7931b]">de Activos</span>
            </h1>
-           <p className="text-[10.5px] font-mono text-[var(--text-muted)] uppercase tracking-wider mt-0.5">
+           <p className="text-[10.5px] font-mono text-[var(--text-muted)] uppercase tracking-wider mt-1">
              Catálogo Central Metrológico &bull; NTC-ISO 10012:2003
            </p>
         </div>
@@ -1475,8 +1475,8 @@ export default function Inventario() {
         </div>
       </div>
 
-      {/* BARRA DE COMANDOS SELLADA AL TOP (FLUSH STICKY HEADER) */}
-      <div className="sticky top-0 z-30 -mx-3.5 sm:-mx-5 lg:-mx-6 px-3.5 sm:px-5 lg:px-6 py-2.5 bg-white/95 dark:bg-[#070C18]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-all flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 mb-4 shadow-xs before:absolute before:-top-10 before:left-0 before:right-0 before:h-10 before:bg-white/95 dark:before:bg-[#070C18]/95 before:backdrop-blur-md before:pointer-events-none">
+      {/* BARRA DE COMANDOS */}
+      <div className="sticky top-0 z-20 -mx-3.5 sm:-mx-5 lg:-mx-6 px-3.5 sm:px-5 lg:px-6 py-2.5 bg-white/95 dark:bg-[#070C18]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-all flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 mb-4 shadow-xs">
          
          {/* Buscador Integrado */}
          <div className="relative flex-1 max-w-sm">
