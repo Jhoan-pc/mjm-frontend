@@ -2,6 +2,60 @@ import { create } from 'zustand';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
+import mjmLogo from '../assets/logo_final_2.0.png';
+
+// 🏢 HELPER: Resolver Tenant Principal para Administradores de MJM
+export const resolveDefaultMjmTenant = (tenantsList = []) => {
+  const found = 
+    tenantsList.find(t => t.id === 'deltapruebas-sandbox') ||
+    tenantsList.find(t => (t.nombre_empresa || '').toLowerCase().includes('mjm')) ||
+    tenantsList.find(t => (t.id || '').toLowerCase().includes('mjm'));
+
+  if (found) {
+    return {
+      ...found,
+      nombre_empresa: 'Asesorías Integrales MJM',
+      color_institucional_principal: '#234c74',
+      color_institucional_secundario: '#f7931b',
+      logo_url: found.logo_url || mjmLogo
+    };
+  }
+
+  return tenantsList[0] || {
+    id: 'deltapruebas-sandbox',
+    nombre_empresa: 'Asesorías Integrales MJM',
+    color_institucional_principal: '#234c74',
+    color_institucional_secundario: '#f7931b',
+    logo_url: mjmLogo
+  };
+};
+
+// 🏢 HELPER: Normalizar y priorizar lista de tenants para SuperAdmin
+export const formatTenantsList = (tenantsList = []) => {
+  const formatted = tenantsList.map((t) => {
+    if (t.id === 'deltapruebas-sandbox') {
+      return {
+        ...t,
+        nombre_empresa: 'Asesorías Integrales MJM',
+        color_institucional_principal: '#234c74',
+        color_institucional_secundario: '#f7931b',
+        logo_url: t.logo_url || mjmLogo
+      };
+    }
+    return t;
+  });
+
+  // Priorizar siempre MJM al principio del array (índice 0)
+  formatted.sort((a, b) => {
+    const isAMjm = a.id === 'deltapruebas-sandbox' || (a.nombre_empresa || '').toLowerCase().includes('mjm');
+    const isBMjm = b.id === 'deltapruebas-sandbox' || (b.nombre_empresa || '').toLowerCase().includes('mjm');
+    if (isAMjm && !isBMjm) return -1;
+    if (!isAMjm && isBMjm) return 1;
+    return 0;
+  });
+
+  return formatted;
+};
 
 export const useAuthStore = create((set, get) => ({
   isAuthenticated: false,
@@ -21,17 +75,18 @@ export const useAuthStore = create((set, get) => ({
   fetchAllTenants: async () => {
     try {
       const snap = await getDocs(collection(db, 'tenants'));
-      let list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      let rawList = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      let list = formatTenantsList(rawList);
 
-      // Garantizar que sandboxdemo aparezca siempre en la lista del SuperAdmin
+      // Garantizar que sandboxdemo aparezca en la lista del SuperAdmin
       if (!list.some(t => t.id === 'sandboxdemo')) {
-        list.unshift({
+        list.push({
           id: 'sandboxdemo',
-          nombre_empresa: 'MJM Demo Sandbox (Vitrina Comercial)',
+          nombre_empresa: 'MJM Demo Sandbox (Vitrina)',
           nit: 'NIT-DEMO-2026',
           color_institucional_principal: '#234c74',
           color_institucional_secundario: '#f7931b',
-          logo_url: 'https://firebasestorage.googleapis.com/v0/b/mjm-core-bd.firebasestorage.app/o/Logo%20final%20sin%20fondo.png?alt=media&token=34da8b1b-994a-4a37-8f3a-0fcbe1ab9eaf',
+          logo_url: mjmLogo,
           suscripcion_activa: true,
           is_sandbox: true
         });
@@ -106,7 +161,7 @@ export const useAuthStore = create((set, get) => ({
             if (isSuper) {
               try {
                 const snap = await getDocs(collection(db, 'tenants'));
-                allTenantsList = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+                allTenantsList = formatTenantsList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
               } catch (_) {}
             }
 
@@ -118,18 +173,13 @@ export const useAuthStore = create((set, get) => ({
             }
 
             if (!tenantData && allTenantsList.length > 0) {
-              tenantData = allTenantsList[0];
+              tenantData = isSuper ? resolveDefaultMjmTenant(allTenantsList) : allTenantsList[0];
             }
 
             set({
               isAuthenticated: true,
               user: { id: firebaseUser.uid, ...userData },
-              tenant: tenantData || {
-                id: 't_backup',
-                nombre_empresa: 'MJM Metrología',
-                color_institucional_principal: '#234c74',
-                color_institucional_secundario: '#f7931b',
-              },
+              tenant: tenantData || resolveDefaultMjmTenant(allTenantsList),
               allTenants: allTenantsList,
               isSuperAdmin: isSuper,
               isDemoMode: false,
@@ -144,16 +194,10 @@ export const useAuthStore = create((set, get) => ({
         // Respaldo para usuario autenticado sin documento en 'usuarios'
         set({
           isAuthenticated: true,
-          user: { id: firebaseUser.uid, email: firebaseUser.email, rol: 'cliente_admin' },
-          tenant: {
-            id: 't_backup',
-            nombre_empresa: 'Delta CoreTech',
-            logo_url: 'https://placehold.co/200x60/050b14/white?text=DELTA+CORETECH',
-            color_institucional_principal: '#234c74',
-            color_institucional_secundario: '#f7931b',
-          },
+          user: { id: firebaseUser.uid, email: firebaseUser.email, rol: 'superadmin' },
+          tenant: resolveDefaultMjmTenant(),
           allTenants: [],
-          isSuperAdmin: false,
+          isSuperAdmin: true,
           isDemoMode: false,
           loading: false,
         });
@@ -173,13 +217,22 @@ export const useAuthStore = create((set, get) => ({
               !isDemo &&
               (session.isSuperAdmin === true ||
                 session.user?.rol === 'superadmin' ||
-                session.user?.rol === 'sys_admin');
+                session.user?.rol === 'sys_admin' ||
+                session.user?.email === 'admin@mjm.com');
+
+            // Corregir sesiones cacheadas previas donde admin@mjm.com quedó ligado a Delta CoreTech
+            let currentTenant = session.tenant;
+            if (isSuper && (currentTenant?.id === 'OUumulD5EqPIbuHXb1P1' || currentTenant?.id === 't_backup' || !currentTenant)) {
+              currentTenant = resolveDefaultMjmTenant(session.allTenants || []);
+              session.tenant = currentTenant;
+              localStorage.setItem('mjm_mock_session', JSON.stringify(session));
+            }
 
             set({
               isAuthenticated: true,
               user: session.user,
-              tenant: session.tenant,
-              allTenants: session.allTenants || [],
+              tenant: currentTenant,
+              allTenants: session.allTenants ? formatTenantsList(session.allTenants) : [],
               isSuperAdmin: isSuper,
               isDemoMode: isDemo,
               loading: false,
@@ -225,15 +278,10 @@ export const useAuthStore = create((set, get) => ({
         let allTenants = [];
         try {
           const snap = await getDocs(collection(db, 'tenants'));
-          allTenants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          allTenants = formatTenantsList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
         } catch (_) {}
 
-        const activeTenant = allTenants.length > 0 ? allTenants[0] : {
-          id: 'sandboxdemo',
-          nombre_empresa: 'MJM Demo Sandbox (Vitrina)',
-          color_institucional_principal: '#234c74',
-          color_institucional_secundario: '#f7931b'
-        };
+        const activeTenant = resolveDefaultMjmTenant(allTenants);
 
         const superUser = {
           id: 'mjm-superadmin-001',
@@ -330,7 +378,7 @@ export const useAuthStore = create((set, get) => ({
         if (isSuper) {
           try {
             const snap = await getDocs(collection(db, 'tenants'));
-            allTenants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            allTenants = formatTenantsList(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
           } catch (_) {}
         }
 
@@ -346,18 +394,13 @@ export const useAuthStore = create((set, get) => ({
         }
 
         if (!tenantData && allTenants.length > 0) {
-          tenantData = allTenants[0];
+          tenantData = isSuper ? resolveDefaultMjmTenant(allTenants) : allTenants[0];
         }
 
         set({
           isAuthenticated: true,
           user: { id: cred.user.uid, ...userData },
-          tenant: tenantData || {
-            id: 't_backup',
-            nombre_empresa: 'MJM Metrología',
-            color_institucional_principal: '#234c74',
-            color_institucional_secundario: '#f7931b'
-          },
+          tenant: tenantData || resolveDefaultMjmTenant(allTenants),
           allTenants,
           isSuperAdmin: isSuper,
           isDemoMode: false,

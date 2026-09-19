@@ -353,7 +353,7 @@ export default function DashboardLayout() {
                   >
                     {allTenants.map((t) => (
                       <option key={t.id} value={t.id} className="bg-white dark:bg-[#070C18] text-slate-900 dark:text-white">
-                        {t.nombre_empresa} {(t.id === 'sandboxdemo' || t.id === 'deltapruebas-sandbox') ? '(Demo)' : ''}
+                        {t.nombre_empresa} {t.id === 'sandboxdemo' ? '(Vitrina Demo)' : ''}
                       </option>
                     ))}
                   </select>
