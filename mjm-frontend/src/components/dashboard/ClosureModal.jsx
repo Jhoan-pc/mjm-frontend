@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../config/firebase';
 import { useAuthStore } from '../../store/authStore';
@@ -15,7 +15,9 @@ import {
   Plus,
   Building2,
   Check,
-  Award
+  Award,
+  Search,
+  ChevronDown
 } from 'lucide-react';
 
 /**
@@ -47,6 +49,22 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
   const [newLabName, setNewLabName] = useState('');
   const [newLabTipo, setNewLabTipo] = useState(isMantenimiento ? 'Taller' : 'Acreditado');
   const [isSavingLab, setIsSavingLab] = useState(false);
+
+  // Estados para Buscador / Combobox
+  const [labSearch, setLabSearch] = useState('Laboratorio Metrológico MJM');
+  const [isLabDropdownOpen, setIsLabDropdownOpen] = useState(false);
+  const labDropdownRef = useRef(null);
+
+  // Cerrar popover al hacer clic afuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (labDropdownRef.current && !labDropdownRef.current.contains(e.target)) {
+        setIsLabDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Cargar catálogo de laboratorios desde BD
   useEffect(() => {
@@ -107,6 +125,52 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
     return (Math.abs(parsedError) + parsedIncertidumbre <= parsedCriterio) ? 'Conforme' : 'No Conforme';
   }, [parsedError, parsedIncertidumbre, parsedCriterio]);
 
+  // Filtrado reactivo en tiempo real por nombre, tipo o especialidad
+  const filteredLabs = useMemo(() => {
+    const query = (labSearch || '').trim().toLowerCase();
+    if (!query) return laboratoriesList;
+    return laboratoriesList.filter(l => 
+      (l.nombre || '').toLowerCase().includes(query) || 
+      (l.tipo && l.tipo.toLowerCase().includes(query)) ||
+      (l.especialidad && l.especialidad.toLowerCase().includes(query))
+    );
+  }, [laboratoriesList, labSearch]);
+
+  const exactMatchExists = useMemo(() => {
+    const query = (labSearch || '').trim().toLowerCase();
+    if (!query) return false;
+    return laboratoriesList.some(l => (l.nombre || '').toLowerCase() === query);
+  }, [laboratoriesList, labSearch]);
+
+  const handleSelectLab = (lab) => {
+    setLaboratorio(lab.nombre);
+    setLabSearch(lab.nombre);
+    if (lab.tipo) setLaboratorioTipo(lab.tipo);
+    setIsLabDropdownOpen(false);
+  };
+
+  const handleQuickAddLab = async (nameToCreate) => {
+    const cleanName = (nameToCreate || labSearch).trim();
+    if (!cleanName) return;
+    setIsSavingLab(true);
+    try {
+      const created = await laboratoryService.addLaboratory(tenantId, {
+        nombre: cleanName,
+        tipo: isMantenimiento ? 'Taller' : 'Acreditado'
+      });
+      setLaboratoriesList(prev => [created, ...prev]);
+      setLaboratorio(created.nombre);
+      setLabSearch(created.nombre);
+      if (created.tipo) setLaboratorioTipo(created.tipo);
+      setIsLabDropdownOpen(false);
+      setIsCreatingLab(false);
+    } catch (err) {
+      console.error("Error al registrar laboratorio:", err);
+    } finally {
+      setIsSavingLab(false);
+    }
+  };
+
   // Manejador para crear un nuevo laboratorio en BD en caliente
   const handleCreateNewLab = async (e) => {
     e.preventDefault();
@@ -119,6 +183,7 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
       });
       setLaboratoriesList(prev => [created, ...prev]);
       setLaboratorio(created.nombre);
+      setLabSearch(created.nombre);
       if (created.tipo) setLaboratorioTipo(created.tipo);
       setNewLabName('');
       setIsCreatingLab(false);
@@ -296,41 +361,123 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                   </div>
 
                   {!isCreatingLab ? (
-                    <div className="relative">
-                      <select
-                        value={laboratorio}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setLaboratorio(val);
-                          const found = laboratoriesList.find(l => l.nombre === val);
-                          if (found && found.tipo) {
-                            setLaboratorioTipo(found.tipo);
-                          }
-                        }}
-                        className="w-full p-2.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)] cursor-pointer"
-                      >
-                        {laboratoriesList.map((lab) => (
-                          <option key={lab.id || lab.nombre} value={lab.nombre}>
-                            {lab.nombre} {lab.tipo ? `(${lab.tipo})` : ''}
-                          </option>
-                        ))}
-                      </select>
+                    /* 🔍 BUSCADOR INTELIGENTE / COMBOBOX DE LABORATORIOS */
+                    <div className="relative" ref={labDropdownRef}>
+                      <div className="relative flex items-center">
+                        <Search size={14} className="absolute left-3 text-[var(--text-muted)] pointer-events-none" />
+                        <input
+                          type="text"
+                          value={labSearch}
+                          onChange={(e) => {
+                            setLabSearch(e.target.value);
+                            setLaboratorio(e.target.value);
+                            setIsLabDropdownOpen(true);
+                          }}
+                          onFocus={() => setIsLabDropdownOpen(true)}
+                          placeholder={isMantenimiento ? "Buscar proveedor o taller técnico..." : "Buscar o filtrar laboratorio..."}
+                          className="w-full pl-8 pr-16 p-2.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)] transition-all shadow-xs"
+                        />
+                        <div className="absolute right-2.5 flex items-center gap-1">
+                          {labSearch && (
+                            <button
+                              type="button"
+                              onClick={() => { 
+                                setLabSearch(''); 
+                                setLaboratorio(''); 
+                                setIsLabDropdownOpen(true); 
+                              }}
+                              className="p-1 text-[var(--text-muted)] hover:text-[var(--text-main)] rounded-full transition-colors cursor-pointer"
+                              title="Limpiar búsqueda"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setIsLabDropdownOpen(!isLabDropdownOpen)}
+                            className="p-1 text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer"
+                          >
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${isLabDropdownOpen ? 'rotate-180 text-[var(--primary)]' : ''}`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* POPOVER DESPLEGABLE CON RESULTADOS FILTRADOS */}
+                      {isLabDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1.5 z-50 bg-[var(--surface)] border border-[var(--outline-color)]/30 rounded-xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-[var(--outline-color)]/10 animate-in fade-in zoom-in-95 duration-150">
+                          {filteredLabs.length > 0 ? (
+                            filteredLabs.map((lab) => {
+                              const isSelected = laboratorio === lab.nombre;
+                              return (
+                                <div
+                                  key={lab.id || lab.nombre}
+                                  onClick={() => handleSelectLab(lab)}
+                                  className={`p-2.5 hover:bg-[var(--surface-alt)] cursor-pointer flex items-center justify-between gap-2 transition-colors ${
+                                    isSelected ? 'bg-[var(--primary)]/10 text-[var(--primary)] font-bold' : ''
+                                  }`}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs font-semibold truncate text-[var(--text-main)]">{lab.nombre}</p>
+                                      {lab.tipo && (
+                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                                          lab.tipo === 'Acreditado' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' :
+                                          lab.tipo === 'Trazable' ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' :
+                                          'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                                        }`}>
+                                          {lab.tipo}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {lab.especialidad && (
+                                      <p className="text-[9.5px] text-[var(--text-muted)] truncate mt-0.5">{lab.especialidad}</p>
+                                    )}
+                                  </div>
+                                  {isSelected && (
+                                    <Check size={14} className="text-[var(--primary)] shrink-0" />
+                                  )}
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="p-3 text-center text-xs text-[var(--text-muted)]">
+                              No hay coincidencias para "<span className="font-semibold text-[var(--text-main)]">{labSearch}</span>".
+                            </div>
+                          )}
+
+                          {/* OPCIÓN DIRECTA DE CREAR Y REGISTRAR EN BD SI NO EXISTE */}
+                          {labSearch.trim() && !exactMatchExists && (
+                            <div 
+                              onClick={() => handleQuickAddLab(labSearch)}
+                              className="p-2.5 bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 border-t border-[var(--primary)]/30 cursor-pointer flex items-center gap-2 text-[var(--primary)] transition-colors"
+                            >
+                              <div className="w-5 h-5 rounded-full bg-[var(--primary)]/20 flex items-center justify-center shrink-0">
+                                <Plus size={12} />
+                              </div>
+                              <span className="text-[11px] font-bold truncate">
+                                {isSavingLab ? 'Guardando en BD...' : `+ Registrar "${labSearch}" en BD`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
+                    /* FORMULARIO MANUAL DE CREACIÓN DETALLADA */
                     <div className="p-2.5 bg-[var(--surface-alt)] border border-[var(--primary)]/30 rounded-lg space-y-2 animate-in fade-in duration-200">
                       <input
                         type="text"
                         value={newLabName}
                         onChange={(e) => setNewLabName(e.target.value)}
                         placeholder="Nombre del nuevo laboratorio/taller..."
-                        className="w-full p-1.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded text-xs font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                        className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded text-xs font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]"
                         autoFocus
                       />
                       <div className="flex items-center justify-between gap-2">
                         <select
                           value={newLabTipo}
                           onChange={(e) => setNewLabTipo(e.target.value)}
-                          className="text-[10px] p-1 bg-[var(--background)] border border-[var(--outline-color)]/20 rounded font-medium text-[var(--text-muted)]"
+                          className="text-[10px] p-1.5 bg-[var(--background)] border border-[var(--outline-color)]/20 rounded font-medium text-[var(--text-muted)]"
                         >
                           <option value="Acreditado">Acreditado (ISO 17025)</option>
                           <option value="Trazable">Trazable</option>
@@ -340,7 +487,7 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                           type="button"
                           onClick={handleCreateNewLab}
                           disabled={!newLabName.trim() || isSavingLab}
-                          className="px-2.5 py-1 bg-[var(--primary)] text-[#1A202C] rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                          className="px-3 py-1.5 bg-[var(--primary)] text-[#1A202C] rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:opacity-90 disabled:opacity-50 cursor-pointer shadow-xs"
                         >
                           {isSavingLab ? <RefreshCw size={10} className="animate-spin" /> : <Plus size={10} />}
                           Guardar en BD
