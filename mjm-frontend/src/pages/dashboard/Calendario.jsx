@@ -116,14 +116,17 @@ export default function Calendario() {
       .sort((a, b) => (a.fechaProgramada || '').localeCompare(b.fechaProgramada || ''));
   }, [activities, monthPrefix]);
 
-  // Alertas Críticas específicas del mes seleccionado (vencidos del mes, hoy, y en proceso)
+  // Alertas Críticas y métricas específicas del mes seleccionado
   const stats = useMemo(() => {
     const monthActs = activities.filter(act => act.fechaProgramada?.startsWith(monthPrefix) && act.estado !== 'archived');
     const vencidos = monthActs.filter(act => act.estado === 'todo' && act.fechaProgramada < todayStr).length;
     const hoy = monthActs.filter(act => act.estado === 'todo' && act.fechaProgramada === todayStr).length;
     const enProceso = monthActs.filter(act => act.estado === 'doing').length;
+    const completadas = monthActs.filter(act => act.estado === 'done').length;
+    // Todas las tareas pendientes del mes (no completadas)
+    const pendientes = monthActs.filter(act => act.estado !== 'done').length;
     const totalMes = monthActs.length;
-    return { vencidos, hoy, enProceso, totalMes };
+    return { vencidos, hoy, enProceso, completadas, pendientes, totalMes };
   }, [activities, monthPrefix, todayStr]);
 
   const handleDateClick = (dateStr) => {
@@ -221,13 +224,13 @@ export default function Calendario() {
                 )}
               </div>
               <span className="font-space font-bold tracking-tight uppercase">Agenda & Alertas</span>
-              {(stats.vencidos > 0 || stats.hoy > 0 || stats.enProceso > 0) && (
+              {stats.pendientes > 0 && (
                 <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold leading-none ${
                   stats.vencidos > 0
                     ? 'bg-red-500 text-white shadow-xs'
                     : 'bg-[var(--surface-alt)] text-[var(--text-main)] border border-[var(--outline-color)]/30'
                 }`}>
-                  {stats.vencidos > 0 ? stats.vencidos : (stats.hoy + stats.enProceso)}
+                  {stats.pendientes}
                 </span>
               )}
             </button>
@@ -538,6 +541,15 @@ export default function Calendario() {
                      : 'bg-white/10 text-slate-300 border border-white/10'
                  }`}>
                     {String(stats.enProceso).padStart(2, '0')}
+                 </span>
+              </div>
+              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                 <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+                    <span className="text-xs font-medium text-slate-200">Total Pendientes</span>
+                 </div>
+                 <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-amber-500/25 text-amber-300 border border-amber-500/50">
+                    {String(stats.pendientes).padStart(2, '0')}
                  </span>
               </div>
            </div>
