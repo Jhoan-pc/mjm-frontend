@@ -107,21 +107,24 @@ export default function Calendario() {
     setCurrentDate(new Date());
   };
 
-  // Sidebar: upcoming events
-  const upcomingEvents = useMemo(() => {
-    return activities
-      .filter(act => act.fechaProgramada >= todayStr && act.estado !== 'done' && act.estado !== 'archived')
-      .sort((a, b) => a.fechaProgramada.localeCompare(b.fechaProgramada))
-      .slice(0, 5);
-  }, [activities, todayStr]);
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
 
-  // Sidebar: Alertas Críticas stats
+  // Eventos específicos del mes seleccionado
+  const monthEvents = useMemo(() => {
+    return activities
+      .filter(act => act.fechaProgramada?.startsWith(monthPrefix) && act.estado !== 'archived')
+      .sort((a, b) => (a.fechaProgramada || '').localeCompare(b.fechaProgramada || ''));
+  }, [activities, monthPrefix]);
+
+  // Alertas Críticas específicas del mes seleccionado (vencidos del mes, hoy, y en proceso)
   const stats = useMemo(() => {
-    const vencidos = activities.filter(act => act.estado === 'todo' && act.fechaProgramada < todayStr).length;
-    const hoy = activities.filter(act => act.estado === 'todo' && act.fechaProgramada === todayStr).length;
-    const enProceso = activities.filter(act => act.estado === 'doing').length;
-    return { vencidos, hoy, enProceso };
-  }, [activities, todayStr]);
+    const monthActs = activities.filter(act => act.fechaProgramada?.startsWith(monthPrefix) && act.estado !== 'archived');
+    const vencidos = monthActs.filter(act => act.estado === 'todo' && act.fechaProgramada < todayStr).length;
+    const hoy = monthActs.filter(act => act.estado === 'todo' && act.fechaProgramada === todayStr).length;
+    const enProceso = monthActs.filter(act => act.estado === 'doing').length;
+    const totalMes = monthActs.length;
+    return { vencidos, hoy, enProceso, totalMes };
+  }, [activities, monthPrefix, todayStr]);
 
   const handleDateClick = (dateStr) => {
     setSelectedDate(dateStr);
@@ -369,13 +372,15 @@ export default function Calendario() {
       <aside className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[var(--surface)] shadow-2xl z-50 transform transition-transform duration-500 flex flex-col ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         <div className="flex justify-between items-center p-6 border-b border-[var(--outline-color)]/20">
-          <h3 className="font-black text-[var(--text-main)] text-2xl uppercase tracking-tighter flex items-center gap-2">
-            <CalendarIcon size={24} className="text-[var(--primary)]" />
-            {selectedDate ? `Eventos del ${selectedDate.split('-')[2]}/${selectedDate.split('-')[1]}` : 'Próximos 5 Eventos'}
+          <h3 className="font-black text-[var(--text-main)] text-xl uppercase tracking-tighter flex items-center gap-2">
+            <CalendarIcon size={22} className="text-[var(--primary)]" />
+            {selectedDate 
+              ? `Eventos del ${selectedDate.split('-')[2]}/${selectedDate.split('-')[1]}` 
+              : `Agenda de ${monthStrOnly.charAt(0).toUpperCase() + monthStrOnly.slice(1)} ${year}`}
           </h3>
           <button 
             onClick={() => setIsSidebarOpen(false)}
-            className="p-2 hover:bg-[var(--background)] rounded-full text-[var(--text-muted)] transition-colors"
+            className="p-2 hover:bg-[var(--background)] rounded-full text-[var(--text-muted)] transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -385,10 +390,14 @@ export default function Calendario() {
           {(() => {
             const eventsToShow = selectedDate 
               ? activities.filter(act => act.fechaProgramada === selectedDate)
-              : upcomingEvents;
+              : monthEvents;
 
             if (eventsToShow.length === 0) {
-              return <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center py-6">No hay eventos para mostrar</p>;
+              return (
+                <p className="text-[11px] font-medium text-[var(--text-muted)] text-center py-10 opacity-75">
+                  No hay eventos programados en este periodo.
+                </p>
+              );
             }
 
             return eventsToShow.map((act) => {
@@ -487,15 +496,15 @@ export default function Calendario() {
                  <AlertCircle size={15} />
               </div>
               <div>
-                 <h4 className="font-space font-bold text-xs uppercase tracking-wider text-white">Alertas Críticas</h4>
-                 <p className="text-[9px] font-inter text-sky-300/70 font-medium">Estado del Plan Metrológico</p>
+                 <h4 className="font-space font-bold text-xs uppercase tracking-wider text-white">Alertas del Mes</h4>
+                 <p className="text-[9px] font-inter text-sky-300/70 font-medium capitalize">{monthStrOnly} {year}</p>
               </div>
            </div>
            <div className="space-y-2 font-inter relative">
               <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
                  <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${stats.vencidos > 0 ? 'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)] animate-pulse' : 'bg-slate-500'}`} />
-                    <span className="text-xs font-medium text-slate-200">Vencimientos</span>
+                    <span className="text-xs font-medium text-slate-200 capitalize">Vencimientos ({monthStrOnly})</span>
                  </div>
                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
                    stats.vencidos > 0 
