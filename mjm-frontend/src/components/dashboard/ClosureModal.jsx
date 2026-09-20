@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../config/firebase';
 import { useAuthStore } from '../../store/authStore';
+import { laboratoryService, DEFAULT_LABORATORIES } from '../../services/laboratoryService';
 import { 
   CheckCircle, 
   AlertCircle, 
@@ -9,27 +10,56 @@ import {
   FileUp, 
   X, 
   FileText, 
-  ShieldCheck 
+  ShieldCheck,
+  Wrench,
+  Plus,
+  Building2,
+  Check,
+  Award
 } from 'lucide-react';
 
 /**
- * Modal de Cierre Metrológico e Intervención Técnica (ISO/IEC 17025 & ISO 10012)
- * Permite registrar trazabilidad, soporte documental (PDF/JPG), laboratorio ejecutor,
- * cálculo en tiempo real de conformidad metrológica y actualización del expediente del instrumento.
+ * Modal Dinámico de Cierre Metrológico e Intervención Técnica (ISO/IEC 17025 & ISO 10012)
+ * Se adapta automáticamente según el tipo de actividad:
+ *  - MANTENIMIENTO: Reporte técnico, OT, trabajos realizados y estado operativo (sin campos metrológicos innecesarios).
+ *  - CALIBRACIÓN / VERIFICACIÓN: Protocolo metrológico estricto (Error, Incertidumbre U, EMP y Certificado).
+ *  - CALIFICACIÓN: Protocolo IQ/OQ/PQ y dictamen de idoneidad.
+ * Incluye catálogo de Laboratorios/Proveedores en BD con creación inmediata en vivo.
  */
 export default function ClosureModal({ activity, onClose, onFinish }) {
-  const [file, setFile] = useState(null);
-  const [laboratorio, setLaboratorio] = useState('Laboratorio Metrológico MJM');
-  const [certificadoNumero, setCertificadoNumero] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
+  const { tenant } = useAuthStore();
+  const tenantId = activity?.tenantId || tenant?.id || 'sandboxdemo';
 
-  const [patronReferencia, setPatronReferencia] = useState('');
-  const [laboratorioTipo, setLaboratorioTipo] = useState('Acreditado');
-  const [errorEncontrado, setErrorEncontrado] = useState('');
-  const [incertidumbre, setIncertidumbre] = useState('');
-  const [criterioTipo, setCriterioTipo] = useState('emp'); // 'emp' o 'tolerancia'
-  const [criterioValor, setCriterioValor] = useState('');
-  
+  // Detección del tipo de intervención
+  const tipoNorm = (activity?.tipo || '').toLowerCase();
+  const isMantenimiento = tipoNorm.includes('mantenimiento');
+  const isCalificacion = tipoNorm.includes('calificaci');
+  const isMetrologica = !isMantenimiento && !isCalificacion; // Calibración o Verificación
+
+  // Estados Comunes
+  const [file, setFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [laboratorio, setLaboratorio] = useState('Laboratorio Metrológico MJM');
+
+  // Catálogo de Laboratorios y Creación Rápida
+  const [laboratoriesList, setLaboratoriesList] = useState(DEFAULT_LABORATORIES);
+  const [isCreatingLab, setIsCreatingLab] = useState(false);
+  const [newLabName, setNewLabName] = useState('');
+  const [newLabTipo, setNewLabTipo] = useState(isMantenimiento ? 'Taller' : 'Acreditado');
+  const [isSavingLab, setIsSavingLab] = useState(false);
+
+  // Cargar catálogo de laboratorios desde BD
+  useEffect(() => {
+    let isMounted = true;
+    laboratoryService.getLaboratories(tenantId).then((labs) => {
+      if (isMounted && labs && labs.length > 0) {
+        setLaboratoriesList(labs);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [tenantId]);
+
+  // Fecha de Ejecución
   const getColombiaDate = () => {
     try {
       const d = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Bogota" }));
@@ -46,6 +76,25 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
   const isVencida = activity.fechaProgramada < todayStr;
   const [fechaEjecucion, setFechaEjecucion] = useState(todayStr);
 
+  // ─── CAMPOS ESPECÍFICOS PARA MANTENIMIENTO ───────────────────────
+  const [reporteOT, setReporteOT] = useState('');
+  const [descripcionTrabajos, setDescripcionTrabajos] = useState('');
+  const [estadoOperativo, setEstadoOperativo] = useState('Operativo'); // 'Operativo' | 'En Observación' | 'No Operativo'
+
+  // ─── CAMPOS ESPECÍFICOS PARA CALIFICACIÓN ────────────────────────
+  const [protocoloNumero, setProtocoloNumero] = useState('');
+  const [etapaCalificacion, setEtapaCalificacion] = useState('OQ'); // 'IQ' | 'OQ' | 'PQ'
+  const [resultadoCalificacion, setResultadoCalificacion] = useState('Aprobado');
+
+  // ─── CAMPOS ESPECÍFICOS PARA CALIBRACIÓN / VERIFICACIÓN ──────────
+  const [certificadoNumero, setCertificadoNumero] = useState('');
+  const [patronReferencia, setPatronReferencia] = useState('');
+  const [laboratorioTipo, setLaboratorioTipo] = useState('Acreditado');
+  const [errorEncontrado, setErrorEncontrado] = useState('');
+  const [incertidumbre, setIncertidumbre] = useState('');
+  const [criterioTipo, setCriterioTipo] = useState('emp'); // 'emp' o 'tolerancia'
+  const [criterioValor, setCriterioValor] = useState('');
+
   const parsedError = parseFloat(errorEncontrado);
   const parsedIncertidumbre = parseFloat(incertidumbre);
   const parsedCriterio = parseFloat(criterioValor);
@@ -53,40 +102,93 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
   // Evaluación matemática de conformidad metrológica ISO 10012: |Error| + Incertidumbre <= Límite Aceptable
   const compliance = useMemo(() => {
     if (isNaN(parsedError) || isNaN(parsedIncertidumbre) || isNaN(parsedCriterio)) {
-      return 'Conforme'; // Por defecto Conforme si no se requieren tolerancias numéricas estrictas
+      return 'Conforme';
     }
     return (Math.abs(parsedError) + parsedIncertidumbre <= parsedCriterio) ? 'Conforme' : 'No Conforme';
   }, [parsedError, parsedIncertidumbre, parsedCriterio]);
 
+  // Manejador para crear un nuevo laboratorio en BD en caliente
+  const handleCreateNewLab = async (e) => {
+    e.preventDefault();
+    if (!newLabName.trim()) return;
+    setIsSavingLab(true);
+    try {
+      const created = await laboratoryService.addLaboratory(tenantId, {
+        nombre: newLabName.trim(),
+        tipo: newLabTipo
+      });
+      setLaboratoriesList(prev => [created, ...prev]);
+      setLaboratorio(created.nombre);
+      if (created.tipo) setLaboratorioTipo(created.tipo);
+      setNewLabName('');
+      setIsCreatingLab(false);
+    } catch (err) {
+      console.error("Error al registrar laboratorio:", err);
+    } finally {
+      setIsSavingLab(false);
+    }
+  };
+
+  // Finalizar y despachar resultado
   const handleFinish = async () => {
     setIsUploading(true);
     let certificado_url = null;
-    
+
     if (file) {
       try {
-        const tenantId = activity.tenantId || useAuthStore.getState().tenant?.id || 'sandboxdemo';
         const safeName = file.name.replace(/\s+/g, '_');
-        const fileRef = ref(storage, `tenants/${tenantId}/actividades/${activity.id}/certificados/${Date.now()}_${safeName}`);
+        const fileRef = ref(storage, `tenants/${tenantId}/actividades/${activity.id}/soportes/${Date.now()}_${safeName}`);
         await uploadBytes(fileRef, file);
         certificado_url = await getDownloadURL(fileRef);
       } catch (error) {
         console.warn("Aviso al subir archivo a storage:", error.message);
       }
     }
-    
-    onFinish({ 
-      laboratorio: laboratorio || 'Laboratorio Metrológico MJM', 
-      fecha_ejecucion: fechaEjecucion, 
-      certificado_numero: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
-      certificado_url: certificado_url || null,
-      patron_referencia: patronReferencia || null,
-      laboratorio_tipo: laboratorioTipo,
-      error_encontrado: isNaN(parsedError) ? 0.00 : parsedError,
-      incertidumbre: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
-      criterio_tipo: criterioTipo,
-      criterio_valor: isNaN(parsedCriterio) ? null : parsedCriterio,
-      conformidad_metrologica: compliance
-    });
+
+    if (isMantenimiento) {
+      // 🛠️ PAYLOAD LIMPIO DE MANTENIMIENTO TÉCNICO
+      onFinish({
+        laboratorio: laboratorio || 'Taller Técnico Interno de Planta',
+        proveedor_ejecutor: laboratorio || 'Taller Técnico Interno de Planta',
+        fecha_ejecucion: fechaEjecucion,
+        reporte_ot: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
+        certificado_numero: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
+        certificado_url: certificado_url || null,
+        descripcion_trabajos: descripcionTrabajos,
+        estado_operativo: estadoOperativo,
+        declaracion_conformidad: estadoOperativo === 'No Operativo' ? 'No Conforme' : 'Conforme',
+        conformidad_metrologica: estadoOperativo === 'No Operativo' ? 'No Conforme' : 'Conforme'
+      });
+    } else if (isCalificacion) {
+      // 📋 PAYLOAD DE CALIFICACIÓN DE EQUIPO (IQ / OQ / PQ)
+      onFinish({
+        laboratorio: laboratorio || 'Laboratorio Metrológico MJM',
+        fecha_ejecucion: fechaEjecucion,
+        certificado_numero: protocoloNumero || `PROT-${Date.now().toString().slice(-6)}`,
+        certificado_url: certificado_url || null,
+        etapa_calificacion: etapaCalificacion,
+        resultado_calificacion: resultadoCalificacion,
+        declaracion_conformidad: resultadoCalificacion === 'Aprobado' ? 'Conforme' : 'No Conforme',
+        conformidad_metrologica: resultadoCalificacion === 'Aprobado' ? 'Conforme' : 'No Conforme'
+      });
+    } else {
+      // ⚖️ PAYLOAD DE PROTOCOLO METROLÓGICO RIGUROSO (CALIBRACIÓN / VERIFICACIÓN ISO 10012)
+      onFinish({
+        laboratorio: laboratorio || 'Laboratorio Metrológico MJM',
+        fecha_ejecucion: fechaEjecucion,
+        certificado_numero: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
+        certificado_url: certificado_url || null,
+        patron_referencia: patronReferencia || null,
+        laboratorio_tipo: laboratorioTipo,
+        error_encontrado: isNaN(parsedError) ? 0.00 : parsedError,
+        incertidumbre: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
+        criterio_tipo: criterioTipo,
+        criterio_valor: isNaN(parsedCriterio) ? null : parsedCriterio,
+        declaracion_conformidad: compliance,
+        conformidad_metrologica: compliance
+      });
+    }
+
     setIsUploading(false);
   };
 
@@ -94,15 +196,33 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
     <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
       <div className="bg-[var(--surface)] text-[var(--text-main)] rounded-2xl p-6 sm:p-7 w-full max-w-xl shadow-2xl border border-[var(--outline-color)]/30 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
         
-        {/* Header */}
+        {/* Encabezado Dinámico según tipo de actividad */}
         <div className="flex justify-between items-start mb-5 pb-3.5 border-b border-[var(--outline-color)]/20">
            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center">
-                 <ShieldCheck size={22} />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                isMantenimiento 
+                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                  : isCalificacion
+                  ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+              }`}>
+                 {isMantenimiento ? <Wrench size={22} /> : isCalificacion ? <Award size={22} /> : <ShieldCheck size={22} />}
               </div>
               <div>
-                 <h2 className="text-lg font-bold text-[var(--text-main)] uppercase tracking-tight">Cierre de Actividad Metrológica</h2>
-                 <p className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Protocolo de Certificación & Trazabilidad ISO 10012</p>
+                 <h2 className="text-lg font-bold text-[var(--text-main)] uppercase tracking-tight">
+                   {isMantenimiento 
+                     ? 'Cierre de Mantenimiento Técnico' 
+                     : isCalificacion 
+                     ? 'Cierre de Calificación de Equipo' 
+                     : 'Cierre de Actividad Metrológica'}
+                 </h2>
+                 <p className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider">
+                   {isMantenimiento 
+                     ? 'Orden de Trabajo & Registro de Servicio Operativo' 
+                     : isCalificacion
+                     ? 'Protocolo de Calificación e Idoneidad (IQ/OQ/PQ)'
+                     : 'Protocolo de Certificación & Trazabilidad ISO 10012'}
+                 </p>
               </div>
            </div>
            <button 
@@ -115,7 +235,7 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
         </div>
 
         <div className="space-y-4">
-           {/* Activo a Intervenir */}
+           {/* Resumen del Activo a Intervenir */}
            <div className="bg-[var(--surface-alt)] p-3.5 rounded-xl border border-[var(--outline-color)]/20">
               <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Activo a Intervenir</p>
               <p className="text-sm font-bold text-[var(--text-main)] uppercase">{activity.instrumentNombre || 'Instrumento'}</p>
@@ -123,7 +243,13 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                 <span className="px-2 py-0.5 bg-[var(--primary)]/10 text-[var(--primary)] text-[10px] font-mono font-bold rounded border border-[var(--primary)]/20">
                   ID: {activity.codigo || activity.codigoMJM || 'MJM'}
                 </span>
-                <span className="px-2 py-0.5 bg-[var(--surface)] text-[var(--text-muted)] text-[10px] font-bold uppercase rounded border border-[var(--outline-color)]/20">
+                <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded border ${
+                  isMantenimiento 
+                    ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                    : isCalificacion
+                    ? 'bg-purple-500/10 text-purple-600 border-purple-500/20'
+                    : 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+                }`}>
                   Tipo: {activity.tipo || 'Calibración'}
                 </span>
               </div>
@@ -136,13 +262,13 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                 <div>
                    <p className="text-[11px] font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Novedad: Cierre Extemporáneo</p>
                    <p className="text-[11px] text-red-600 dark:text-red-400 mt-0.5 leading-relaxed">
-                     Esta tarea superó su fecha programada ({activity.fechaProgramada}). Se registrará con fecha de hoy ({todayStr}) para auditoría de cumplimiento normativo.
+                     Esta tarea superó su fecha programada ({activity.fechaProgramada}). Se registrará con fecha de hoy ({todayStr}) para auditoría y trazabilidad.
                    </p>
                 </div>
              </div>
            )}
 
-           {/* Fecha y Laboratorio */}
+           {/* Fecha de Ejecución Real y Selector Inteligente de Laboratorio / Proveedor */}
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                <div>
                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">Fecha de Ejecución Real</label>
@@ -154,138 +280,326 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                     className={`w-full p-2.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)] ${isVencida ? 'opacity-60 cursor-not-allowed bg-neutral-100 dark:bg-zinc-800' : ''}`}
                   />
                </div>
+
                <div>
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">Laboratorio / Proveedor Ejecutor</label>
-                  <input 
-                    value={laboratorio} 
-                    onChange={e => setLaboratorio(e.target.value)}
-                    placeholder="Ej: Laboratorio Metrológico MJM" 
-                    className="w-full p-2.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
-                  />
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+                      {isMantenimiento ? 'Proveedor / Taller Ejecutor' : 'Laboratorio Ejecutor'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingLab(!isCreatingLab)}
+                      className="text-[10px] text-[var(--primary)] font-bold hover:underline flex items-center gap-0.5 cursor-pointer"
+                    >
+                      {isCreatingLab ? 'Seleccionar existente' : '+ Registrar nuevo'}
+                    </button>
+                  </div>
+
+                  {!isCreatingLab ? (
+                    <div className="relative">
+                      <select
+                        value={laboratorio}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLaboratorio(val);
+                          const found = laboratoriesList.find(l => l.nombre === val);
+                          if (found && found.tipo) {
+                            setLaboratorioTipo(found.tipo);
+                          }
+                        }}
+                        className="w-full p-2.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)] cursor-pointer"
+                      >
+                        {laboratoriesList.map((lab) => (
+                          <option key={lab.id || lab.nombre} value={lab.nombre}>
+                            {lab.nombre} {lab.tipo ? `(${lab.tipo})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 bg-[var(--surface-alt)] border border-[var(--primary)]/30 rounded-lg space-y-2 animate-in fade-in duration-200">
+                      <input
+                        type="text"
+                        value={newLabName}
+                        onChange={(e) => setNewLabName(e.target.value)}
+                        placeholder="Nombre del nuevo laboratorio/taller..."
+                        className="w-full p-1.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded text-xs font-semibold text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]"
+                        autoFocus
+                      />
+                      <div className="flex items-center justify-between gap-2">
+                        <select
+                          value={newLabTipo}
+                          onChange={(e) => setNewLabTipo(e.target.value)}
+                          className="text-[10px] p-1 bg-[var(--background)] border border-[var(--outline-color)]/20 rounded font-medium text-[var(--text-muted)]"
+                        >
+                          <option value="Acreditado">Acreditado (ISO 17025)</option>
+                          <option value="Trazable">Trazable</option>
+                          <option value="Taller">Taller Técnico / Autorizado</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={handleCreateNewLab}
+                          disabled={!newLabName.trim() || isSavingLab}
+                          className="px-2.5 py-1 bg-[var(--primary)] text-[#1A202C] rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                        >
+                          {isSavingLab ? <RefreshCw size={10} className="animate-spin" /> : <Plus size={10} />}
+                          Guardar en BD
+                        </button>
+                      </div>
+                    </div>
+                  )}
                </div>
            </div>
 
-           {/* No. de Certificado & Trazabilidad */}
-           <div className="bg-[var(--surface-alt)] p-3.5 rounded-xl border border-[var(--outline-color)]/20 space-y-3">
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-               <div>
-                 <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Certificado No. (Identificador)</label>
-                 <input 
-                   value={certificadoNumero} 
-                   onChange={e => setCertificadoNumero(e.target.value)}
-                   placeholder="Ej: CERT-2026-CAL-089" 
-                   className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
-                 />
-               </div>
-               <div>
-                 <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Tipo de Laboratorio</label>
-                 <div className="flex gap-2">
-                   {['Acreditado', 'Trazable'].map((t) => (
-                     <button
-                       key={t}
-                       type="button"
-                       onClick={() => setLaboratorioTipo(t)}
-                       className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                         laboratorioTipo === t
-                           ? 'bg-[var(--primary)] border-transparent text-[#1A202C] shadow-sm'
-                           : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                       }`}
-                     >
-                       {t}
-                     </button>
-                   ))}
+           {/* ─── CASO 1: FORMULARIO ESPECÍFICO DE MANTENIMIENTO TÉCNICO ─── */}
+           {isMantenimiento && (
+             <div className="space-y-3 animate-in fade-in duration-300">
+               <div className="bg-[var(--surface-alt)] p-3.5 rounded-xl border border-[var(--outline-color)]/20 space-y-3">
+                 <div>
+                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">
+                     No. de Reporte de Servicio / Orden de Trabajo (OT)
+                   </label>
+                   <input 
+                     value={reporteOT} 
+                     onChange={e => setReporteOT(e.target.value)}
+                     placeholder="Ej: OT-2026-MANT-042 o REP-SERV-881" 
+                     className="w-full p-2.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
+                   />
+                 </div>
+
+                 <div>
+                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">
+                     Descripción de Trabajos Realizados & Repuestos
+                   </label>
+                   <textarea
+                     rows={3}
+                     value={descripcionTrabajos}
+                     onChange={e => setDescripcionTrabajos(e.target.value)}
+                     placeholder="Detalle los trabajos efectuados (ej. Limpieza de conectores, ajuste de selectores, reemplazo de fusible/batería 9V, lubricación de componentes móviles)..."
+                     className="w-full p-2.5 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)] leading-relaxed resize-none"
+                   />
+                 </div>
+
+                 <div>
+                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1.5">
+                     Estado Operativo Resultante del Equipo
+                   </label>
+                   <div className="grid grid-cols-3 gap-2">
+                     {[
+                       { id: 'Operativo', label: 'Operativo', desc: '100% Apto para uso', color: 'text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10' },
+                       { id: 'En Observación', label: 'En Observación', desc: 'Funcional con detalle', color: 'text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10' },
+                       { id: 'No Operativo', label: 'Requiere Calibración', desc: 'Intervención mayor', color: 'text-red-600 dark:text-red-400 border-red-500/30 bg-red-500/10' }
+                     ].map((item) => (
+                       <button
+                         key={item.id}
+                         type="button"
+                         onClick={() => setEstadoOperativo(item.id)}
+                         className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                           estadoOperativo === item.id 
+                             ? `${item.color} ring-1 ring-current shadow-xs` 
+                             : 'bg-[var(--background)] border-[var(--outline-color)]/20 text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                         }`}
+                       >
+                         <p className="text-xs font-bold leading-tight">{item.label}</p>
+                         <p className="text-[9px] opacity-75 mt-0.5 truncate">{item.desc}</p>
+                       </button>
+                     ))}
+                   </div>
                  </div>
                </div>
              </div>
+           )}
 
-             <div>
-               <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Patrón de Referencia Utilizado (Opcional)</label>
-               <input 
-                 value={patronReferencia} 
-                 onChange={e => setPatronReferencia(e.target.value)}
-                 placeholder="Ej: Bloques patrón grado 0 / Calibrador Fluke 5500A" 
-                 className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
-               />
-             </div>
-           </div>
+           {/* ─── CASO 2: FORMULARIO ESPECÍFICO DE CALIFICACIÓN (IQ/OQ/PQ) ─── */}
+           {isCalificacion && (
+             <div className="space-y-3 animate-in fade-in duration-300">
+               <div className="bg-[var(--surface-alt)] p-3.5 rounded-xl border border-[var(--outline-color)]/20 space-y-3">
+                 <div className="grid grid-cols-2 gap-3">
+                   <div>
+                     <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">
+                       Protocolo No. / Identificador
+                     </label>
+                     <input 
+                       value={protocoloNumero} 
+                       onChange={e => setProtocoloNumero(e.target.value)}
+                       placeholder="Ej: PROT-IQ-OQ-2026-01" 
+                       className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
+                     />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">
+                       Etapa de Calificación
+                     </label>
+                     <div className="flex gap-1.5">
+                       {['IQ', 'OQ', 'PQ'].map((stage) => (
+                         <button
+                           key={stage}
+                           type="button"
+                           onClick={() => setEtapaCalificacion(stage)}
+                           className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                             etapaCalificacion === stage 
+                               ? 'bg-purple-600 text-white border-transparent' 
+                               : 'bg-[var(--background)] border-[var(--outline-color)]/20 text-[var(--text-muted)]'
+                           }`}
+                         >
+                           {stage}
+                         </button>
+                       ))}
+                     </div>
+                   </div>
+                 </div>
 
-           {/* CONFIRMACIÓN METROLÓGICA (ISO 10012) */}
-           <div className="bg-[var(--surface-alt)] p-3.5 rounded-xl border border-[var(--outline-color)]/20 space-y-3">
-             <div className="flex justify-between items-center">
-               <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Confirmación Metrológica ISO 10012</p>
-               <span className={`px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider ${
-                 compliance === 'Conforme' 
-                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
-                   : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
-               }`}>
-                 {compliance === 'Conforme' ? '✓ Cumple (Conforme)' : '⚠️ Desviación (No Conforme)'}
-               </span>
-             </div>
-             
-             <div className="grid grid-cols-2 gap-3">
-               <div>
-                 <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Error Máx. Encontrado</label>
-                 <input 
-                   type="number"
-                   step="any"
-                   value={errorEncontrado} 
-                   onChange={e => setErrorEncontrado(e.target.value)}
-                   placeholder="Ej: 0.002" 
-                   className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
-                 />
-               </div>
-               <div>
-                 <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Incertidumbre (U)</label>
-                 <input 
-                   type="number"
-                   step="any"
-                   value={incertidumbre} 
-                   onChange={e => setIncertidumbre(e.target.value)}
-                   placeholder="Ej: 0.0005" 
-                   className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
-                 />
-               </div>
-             </div>
-
-             <div className="grid grid-cols-2 gap-3">
-               <div>
-                 <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Criterio de Aceptación</label>
-                 <div className="flex gap-2">
-                   {[
-                     { id: 'emp', label: 'EMP' },
-                     { id: 'tolerancia', label: 'Tolerancia ±' }
-                   ].map((c) => (
-                     <button
-                       key={c.id}
-                       type="button"
-                       onClick={() => setCriterioTipo(c.id)}
-                       className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                         criterioTipo === c.id
-                           ? 'bg-[var(--text-main)] text-[var(--surface)] border-transparent shadow-sm'
-                           : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                       }`}
-                     >
-                       {c.label}
-                     </button>
-                   ))}
+                 <div>
+                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1">
+                     Dictamen de Calificación
+                   </label>
+                   <div className="flex gap-2">
+                     {['Aprobado', 'No Aprobado'].map((res) => (
+                       <button
+                         key={res}
+                         type="button"
+                         onClick={() => setResultadoCalificacion(res)}
+                         className={`flex-1 py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                           resultadoCalificacion === res 
+                             ? (res === 'Aprobado' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white')
+                             : 'bg-[var(--background)] border-[var(--outline-color)]/20 text-[var(--text-muted)]'
+                         }`}
+                       >
+                         {res}
+                       </button>
+                     ))}
+                   </div>
                  </div>
                </div>
-               <div>
-                 <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Valor del Límite</label>
-                 <input 
-                   type="number"
-                   step="any"
-                   value={criterioValor} 
-                   onChange={e => setCriterioValor(e.target.value)}
-                   placeholder="Ej: 0.005" 
-                   className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
-                 />
+             </div>
+           )}
+
+           {/* ─── CASO 3: FORMULARIO RIGUROSO METROLÓGICO (CALIBRACIÓN / VERIFICACIÓN ISO 10012) ─── */}
+           {isMetrologica && (
+             <div className="space-y-3 animate-in fade-in duration-300">
+               {/* No. de Certificado & Trazabilidad */}
+               <div className="bg-[var(--surface-alt)] p-3.5 rounded-xl border border-[var(--outline-color)]/20 space-y-3">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                   <div>
+                     <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1 block">Certificado No. (Identificador)</label>
+                     <input 
+                       value={certificadoNumero} 
+                       onChange={e => setCertificadoNumero(e.target.value)}
+                       placeholder="Ej: CERT-2026-CAL-089" 
+                       className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
+                     />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1 block">Tipo de Laboratorio</label>
+                     <div className="flex gap-2">
+                       {['Acreditado', 'Trazable'].map((t) => (
+                         <button
+                           key={t}
+                           type="button"
+                           onClick={() => setLaboratorioTipo(t)}
+                           className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                             laboratorioTipo === t
+                               ? 'bg-[var(--primary)] border-transparent text-[#1A202C] shadow-sm'
+                               : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                           }`}
+                         >
+                           {t}
+                         </button>
+                       ))}
+                     </div>
+                   </div>
+                 </div>
+
+                 <div>
+                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1 block">Patrón de Referencia Utilizado (Opcional)</label>
+                   <input 
+                     value={patronReferencia} 
+                     onChange={e => setPatronReferencia(e.target.value)}
+                     placeholder="Ej: Bloques patrón grado 0 / Calibrador Fluke 5500A" 
+                     className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
+                   />
+                 </div>
+               </div>
+
+               {/* CONFIRMACIÓN METROLÓGICA (ISO 10012) */}
+               <div className="bg-[var(--surface-alt)] p-3.5 rounded-xl border border-[var(--outline-color)]/20 space-y-3">
+                 <div className="flex justify-between items-center">
+                   <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Confirmación Metrológica ISO 10012</p>
+                   <span className={`px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider ${
+                     compliance === 'Conforme' 
+                       ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
+                       : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20'
+                   }`}>
+                     {compliance === 'Conforme' ? '✓ Cumple (Conforme)' : '⚠️ Desviación (No Conforme)'}
+                   </span>
+                 </div>
+                 
+                 <div className="grid grid-cols-2 gap-3">
+                   <div>
+                     <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Error Máx. Encontrado</label>
+                     <input 
+                       type="number"
+                       step="any"
+                       value={errorEncontrado} 
+                       onChange={e => setErrorEncontrado(e.target.value)}
+                       placeholder="Ej: 0.002" 
+                       className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
+                     />
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Incertidumbre (U)</label>
+                     <input 
+                       type="number"
+                       step="any"
+                       value={incertidumbre} 
+                       onChange={e => setIncertidumbre(e.target.value)}
+                       placeholder="Ej: 0.0005" 
+                       className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
+                     />
+                   </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-3">
+                   <div>
+                     <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Criterio de Aceptación</label>
+                     <div className="flex gap-2">
+                       {[
+                         { id: 'emp', label: 'EMP' },
+                         { id: 'tolerancia', label: 'Tolerancia ±' }
+                       ].map((c) => (
+                         <button
+                           key={c.id}
+                           type="button"
+                           onClick={() => setCriterioTipo(c.id)}
+                           className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                             criterioTipo === c.id
+                               ? 'bg-[var(--text-main)] text-[var(--surface)] border-transparent shadow-sm'
+                               : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                           }`}
+                         >
+                           {c.label}
+                         </button>
+                       ))}
+                     </div>
+                   </div>
+                   <div>
+                     <label className="text-[10px] font-medium text-[var(--text-muted)] mb-1 block">Valor del Límite</label>
+                     <input 
+                       type="number"
+                       step="any"
+                       value={criterioValor} 
+                       onChange={e => setCriterioValor(e.target.value)}
+                       placeholder="Ej: 0.005" 
+                       className="w-full p-2 bg-[var(--background)] border border-[var(--outline-color)]/30 rounded-lg text-xs font-mono text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" 
+                     />
+                   </div>
+                 </div>
                </div>
              </div>
-           </div>
+           )}
 
-           {/* DROPZONE PARA CERTIFICADO DIGITAL */}
-           <div className="border-2 border-dashed border-[var(--outline-color)]/30 rounded-xl p-5 text-center hover:border-[var(--primary)]/50 transition-all cursor-pointer bg-[var(--surface-alt)]/40 group">
+           {/* DROPZONE PARA SOPORTE DIGITAL (PDF / FOTO) */}
+           <div className="border-2 border-dashed border-[var(--outline-color)]/30 rounded-xl p-4 sm:p-5 text-center hover:border-[var(--primary)]/50 transition-all cursor-pointer bg-[var(--surface-alt)]/40 group">
               <input 
                 type="file" 
                 className="hidden" 
@@ -294,7 +608,7 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                 onChange={e => setFile(e.target.files?.[0] || null)} 
               />
               <label htmlFor="cert-upload" className="cursor-pointer flex flex-col items-center">
-                 <FileUp size={26} className="text-[var(--text-muted)] group-hover:text-[var(--primary)] mb-1.5 transition-colors" />
+                 <FileUp size={24} className="text-[var(--text-muted)] group-hover:text-[var(--primary)] mb-1 transition-colors" />
                  {file ? (
                    <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                      <FileText size={15} />
@@ -302,14 +616,20 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                    </div>
                  ) : (
                    <>
-                    <p className="text-xs font-bold text-[var(--text-main)]">Adjuntar Certificado de Calibración / Calificación</p>
+                    <p className="text-xs font-bold text-[var(--text-main)]">
+                      {isMantenimiento 
+                        ? 'Adjuntar Reporte Técnico / OT / Factura de Mantenimiento' 
+                        : isCalificacion
+                        ? 'Adjuntar Protocolo Firmado de Calificación'
+                        : 'Adjuntar Certificado de Calibración / Verificación'}
+                    </p>
                     <p className="text-[10px] text-[var(--text-muted)] mt-0.5 uppercase tracking-wider">Formatos PDF, PNG o JPG (Máx. 10MB)</p>
                    </>
                  )}
               </label>
            </div>
 
-           {/* Acciones */}
+           {/* Botones de Acción */}
            <div className="flex gap-3 pt-2">
               <button 
                 onClick={onClose} 

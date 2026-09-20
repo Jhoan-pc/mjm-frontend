@@ -256,7 +256,7 @@ const HojaDeVidaPrint = () => {
                          <td className="px-4 py-2 text-slate-600">{reg.certificado || (reg.certificado_url ? 'CERT-REGISTRADO' : 'CERT-INT-001')}</td>
                          <td className="px-4 py-2 text-slate-600 uppercase">{reg.laboratorio || reg.ejecutor || 'Laboratorio Metrológico MJM'}</td>
                          <td className="px-4 py-2 text-center text-slate-600">
-                           {reg.error !== undefined ? `±${reg.error}` : '0.00'}
+                           {reg.error !== undefined && reg.error !== null ? `±${reg.error}` : (reg.tipo === 'Mantenimiento' ? 'N/A' : '0.00')}
                          </td>
                          <td className="px-4 py-2 text-right">
                            <span className={`px-2 py-0.5 rounded text-[7px] font-bold uppercase tracking-wider border ${
