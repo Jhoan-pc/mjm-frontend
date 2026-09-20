@@ -204,11 +204,29 @@ export default function Calendario() {
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               onClick={handleOpenGlobalSidebar}
-              className="btn-precision-secondary text-[11px]"
-              title="Abrir panel de detalles del día"
+              className={`btn-precision-secondary text-[11px] flex items-center gap-1.5 py-1.5 px-3 rounded-lg border transition-all cursor-pointer ${
+                stats.vencidos > 0 
+                  ? 'border-red-500/40 text-red-600 dark:text-red-400 hover:bg-red-500/10' 
+                  : 'border-[var(--outline-color)]/30 hover:bg-[var(--surface-alt)]'
+              }`}
+              title="Abrir resumen de Agenda & Alertas Críticas"
             >
-              <CalendarIcon size={14} />
-              <span>Ver Panel Lateral</span>
+              <div className="relative flex items-center justify-center">
+                <Bell size={13} className={stats.vencidos > 0 ? 'text-red-500' : 'text-[#f7931b]'} />
+                {stats.vencidos > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                )}
+              </div>
+              <span className="font-space font-bold tracking-tight uppercase">Agenda & Alertas</span>
+              {(stats.vencidos > 0 || stats.hoy > 0 || stats.enProceso > 0) && (
+                <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold leading-none ${
+                  stats.vencidos > 0
+                    ? 'bg-red-500 text-white shadow-xs'
+                    : 'bg-[var(--surface-alt)] text-[var(--text-main)] border border-[var(--outline-color)]/30'
+                }`}>
+                  {stats.vencidos > 0 ? stats.vencidos : (stats.hoy + stats.enProceso)}
+                </span>
+              )}
             </button>
             <button
               onClick={() => {
