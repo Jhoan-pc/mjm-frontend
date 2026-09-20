@@ -215,9 +215,11 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
       onFinish({
         laboratorio: laboratorio || 'Taller Técnico Interno de Planta',
         proveedor_ejecutor: laboratorio || 'Taller Técnico Interno de Planta',
+        laboratorio_ejecutor: laboratorio || 'Taller Técnico Interno de Planta',
         fecha_ejecucion: fechaEjecucion,
         reporte_ot: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
         certificado_numero: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
+        certificado: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
         certificado_url: certificado_url || null,
         descripcion_trabajos: descripcionTrabajos,
         estado_operativo: estadoOperativo,
@@ -228,8 +230,11 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
       // 📋 PAYLOAD DE CALIFICACIÓN DE EQUIPO (IQ / OQ / PQ)
       onFinish({
         laboratorio: laboratorio || 'Laboratorio Metrológico MJM',
+        laboratorio_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
+        proveedor_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
         fecha_ejecucion: fechaEjecucion,
         certificado_numero: protocoloNumero || `PROT-${Date.now().toString().slice(-6)}`,
+        certificado: protocoloNumero || `PROT-${Date.now().toString().slice(-6)}`,
         certificado_url: certificado_url || null,
         etapa_calificacion: etapaCalificacion,
         resultado_calificacion: resultadoCalificacion,
@@ -240,13 +245,17 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
       // ⚖️ PAYLOAD DE PROTOCOLO METROLÓGICO RIGUROSO (CALIBRACIÓN / VERIFICACIÓN ISO 10012)
       onFinish({
         laboratorio: laboratorio || 'Laboratorio Metrológico MJM',
+        laboratorio_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
+        proveedor_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
         fecha_ejecucion: fechaEjecucion,
         certificado_numero: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
+        certificado: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
         certificado_url: certificado_url || null,
         patron_referencia: patronReferencia || null,
         laboratorio_tipo: laboratorioTipo,
         error_encontrado: isNaN(parsedError) ? 0.00 : parsedError,
         incertidumbre: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
+        incertidumbre_medicion: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
         criterio_tipo: criterioTipo,
         criterio_valor: isNaN(parsedCriterio) ? null : parsedCriterio,
         declaracion_conformidad: compliance,

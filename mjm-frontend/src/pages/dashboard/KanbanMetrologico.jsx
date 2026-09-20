@@ -386,26 +386,23 @@ export default function KanbanMetrologico() {
         <ClosureModal 
           activity={closureAct} 
           onClose={() => setClosureAct(null)} 
-          onFinish={(data) => {
-            updateActivityStatus(closureAct.id, 'done', {
-               error_encontrado: data.error_encontrado,
-               incertidumbre_medicion: data.incertidumbre,
-               declaracion_conformidad: data.conformidad_metrologica,
-               fecha_ejecucion: data.fecha_ejecucion,
-               laboratorio_ejecutor: data.laboratorio,
-               certificado_url: data.certificado_url,
-               patron_referencia: data.patron_referencia,
-               laboratorio_tipo: data.laboratorio_tipo,
-               criterio_tipo: data.criterio_tipo,
-               criterio_valor: data.criterio_valor
-            });
+          onFinish={async (data) => {
+            const cleanData = Object.fromEntries(
+              Object.entries(data).filter(([_, v]) => v !== undefined)
+            );
+            await updateActivityStatus(closureAct.id, 'done', cleanData);
 
             // Si es NO CONFORME, generar tarea correctiva y disparar alerta automática en Firebase 'mail'
-            if (data.conformidad_metrologica === 'No Conforme') {
+            if (data.conformidad_metrologica === 'No Conforme' || data.declaracion_conformidad === 'No Conforme') {
               const tenantId = closureAct.tenantId || tenant?.id;
               const nextWeekDate = new Date();
               nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
               const dateStr = nextWeekDate.toISOString().split('T')[0];
+
+              const isMaint = (closureAct.tipo || '').toLowerCase().includes('mantenimiento');
+              const failureDesc = isMaint 
+                ? `Falla técnica / Equipo No Operativo tras mantenimiento en ${closureAct.instrumentNombre}. Detalle: ${data.descripcion_trabajos || 'Equipo fuera de servicio'}.`
+                : `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado ?? 'N/A'}, Incertidumbre: ${data.incertidumbre ?? 'N/A'}. Tolerancia excedida.`;
 
               const correctiveAct = {
                 tenantId,
@@ -416,7 +413,7 @@ export default function KanbanMetrologico() {
                 estado: 'todo',
                 fechaProgramada: dateStr,
                 priority: 'high',
-                notas: `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado}, Incertidumbre: ${data.incertidumbre}. Tolerancia excedida.`
+                notas: failureDesc
               };
 
               addActivity(correctiveAct);

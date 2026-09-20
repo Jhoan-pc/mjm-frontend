@@ -4,6 +4,7 @@ import {
   addDoc, 
   getDocs, 
   updateDoc, 
+  setDoc,
   doc, 
   getDoc,
   query, 
@@ -380,20 +381,26 @@ export const useInventoryStore = create((set, get) => ({
     const isDemo = useAuthStore.getState().isDemoMode;
     const updateData = { estado: status };
     if (extraFields) {
-      Object.assign(updateData, extraFields);
+      // Filtrar y omitir campos undefined para proteger la integridad de Firestore
+      for (const [key, val] of Object.entries(extraFields)) {
+        if (val !== undefined) {
+          updateData[key] = val;
+        }
+      }
     }
     if (status === 'done') {
       updateData.finishedAt = new Date().toISOString();
     }
     
     const activity = get().activities.find(a => a.id === activityId);
-    const instrumentId = activity?.instrumentId;
-    const tenantId = activity?.tenantId || useAuthStore.getState().tenant?.id || 'sandboxdemo';
+    const instrumentId = activity?.instrumentId || updateData.instrumentId;
+    const activeTenant = useAuthStore.getState().tenant?.id;
+    const tenantId = activity?.tenantId || activeTenant || 'deltapruebas-sandbox';
     
     let newLog = null;
     if (status === 'done' && instrumentId) {
-      const isMaint = (activity?.tipo || '').toLowerCase().includes('mantenimiento');
-      const isCalific = (activity?.tipo || '').toLowerCase().includes('calificaci');
+      const isMaint = (activity?.tipo || updateData.tipo || '').toLowerCase().includes('mantenimiento');
+      const isCalific = (activity?.tipo || updateData.tipo || '').toLowerCase().includes('calificaci');
       
       const declaracion = isMaint 
         ? (updateData.estado_operativo === 'No Operativo' ? 'No Conforme' : 'Conforme')
@@ -401,15 +408,16 @@ export const useInventoryStore = create((set, get) => ({
 
       newLog = {
         fecha: updateData.fecha_ejecucion || new Date().toISOString().split('T')[0],
-        tipo: activity?.tipo || 'Calibración',
-        laboratorio: updateData.laboratorio_ejecutor || updateData.laboratorio || updateData.proveedor_ejecutor || 'Laboratorio Metrológico MJM',
-        proveedor: updateData.laboratorio_ejecutor || updateData.laboratorio || updateData.proveedor_ejecutor || 'Laboratorio Metrológico MJM',
-        certificado: updateData.certificado || updateData.certificado_numero || updateData.reporte_ot || (updateData.certificado_url ? 'SOPORTE-REGISTRADO' : 'CERT-INT-001'),
+        tipo: activity?.tipo || updateData.tipo || (isMaint ? 'Mantenimiento' : isCalific ? 'Calificación' : 'Calibración'),
+        laboratorio: updateData.laboratorio_ejecutor || updateData.laboratorio || updateData.proveedor_ejecutor || (isMaint ? 'Taller Interno' : 'Laboratorio Metrológico MJM'),
+        proveedor: updateData.laboratorio_ejecutor || updateData.laboratorio || updateData.proveedor_ejecutor || (isMaint ? 'Taller Interno' : 'Laboratorio Metrológico MJM'),
+        certificado: updateData.certificado || updateData.certificado_numero || updateData.reporte_ot || (updateData.certificado_url ? 'SOPORTE-REGISTRADO' : (isMaint ? 'OT-INT-001' : 'CERT-INT-001')),
         certificado_url: updateData.certificado_url || null,
         declaracion_conformidad: declaracion,
         conformidad_metrologica: declaracion,
         estado_operativo: updateData.estado_operativo || (declaracion === 'Conforme' ? 'Operativo' : 'No Conforme'),
         descripcion_trabajos: updateData.descripcion_trabajos || null,
+        reporte_ot: updateData.reporte_ot || null,
         error: isMaint ? null : (updateData.error_encontrado !== undefined && updateData.error_encontrado !== null ? updateData.error_encontrado : 0.00),
         incertidumbre: isMaint ? null : (updateData.incertidumbre_medicion !== undefined && updateData.incertidumbre_medicion !== null 
           ? updateData.incertidumbre_medicion 
@@ -418,6 +426,36 @@ export const useInventoryStore = create((set, get) => ({
       };
     }
     
+    // 🚀 ACTUALIZACIÓN LOCAL OPTIMISTA INMEDIATA (Zustand)
+    // Garantiza que la interfaz responda al instante en la UI sin esperar roundtrips
+    set(state => {
+      const updatedActivities = state.activities.map(act => 
+        act.id === activityId ? { ...act, ...updateData } : act
+      );
+      
+      let updatedInstruments = state.instruments;
+      if (newLog && instrumentId) {
+        updatedInstruments = state.instruments.map(inst => {
+          if (inst.id === instrumentId) {
+            const currentHistorial = inst.historial || [];
+            const newStatus = (newLog.declaracion_conformidad === 'Conforme' || newLog.conformidad_metrologica === 'Conforme') ? 'Activo' : 'No Conforme';
+            return {
+              ...inst,
+              historial: [newLog, ...currentHistorial],
+              lastStatus: newStatus,
+              estado: newStatus
+            };
+          }
+          return inst;
+        });
+      }
+      
+      return {
+        activities: updatedActivities,
+        instruments: updatedInstruments
+      };
+    });
+
     // ⚡ MODO DEMO EFÍMERO: Guardar ejecución en sesión
     if (isDemo) {
       try {
@@ -437,71 +475,45 @@ export const useInventoryStore = create((set, get) => ({
           sessionStorage.setItem('mjm_demo_inst_updates', JSON.stringify(instUpdates));
         }
       } catch (_) {}
-
-      set(state => {
-        const updatedActivities = state.activities.map(act => 
-          act.id === activityId ? { ...act, ...updateData } : act
-        );
-        
-        let updatedInstruments = state.instruments;
-        if (newLog) {
-          updatedInstruments = state.instruments.map(inst => {
-            if (inst.id === instrumentId) {
-              const currentHistorial = inst.historial || [];
-              return {
-                ...inst,
-                historial: [newLog, ...currentHistorial],
-                lastStatus: newLog.declaracion_conformidad === 'Conforme' ? 'Activo' : 'No Conforme'
-              };
-            }
-            return inst;
-          });
-        }
-        
-        return {
-          activities: updatedActivities,
-          instruments: updatedInstruments
-        };
-      });
       return;
     }
 
     // 🏢 MODO REAL: Actualizar permanentemente en Firestore
     try {
+      // Limpiar estrictamente cualquier campo undefined de updateData antes de enviar a Firestore
+      const cleanUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, v]) => v !== undefined)
+      );
+
       const actRef = doc(db, 'activities', activityId);
-      await updateDoc(actRef, updateData);
+      await setDoc(actRef, cleanUpdateData, { merge: true });
       
-      if (newLog && tenantId) {
-        const instRef = doc(db, 'tenants', tenantId, 'inventario_metrologico', instrumentId);
-        const instSnap = await getDoc(instRef);
+      if (newLog && instrumentId) {
+        const cleanNewLog = Object.fromEntries(
+          Object.entries(newLog).filter(([_, v]) => v !== undefined)
+        );
+
+        let targetTenant = tenantId;
+        let instRef = doc(db, 'tenants', targetTenant, 'inventario_metrologico', instrumentId);
+        let instSnap = await getDoc(instRef);
+
+        // Si no existe bajo tenantId original, consultar el tenant activo
+        if (!instSnap.exists() && activeTenant && activeTenant !== targetTenant) {
+          targetTenant = activeTenant;
+          instRef = doc(db, 'tenants', targetTenant, 'inventario_metrologico', instrumentId);
+          instSnap = await getDoc(instRef);
+        }
+
         if (instSnap.exists()) {
           const currentHistorial = instSnap.data().historial || [];
-          const newStatus = (newLog.declaracion_conformidad === 'Conforme' || newLog.conformidad_metrologica === 'Conforme') ? 'Activo' : 'No Conforme';
+          const newStatus = (cleanNewLog.declaracion_conformidad === 'Conforme' || cleanNewLog.conformidad_metrologica === 'Conforme') ? 'Activo' : 'No Conforme';
           await updateDoc(instRef, {
-            historial: [newLog, ...currentHistorial],
+            historial: [cleanNewLog, ...currentHistorial],
             lastStatus: newStatus,
             estado: newStatus
           });
         }
       }
-
-      // Sincronizar estado local en memoria de Zustand para reactividad instantánea en la UI
-      set(state => ({
-        activities: state.activities.map(act => act.id === activityId ? { ...act, ...updateData } : act),
-        instruments: state.instruments.map(inst => {
-          if (inst.id === instrumentId && newLog) {
-            const currentHistorial = inst.historial || [];
-            const newStatus = (newLog.declaracion_conformidad === 'Conforme' || newLog.conformidad_metrologica === 'Conforme') ? 'Activo' : 'No Conforme';
-            return {
-              ...inst,
-              historial: [newLog, ...currentHistorial],
-              lastStatus: newStatus,
-              estado: newStatus
-            };
-          }
-          return inst;
-        })
-      }));
     } catch (e) {
       console.warn("Aviso al actualizar en Firestore:", e.message);
     }
