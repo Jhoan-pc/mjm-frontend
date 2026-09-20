@@ -567,5 +567,97 @@ export const useInventoryStore = create((set, get) => ({
       set({ loading: false });
       return false;
     }
+  },
+
+  // ─── REGISTRAR COMPROBACIÓN METROLÓGICA EN PLANTA (ISO 10012) ───
+  recordPlantCheck: async ({
+    tenantId,
+    instrumentId,
+    patronReferencia,
+    patronCertificado,
+    valorPatron,
+    valorLeido,
+    unidadMedida,
+    temperatura,
+    humedad,
+    responsable,
+    notas
+  }) => {
+    const activeTenantId = tenantId || useAuthStore.getState().tenant?.id || 'sandboxdemo';
+    const inst = get().instruments.find(i => i.id === instrumentId);
+    const tol = Number(inst?.tolerancia_proceso) || 0.05;
+    const vPatron = Number(valorPatron) || 0;
+    const vLeido = Number(valorLeido) || 0;
+    const errorVal = Number((vLeido - vPatron).toFixed(4));
+    const consumoPct = tol > 0 ? Math.min(999, Math.round((Math.abs(errorVal) / tol) * 100)) : 0;
+    const declaracion = Math.abs(errorVal) <= tol ? 'Conforme' : 'No Conforme';
+    const today = new Date().toISOString().split('T')[0];
+
+    const newCheckLog = {
+      fecha: today,
+      fecha_ejecucion: today,
+      tipo: 'Verificación',
+      patron_referencia: patronReferencia || 'Patrón de Planta Cal-Ref',
+      certificado: patronCertificado || 'Trazable INM',
+      valor_patron: vPatron,
+      valor_leido: vLeido,
+      error: errorVal,
+      error_encontrado: errorVal,
+      tolerancia: tol,
+      consumo_mpe: consumoPct,
+      unidad: unidadMedida || inst?.unidad_medida || 'mm',
+      temperatura: temperatura || null,
+      humedad: humedad || null,
+      declaracion_conformidad: declaracion,
+      conformidad_metrologica: declaracion,
+      responsable: responsable || 'Metrólogo de Planta',
+      notas: notas || 'Comprobación metrológica en piso',
+      createdAt: new Date().toISOString()
+    };
+
+    // 1. Si existe una actividad pendiente de Verificación para este equipo, cerrarla
+    const pendingVerifAct = get().activities.find(
+      a => a.instrumentId === instrumentId && a.tipo === 'Verificación' && a.estado === 'todo'
+    );
+
+    if (pendingVerifAct) {
+      await get().updateActivityStatus(pendingVerifAct.id, 'done', {
+        ...newCheckLog,
+        laboratorio_ejecutor: 'INTERNO (MJM PLANTA)'
+      });
+    } else {
+      // Si no había actividad programada previa, registrarla como realizada
+      await get().addActivity({
+        tenantId: activeTenantId,
+        instrumentId,
+        instrumentNombre: inst?.nombre || 'Instrumento',
+        codigoMJM: inst?.codigoMJM || inst?.codigo || '',
+        tipo: 'Verificación',
+        estado: 'done',
+        fechaProgramada: today,
+        fechaRealizacion: today,
+        ...newCheckLog,
+        laboratorio_ejecutor: 'INTERNO (MJM PLANTA)'
+      });
+
+      // Actualizar el historial del instrumento
+      const currentHistorial = inst?.historial || [];
+      const newStatus = declaracion === 'Conforme' ? (inst?.estado === 'Vencido' ? 'Activo' : (inst?.estado || 'Activo')) : 'No Conforme';
+
+      await get().updateInstrument(activeTenantId, instrumentId, {
+        historial: [newCheckLog, ...currentHistorial],
+        lastStatus: newStatus,
+        estado: newStatus,
+        lastVerificationAt: today
+      });
+    }
+
+    return {
+      success: true,
+      errorVal,
+      consumoPct,
+      declaracion,
+      newCheckLog
+    };
   }
 }));

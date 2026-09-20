@@ -116,37 +116,19 @@ export default function DashboardKPIs() {
       };
     });
 
-    const hasData = data.some(d => d.plan > 0 || d.real > 0);
-    if (!hasData) {
-      return [
-        { name: 'Ene', real: 8, plan: 10 },
-        { name: 'Feb', real: 12, plan: 12 },
-        { name: 'Mar', real: 14, plan: 15 },
-        { name: 'Abr', real: 9, plan: 10 },
-        { name: 'May', real: 15, plan: 15 },
-        { name: 'Jun', real: 20, plan: 22 },
-        { name: 'Jul', real: 11, plan: 12 },
-        { name: 'Ago', real: 18, plan: 20 },
-        { name: 'Sep', real: 16, plan: 18 },
-        { name: 'Oct', real: 22, plan: 25 },
-        { name: 'Nov', real: 25, plan: 25 },
-        { name: 'Dic', real: 28, plan: 30 }
-      ];
-    }
-
     return data;
   }, [activities]);
 
   // --- CRITICALITY MIX ---
   const criticalityData = React.useMemo(() => {
     const high = instruments.filter(i => i.criticidad === 'ALTA' || i.riesgo_operativo === 'Alta' || i.riesgo_operativo === 'Crítica').length;
-    const medium = instruments.filter(i => i.criticidad === 'MEDIA' || i.riesgo_operativo === 'Media' || !i.criticidad && !i.riesgo_operativo).length;
+    const medium = instruments.filter(i => i.criticidad === 'MEDIA' || i.riesgo_operativo === 'Media' || (!i.criticidad && !i.riesgo_operativo)).length;
     const low = instruments.filter(i => i.criticidad === 'BAJA' || i.riesgo_operativo === 'Baja').length;
 
     return [
-      { name: 'Alta/Crítica', value: high || 3, color: '#BA1A1A' },
-      { name: 'Media', value: medium || 8, color: '#E3A06D' },
-      { name: 'Baja', value: low || 5, color: '#78B7D0' }
+      { name: 'Alta/Crítica', value: high, color: '#BA1A1A' },
+      { name: 'Media', value: medium, color: '#E3A06D' },
+      { name: 'Baja', value: low, color: '#78B7D0' }
     ];
   }, [instruments]);
 
@@ -159,23 +141,13 @@ export default function DashboardKPIs() {
       counts[formatted] = (counts[formatted] || 0) + 1;
     });
 
-    const categories = Object.keys(counts);
-    if (categories.length < 3) {
-      // Fallback categories for beautiful radar rendering
-      return [
-        { subject: 'MASA', A: counts['MASA'] || 5, B: 10 },
-        { subject: 'TEMPERATURA', A: counts['TEMPERATURA'] || 8, B: 10 },
-        { subject: 'PRESIÓN', A: counts['PRESIÓN'] || 4, B: 10 },
-        { subject: 'PH', A: counts['PH'] || 3, B: 10 },
-        { subject: 'HUMEDAD', A: counts['HUMEDAD'] || 2, B: 10 },
-        { subject: 'FOTOMETRÍA', A: counts['FOTOMETRÍA'] || 1, B: 10 }
-      ];
-    }
+    const standardMags = ['MASA', 'TEMPERATURA', 'PRESIÓN', 'LONGITUD', 'ELÉCTRICA', 'HUMEDAD'];
+    const maxVal = Math.max(5, ...Object.values(counts));
 
-    return categories.map(cat => ({
-      subject: cat,
-      A: counts[cat],
-      fullMark: Math.max(...Object.values(counts)) + 2
+    return standardMags.map(mag => ({
+      subject: mag,
+      A: counts[mag] || 0,
+      fullMark: maxVal
     }));
   }, [instruments]);
 

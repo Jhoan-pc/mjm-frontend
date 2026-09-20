@@ -20,12 +20,12 @@ import { useInventoryStore } from '../../store/inventoryStore';
 
 const SectionHeader = ({ title, subtitle, icon: Icon }) => (
   <div className="flex items-center gap-4 mb-8">
-    <div className="w-12 h-12 rounded-2xl bg-mjm-navy/5 flex items-center justify-center text-mjm-navy">
+    <div className="w-12 h-12 rounded-2xl bg-mjm-navy/5 dark:bg-[#f7931b]/10 flex items-center justify-center text-mjm-navy dark:text-[#f7931b]">
       <Icon size={24} />
     </div>
     <div>
-      <h3 className="text-xl font-black text-mjm-navy uppercase tracking-tighter">{title}</h3>
-      <p className="text-sm text-gray-500 font-medium">{subtitle}</p>
+      <h3 className="text-xl font-black text-mjm-navy dark:text-white uppercase tracking-tighter">{title}</h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{subtitle}</p>
     </div>
   </div>
 );
@@ -204,34 +204,104 @@ const NotificationAlertsConfig = () => {
   );
 };
 
-const PlatformRules = () => (
-  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-    <SectionHeader 
-      title="Reglas de Negocio" 
-      subtitle="Defina los parámetros operativos y técnicos globales."
-      icon={Sliders}
-    />
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {[
-        { name: "Intervalos de Calibración", icon: <CalendarIcon size={18} />, desc: "Estándares por tipo de instrumento." },
-        { name: "Alertas Tempranas", icon: <ShieldCheck size={18} />, desc: "Días de antelación para notificaciones." },
-        { name: "Formatos ISO/IEC", icon: <FileText size={18} />, desc: "Gestión de plantillas y firmas." },
-        { name: "Base de Datos", icon: <Database size={18} />, desc: "Optimización y limpieza de registros." }
-      ].map((item, idx) => (
-        <div key={idx} className="bg-white p-6 rounded-3xl border border-gray-100 hover:border-mjm-orange/30 transition-all cursor-pointer group flex items-center gap-5">
-          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-mjm-navy group-hover:bg-mjm-orange group-hover:text-white transition-colors">
-            {item.icon}
+const PlatformRules = () => {
+  const [selectedRule, setSelectedRule] = useState(null);
+
+  const rulesList = [
+    { 
+      name: "Intervalos de Calibración", 
+      icon: <CalendarIcon size={18} />, 
+      desc: "Estándares por tipo de instrumento según OIML / ILAC G24.",
+      status: "Activo: 12 Meses",
+      detail: "Intervalo de confirmación metrológica proyectado automáticamente a 5 años en la creación de activos (ISO 10012:2003)."
+    },
+    { 
+      name: "Alertas Tempranas", 
+      icon: <ShieldCheck size={18} />, 
+      desc: "Antelación para notificaciones por correo y cronograma.",
+      status: "Activo: 30 Días",
+      detail: "Disparo de alertas preventivas en amarillo 30 días antes del vencimiento metrológico de cada equipo."
+    },
+    { 
+      name: "Formatos ISO/IEC", 
+      icon: <FileText size={18} />, 
+      desc: "Gestión de plantillas digitales y sello audit-trail.",
+      status: "NTC-ISO 10012 / 17025",
+      detail: "Hojas de vida técnicas con certificación inmutable sin hojas en blanco y compatibilidad Golden Print."
+    },
+    { 
+      name: "Aislamiento Multi-Tenant", 
+      icon: <Database size={18} />, 
+      desc: "Seguridad por tenant en Firestore y Storage.",
+      status: "Blindado: auth != null",
+      detail: "Filtrado estricto por tenantId en todas las colecciones de base de datos y almacenamiento cloud seguro."
+    }
+  ];
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+      <SectionHeader 
+        title="Reglas de Negocio" 
+        subtitle="Parámetros operativos y directrices metrológicas activas en el sistema."
+        icon={Sliders}
+      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {rulesList.map((item, idx) => (
+          <div 
+            key={idx} 
+            onClick={() => setSelectedRule(item)}
+            className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-100 dark:border-zinc-800 hover:border-[#f7931b]/40 transition-all cursor-pointer group flex items-start gap-4 shadow-sm hover:shadow-md"
+          >
+            <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-zinc-800 flex items-center justify-center text-mjm-navy dark:text-[#f7931b] group-hover:bg-[#f7931b] group-hover:text-white transition-colors shrink-0">
+              {item.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <h4 className="font-black text-mjm-navy dark:text-white text-xs uppercase tracking-widest truncate">{item.name}</h4>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                  {item.status}
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h4 className="font-black text-mjm-navy text-xs uppercase tracking-widest">{item.name}</h4>
-            <p className="text-[11px] text-gray-500 mt-0.5">{item.desc}</p>
+        ))}
+      </div>
+
+      {/* Modal de Detalle de Regla de Negocio */}
+      {selectedRule && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-2xl max-w-md w-full animate-in zoom-in-95">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#f7931b] font-bold">Parámetro de Calidad Activo</span>
+                <h3 className="font-space font-bold text-slate-900 dark:text-white text-base mt-0.5">{selectedRule.name}</h3>
+              </div>
+              <button onClick={() => setSelectedRule(null)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-sans mb-4">
+              {selectedRule.detail}
+            </p>
+            <div className="p-3 bg-slate-50 dark:bg-zinc-800 rounded-xl font-mono text-[11px] text-slate-700 dark:text-slate-300 flex items-center justify-between">
+              <span>Estado en Motor:</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">{selectedRule.status}</span>
+            </div>
+            <div className="mt-5 flex justify-end">
+              <button
+                onClick={() => setSelectedRule(null)}
+                className="px-4 py-2 bg-mjm-navy hover:bg-[#1a3857] text-white rounded-xl font-mono text-xs font-bold"
+              >
+                Entendido
+              </button>
+            </div>
           </div>
-          <ChevronRight size={16} className="text-gray-200 group-hover:text-mjm-orange group-hover:translate-x-1 transition-all" />
         </div>
-      ))}
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const GeographicView = () => {
   const { instruments, loadInstruments } = useInventoryStore();
@@ -1075,12 +1145,12 @@ const Settings = () => {
            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Digital Core</p>
            <h1 className="font-black text-[var(--text-main)] text-4xl tracking-tighter uppercase">Ajustes <span className="text-[var(--primary)] italic">del Sistema</span></h1>
         </div>
-        <div className="flex bg-gray-100/50 p-1 rounded-2xl border border-gray-100">
+        <div className="flex bg-gray-100/50 dark:bg-zinc-800/80 p-1 rounded-2xl border border-gray-100 dark:border-zinc-700">
            {categories.map(cat => (
              <button
                 key={cat.id}
                 onClick={() => { setActiveCategory(cat.id); setActiveSub(Object.keys(subMenus[cat.id] || {})[0] || 'none'); }}
-                className={`px-6 py-3 rounded-xl flex items-center gap-3 transition-all ${activeCategory === cat.id ? 'bg-white shadow-xl text-mjm-navy' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`px-6 py-3 rounded-xl flex items-center gap-3 transition-all ${activeCategory === cat.id ? 'bg-white dark:bg-zinc-900 shadow-xl text-mjm-navy dark:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-200'}`}
              >
                 {cat.icon}
                 <span className="text-[10px] font-black uppercase tracking-widest">{cat.name}</span>
@@ -1098,7 +1168,7 @@ const Settings = () => {
              <button
                 key={sub.id}
                 onClick={() => setActiveSub(sub.id)}
-                className={`group flex items-center justify-between p-4 rounded-2xl transition-all border ${activeSub === sub.id ? 'bg-mjm-navy border-mjm-navy text-white shadow-xl shadow-mjm-navy/20' : 'bg-white border-gray-100 text-gray-500 hover:border-mjm-navy/30 hover:text-mjm-navy'}`}
+                className={`group flex items-center justify-between p-4 rounded-2xl transition-all border ${activeSub === sub.id ? 'bg-mjm-navy border-mjm-navy text-white shadow-xl shadow-mjm-navy/20' : 'bg-white dark:bg-zinc-900 border-gray-100 dark:border-zinc-800 text-gray-500 dark:text-gray-400 hover:border-mjm-navy/30 hover:text-mjm-navy dark:hover:text-white'}`}
              >
                 <div className="flex items-center gap-3">
                    {sub.icon}

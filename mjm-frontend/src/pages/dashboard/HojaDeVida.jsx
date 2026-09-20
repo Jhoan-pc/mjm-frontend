@@ -55,14 +55,225 @@ const formatDateYYYYMMDD = (dateVal) => {
   }
 };
 
+const EditInstrumentModal = ({ inst, onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    nombre: inst.nombre || '',
+    marca: inst.marca || '',
+    modelo: inst.modelo || '',
+    serie: inst.serie || '',
+    codigoMJM: inst.codigoMJM || inst.codigo || '',
+    magnitud: inst.magnitud || 'Longitud',
+    unidad_medida: inst.unidad_medida || 'mm',
+    tolerancia_proceso: inst.tolerancia_proceso || 0.05,
+    intervalo_confirmacion: inst.intervalo_confirmacion || 12,
+    riesgo_operativo: inst.riesgo_operativo || 'Media',
+    ubicacion: inst.jerarquia?.ubicacion || inst.ubicacion || '',
+    planta: inst.jerarquia?.planta || 'Planta Principal',
+    responsable: inst.responsable || ''
+  });
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await onSave({
+        ...formData,
+        tolerancia_proceso: Number(formData.tolerancia_proceso) || 0.05,
+        intervalo_confirmacion: Number(formData.intervalo_confirmacion) || 12,
+        jerarquia: {
+          ...(inst.jerarquia || {}),
+          planta: formData.planta,
+          ubicacion: formData.ubicacion
+        }
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 text-xs">
+        
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between bg-slate-50 dark:bg-zinc-800/80">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-mjm-navy/10 text-mjm-navy dark:text-[#f7931b] flex items-center justify-center">
+              <Edit3 size={17} />
+            </div>
+            <div>
+              <h3 className="font-space font-bold text-slate-900 dark:text-white text-base leading-tight">
+                Editar Ficha Técnica del Activo
+              </h3>
+              <p className="text-[11px] font-mono text-slate-500">
+                {inst.codigoMJM || inst.codigo || 'S/N'} • {inst.nombre}
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Nombre del Equipo *</label>
+              <input
+                type="text"
+                value={formData.nombre}
+                onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-medium"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Marca</label>
+              <input
+                type="text"
+                value={formData.marca}
+                onChange={e => setFormData({ ...formData, marca: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Modelo / Referencia</label>
+              <input
+                type="text"
+                value={formData.modelo}
+                onChange={e => setFormData({ ...formData, modelo: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Número de Serie</label>
+              <input
+                type="text"
+                value={formData.serie}
+                onChange={e => setFormData({ ...formData, serie: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Código / Tag MJM</label>
+              <input
+                type="text"
+                value={formData.codigoMJM}
+                onChange={e => setFormData({ ...formData, codigoMJM: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-mono font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Tolerancia de Proceso (EMP)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="any"
+                  value={formData.tolerancia_proceso}
+                  onChange={e => setFormData({ ...formData, tolerancia_proceso: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-mono font-bold"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-[11px]">
+                  {formData.unidad_medida}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Unidad de Medida</label>
+              <input
+                type="text"
+                value={formData.unidad_medida}
+                onChange={e => setFormData({ ...formData, unidad_medida: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-mono"
+                placeholder="ej: mm, kg, °C, bar"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Planta / Fábrica</label>
+              <input
+                type="text"
+                value={formData.planta}
+                onChange={e => setFormData({ ...formData, planta: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Ubicación Física / Área</label>
+              <input
+                type="text"
+                value={formData.ubicacion}
+                onChange={e => setFormData({ ...formData, ubicacion: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Responsable / Custodio</label>
+              <input
+                type="text"
+                value={formData.responsable}
+                onChange={e => setFormData({ ...formData, responsable: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Criticidad / Riesgo Operativo</label>
+              <select
+                value={formData.riesgo_operativo}
+                onChange={e => setFormData({ ...formData, riesgo_operativo: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white"
+              >
+                <option value="Baja">Baja</option>
+                <option value="Media">Media</option>
+                <option value="Alta">Alta</option>
+                <option value="Crítica">Crítica</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 rounded-xl"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-5 py-2.5 bg-mjm-navy hover:bg-[#1a3857] text-white font-bold rounded-xl flex items-center gap-2 shadow-md"
+            >
+              {saving ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  );
+};
+
 export default function HojaDeVida() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { instruments, loading, getInstrumentFromFirestore } = useInventoryStore();
+  const { instruments, loading, getInstrumentFromFirestore, updateInstrument } = useInventoryStore();
   const { tenant } = useAuthStore();
   const [inst, setInst] = useState(null);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [pdfModalUrl, setPdfModalUrl] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -125,7 +336,10 @@ export default function HojaDeVida() {
               >
                 <Printer size={14} /> Imprimir
               </button>
-              <button className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-on-surface-variant hover:text-on-surface transition-colors">
+              <button 
+                onClick={() => setIsEditModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+              >
                 <Edit3 size={14} /> Editar
               </button>
             </div>
@@ -405,6 +619,20 @@ export default function HojaDeVida() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal de Edición de Datos del Instrumento */}
+      {isEditModalOpen && inst && (
+        <EditInstrumentModal
+          inst={inst}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={async (updatedData) => {
+            const activeTenantId = tenant?.id || 'sandboxdemo';
+            await updateInstrument(activeTenantId, inst.id, updatedData);
+            setInst(prev => ({ ...prev, ...updatedData }));
+            setIsEditModalOpen(false);
+          }}
+        />
       )}
     </div>
   );
