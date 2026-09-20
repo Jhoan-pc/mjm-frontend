@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   ChevronLeft, 
   ChevronRight, 
+  ChevronDown,
   Calendar as CalendarIcon, 
   Clock, 
   AlertCircle,
@@ -128,6 +129,28 @@ export default function Calendario() {
     const totalMes = monthActs.length;
     return { vencidos, hoy, enProceso, completadas, pendientes, totalMes };
   }, [activities, monthPrefix, todayStr]);
+
+  // Métricas específicas del día seleccionado (cuando se inspecciona una fecha puntual en el drawer)
+  const dayStats = useMemo(() => {
+    if (!selectedDate) return null;
+    const dayActs = activities.filter(act => act.fechaProgramada === selectedDate && act.estado !== 'archived');
+    const vencidos = dayActs.filter(act => act.estado === 'todo' && act.fechaProgramada < todayStr).length;
+    const enProceso = dayActs.filter(act => act.estado === 'doing').length;
+    const completadas = dayActs.filter(act => act.estado === 'done').length;
+    const pendientes = dayActs.filter(act => act.estado !== 'done').length;
+    const totalDia = dayActs.length;
+    return { vencidos, enProceso, completadas, pendientes, totalDia };
+  }, [activities, selectedDate, todayStr]);
+
+  // Formato legible de la fecha seleccionada (ej. 22 de octubre de 2026)
+  const formattedSelectedDate = useMemo(() => {
+    if (!selectedDate) return '';
+    const parts = selectedDate.split('-');
+    if (parts.length !== 3) return selectedDate;
+    const [y, m, d] = parts.map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    return dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+  }, [selectedDate]);
 
   const handleDateClick = (dateStr) => {
     setSelectedDate(dateStr);
@@ -449,6 +472,9 @@ export default function Calendario() {
                          </span>
                       </div>
                     </div>
+                    <div className="shrink-0 text-[var(--text-muted)] self-center pl-1">
+                      <ChevronDown size={15} className={`transition-transform duration-200 ${isSelectedAct ? 'rotate-180 text-[var(--primary)]' : 'opacity-40'}`} />
+                    </div>
                   </div>
 
                   {/* Detalle y Acciones Rápidas */}
@@ -492,67 +518,149 @@ export default function Calendario() {
           })()}
         </div>
 
-        {/* QUICK STATS IN SIDEBAR (Efecto Glass Azul Industrial) */}
+        {/* QUICK STATS IN SIDEBAR (Efecto Glass Azul Industrial Adaptable a Día / Mes) */}
         <div className="p-4 m-4 rounded-2xl text-white backdrop-blur-2xl border border-sky-400/30 shadow-[0_20px_50px_rgba(10,25,47,0.85),0_0_30px_rgba(56,189,248,0.2)] overflow-hidden bg-gradient-to-b from-[#14284b]/95 via-[#0d1d36]/95 to-[#091528]/95 relative before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.2),_transparent_70%)] before:pointer-events-none shrink-0">
-           <div className="flex items-center gap-2.5 mb-3 border-b border-sky-400/20 pb-2.5 relative">
-              <div className="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.35)]">
-                 <AlertCircle size={15} />
+          
+          {selectedDate && dayStats ? (
+            /* VISTA CONTEXTUAL: RESUMEN DEL DÍA SELECCIONADO */
+            <>
+              <div className="flex items-center justify-between mb-3 border-b border-sky-400/20 pb-2.5 relative">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.35)]">
+                    <CalendarIcon size={15} />
+                  </div>
+                  <div>
+                    <h4 className="font-space font-bold text-xs uppercase tracking-wider text-white">Resumen del Día</h4>
+                    <p className="text-[9px] font-inter text-sky-300/70 font-medium capitalize">{formattedSelectedDate}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="text-[9px] text-sky-300 hover:text-white px-2 py-1 rounded bg-white/5 hover:bg-white/10 border border-white/10 transition-colors cursor-pointer"
+                  title="Ver alertas de todo el mes"
+                >
+                  Ver Mes ({stats.pendientes})
+                </button>
               </div>
-              <div>
-                 <h4 className="font-space font-bold text-xs uppercase tracking-wider text-white">Alertas del Mes</h4>
-                 <p className="text-[9px] font-inter text-sky-300/70 font-medium capitalize">{monthStrOnly} {year}</p>
+
+              <div className="space-y-2 font-inter relative">
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
+                    <span className="text-xs font-medium text-slate-200">Tareas del Día</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-white/10 text-slate-200 border border-white/10">
+                    {String(dayStats.totalDia).padStart(2, '0')}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
+                    <span className="text-xs font-medium text-slate-200">Pendientes</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    dayStats.pendientes > 0
+                      ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                      : 'bg-white/10 text-slate-300 border border-white/10'
+                  }`}>
+                    {String(dayStats.pendientes).padStart(2, '0')}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${dayStats.enProceso > 0 ? 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]' : 'bg-slate-500'}`} />
+                    <span className="text-xs font-medium text-slate-200">En Proceso</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    dayStats.enProceso > 0 
+                      ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.3)]' 
+                      : 'bg-white/10 text-slate-300 border border-white/10'
+                  }`}>
+                    {String(dayStats.enProceso).padStart(2, '0')}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${dayStats.completadas > 0 ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-500'}`} />
+                    <span className="text-xs font-medium text-slate-200">Completadas</span>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    dayStats.completadas > 0 
+                      ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50' 
+                      : 'bg-white/10 text-slate-300 border border-white/10'
+                  }`}>
+                    {String(dayStats.completadas).padStart(2, '0')}
+                  </span>
+                </div>
               </div>
-           </div>
-           <div className="space-y-2 font-inter relative">
-              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
-                 <div className="flex items-center gap-2">
+            </>
+          ) : (
+            /* VISTA GLOBAL: ALERTAS DEL MES */
+            <>
+              <div className="flex items-center gap-2.5 mb-3 border-b border-sky-400/20 pb-2.5 relative">
+                <div className="w-7 h-7 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.35)]">
+                  <AlertCircle size={15} />
+                </div>
+                <div>
+                  <h4 className="font-space font-bold text-xs uppercase tracking-wider text-white">Alertas del Mes</h4>
+                  <p className="text-[9px] font-inter text-sky-300/70 font-medium capitalize">{monthStrOnly} {year}</p>
+                </div>
+              </div>
+              <div className="space-y-2 font-inter relative">
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${stats.vencidos > 0 ? 'bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)] animate-pulse' : 'bg-slate-500'}`} />
                     <span className="text-xs font-medium text-slate-200 capitalize">Vencimientos ({monthStrOnly})</span>
-                 </div>
-                 <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
-                   stats.vencidos > 0 
-                     ? 'bg-red-500/25 text-red-300 border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse' 
-                     : 'bg-white/10 text-slate-300 border border-white/10'
-                 }`}>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    stats.vencidos > 0 
+                      ? 'bg-red-500/25 text-red-300 border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse' 
+                      : 'bg-white/10 text-slate-300 border border-white/10'
+                  }`}>
                     {String(stats.vencidos).padStart(2, '0')}
-                 </span>
-              </div>
-              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
-                 <div className="flex items-center gap-2">
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${stats.hoy > 0 ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] animate-pulse' : 'bg-slate-500'}`} />
                     <span className="text-xs font-medium text-slate-200">Programados Hoy</span>
-                 </div>
-                 <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
-                   stats.hoy > 0 
-                     ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)]' 
-                     : 'bg-white/10 text-slate-300 border border-white/10'
-                 }`}>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    stats.hoy > 0 
+                      ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)]' 
+                      : 'bg-white/10 text-slate-300 border border-white/10'
+                  }`}>
                     {String(stats.hoy).padStart(2, '0')}
-                 </span>
-              </div>
-              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
-                 <div className="flex items-center gap-2">
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${stats.enProceso > 0 ? 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)]' : 'bg-slate-500'}`} />
                     <span className="text-xs font-medium text-slate-200">En Proceso</span>
-                 </div>
-                 <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
-                   stats.enProceso > 0 
-                     ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.3)]' 
-                     : 'bg-white/10 text-slate-300 border border-white/10'
-                 }`}>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                    stats.enProceso > 0 
+                      ? 'bg-sky-500/25 text-sky-300 border border-sky-500/50 shadow-[0_0_10px_rgba(56,189,248,0.3)]' 
+                      : 'bg-white/10 text-slate-300 border border-white/10'
+                  }`}>
                     {String(stats.enProceso).padStart(2, '0')}
-                 </span>
-              </div>
-              <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
-                 <div className="flex items-center gap-2">
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors">
+                  <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
                     <span className="text-xs font-medium text-slate-200">Total Pendientes</span>
-                 </div>
-                 <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-amber-500/25 text-amber-300 border border-amber-500/50">
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-amber-500/25 text-amber-300 border border-amber-500/50">
                     {String(stats.pendientes).padStart(2, '0')}
-                 </span>
+                  </span>
+                </div>
               </div>
-           </div>
+            </>
+          )}
         </div>
       </aside>
 
@@ -786,8 +894,4 @@ export default function Calendario() {
 
     </div>
   );
-}
-
-function ChevronDown(props) {
-  return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
 }
