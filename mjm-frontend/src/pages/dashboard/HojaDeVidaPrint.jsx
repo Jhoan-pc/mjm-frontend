@@ -210,8 +210,8 @@ const HojaDeVidaPrint = () => {
                 <h1 className="text-[12px] font-space font-black uppercase tracking-tight text-slate-950 block mt-0.5">
                   Hoja de Vida de Activo
                 </h1>
-                <div className="mt-1 px-2.5 py-0.5 rounded-full bg-slate-950 text-white font-mono text-[9px] font-bold tracking-wider inline-flex items-center gap-1.5 shadow-xs">
-                  <span className={`w-1.5 h-1.5 rounded-full ${isVencido ? 'bg-red-400' : isProximo ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                <div className="mt-1 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-300 text-slate-900 font-mono text-[9px] font-bold tracking-wider inline-flex items-center gap-1.5 shadow-2xs">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isVencido ? 'bg-red-500' : isProximo ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                   ID ACTIVO: {assetCode}
                 </div>
                 <span className="text-[6.5px] font-mono text-slate-400 uppercase tracking-widest block mt-0.5">
@@ -267,12 +267,12 @@ const HojaDeVidaPrint = () => {
                 />
               </div>
 
-              {/* Placa metálica de identificación inferior */}
-              <div className="w-full bg-slate-950 text-white rounded-lg p-1.5 text-center shadow-xs flex flex-col gap-0.5">
-                <span className="font-mono text-[8px] font-bold text-amber-400 uppercase tracking-wider truncate">
+              {/* Placa técnica de especificación de activo */}
+              <div className="w-full bg-slate-50 border border-slate-200/90 rounded-lg p-1.5 text-center shadow-2xs flex flex-col gap-0.5">
+                <span className="font-mono text-[8.5px] font-bold text-slate-900 uppercase tracking-wider truncate">
                   REF: {inst.modelo || 'GENERIC'}
                 </span>
-                <span className="font-mono text-[7px] text-slate-400 uppercase tracking-widest truncate">
+                <span className="font-mono text-[7px] text-slate-500 uppercase tracking-widest truncate">
                   SERIAL: {inst.serie || 'S/N'}
                 </span>
               </div>
@@ -521,8 +521,8 @@ const HojaDeVidaPrint = () => {
             
             {/* Micro-Badge & Texto Legal Conciso */}
             <div className="flex items-center gap-2.5">
-              <div className="px-2 py-1 rounded-md bg-slate-950 text-white font-mono text-[7px] font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-xs">
-                <CheckCircle2 size={10} className="text-emerald-400" />
+              <div className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-300 text-slate-800 font-mono text-[7px] font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-2xs">
+                <CheckCircle2 size={10} className="text-emerald-600" />
                 VALIDACIÓN DIGITAL AUDIT-TRAIL
               </div>
               <p className="text-[7px] font-mono text-slate-500 leading-tight">
