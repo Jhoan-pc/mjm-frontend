@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 
 import ClosureModal from '../../components/dashboard/ClosureModal';
+import { sendMetrologyEmailAlert } from '../../services/emailAlertService';
 
 const ActivityCard = ({ act, column, onStart, onFinish }) => {
   const isCritical = act.priority === 'high' || act.criticidad === 'Crítica' || act.criticidad === 'Alta';
@@ -399,24 +400,32 @@ export default function KanbanMetrologico() {
                criterio_valor: data.criterio_valor
             });
 
-            // Si es NO CONFORME, generar tarea correctiva automáticamente
+            // Si es NO CONFORME, generar tarea correctiva y disparar alerta automática en Firebase 'mail'
             if (data.conformidad_metrologica === 'No Conforme') {
               const tenantId = closureAct.tenantId || tenant?.id;
               const nextWeekDate = new Date();
               nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
               const dateStr = nextWeekDate.toISOString().split('T')[0];
 
-              addActivity({
+              const correctiveAct = {
                 tenantId,
                 instrumentId: closureAct.instrumentId,
                 instrumentNombre: closureAct.instrumentNombre,
                 codigoMJM: closureAct.codigoMJM || '',
-                tipo: 'Mantenimiento',
+                tipo: 'Mantenimiento Correctivo',
                 estado: 'todo',
                 fechaProgramada: dateStr,
                 priority: 'high',
-                notas: `Generado automáticamente por desviación metrológica crítica detectada en calibración/verificación del activo. Tolerancia excedida.`
-              });
+                notas: `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado}, Incertidumbre: ${data.incertidumbre}. Tolerancia excedida.`
+              };
+
+              addActivity(correctiveAct);
+
+              sendMetrologyEmailAlert({
+                activity: correctiveAct,
+                tenant,
+                reason: 'desviacion_no_conforme'
+              }).catch(err => console.warn("Aviso al emitir alerta de correo:", err));
             }
 
             setClosureAct(null);

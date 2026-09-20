@@ -447,28 +447,12 @@ export default function Calendario() {
                               e.stopPropagation();
                               setClosureAct(act);
                             }}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer"
+                            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                             title="Completar y Registrar Certificado Metrológico"
                           >
-                            <CheckCircle2 size={12} /> Completar
+                            <CheckCircle2 size={13} /> Completar
                           </button>
                         )}
-                        <button
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              const res = await sendMetrologyEmailAlert({ activity: act, tenant, reason: 'alerta_manual' });
-                              setAlertSuccessToast(`📧 ${res.message || 'Alerta enviada correctamente'}`);
-                              setTimeout(() => setAlertSuccessToast(''), 5000);
-                            } catch (err) {
-                              alert("Error al enviar alerta: " + err.message);
-                            }
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-[var(--background)] hover:bg-white text-[var(--text-main)] border border-[var(--outline-color)] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 ml-auto transition-all"
-                          title="Enviar Alerta por Email"
-                        >
-                          <Mail size={12} className="text-[#f7931b]" /> Alerta Email
-                        </button>
                       </div>
                     </div>
                   )}
@@ -723,24 +707,36 @@ export default function Calendario() {
               criterio_valor: data.criterio_valor
             });
 
-            // Si es NO CONFORME, generar tarea correctiva automáticamente
+            // Si es NO CONFORME, generar tarea correctiva y disparar alerta automática en Firebase 'mail'
             if (data.conformidad_metrologica === 'No Conforme') {
               const tenantId = closureAct.tenantId || tenant?.id;
               const nextWeekDate = new Date();
               nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
               const dateStr = nextWeekDate.toISOString().split('T')[0];
 
-              await addActivity({
+              const correctiveAct = {
                 tenantId,
                 instrumentId: closureAct.instrumentId,
                 instrumentNombre: closureAct.instrumentNombre,
                 codigoMJM: closureAct.codigoMJM || '',
-                tipo: 'Mantenimiento',
+                tipo: 'Mantenimiento Correctivo',
                 estado: 'todo',
                 fechaProgramada: dateStr,
                 priority: 'high',
-                notas: `Generado automáticamente por desviación metrológica crítica detectada en calibración/verificación del activo. Tolerancia excedida.`
-              });
+                notas: `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado}, Incertidumbre: ${data.incertidumbre}. Tolerancia excedida.`
+              };
+
+              await addActivity(correctiveAct);
+
+              try {
+                await sendMetrologyEmailAlert({
+                  activity: correctiveAct,
+                  tenant,
+                  reason: 'desviacion_no_conforme'
+                });
+              } catch (mailErr) {
+                console.warn("Aviso al encolar alerta por no conformidad:", mailErr);
+              }
             }
 
             setClosureAct(null);
