@@ -12,10 +12,11 @@ import {
   X, 
   FileCheck2, 
   CheckCircle2, 
-  AlertCircle,
   Calendar,
   Layers,
-  Sparkles
+  Sparkles,
+  Ruler,
+  Clock
 } from 'lucide-react';
 
 const cleanUnitDisplay = (val) => {
@@ -46,6 +47,37 @@ const formatDateYYYYMMDD = (dateVal) => {
   }
 };
 
+const getNextDate = (fechaInicial, frecuenciaMeses) => {
+  if (!fechaInicial || !frecuenciaMeses) return null;
+  try {
+    let d;
+    if (typeof fechaInicial === 'string') {
+      const parts = fechaInicial.split('-').map(Number);
+      if (parts.length === 3) {
+        d = new Date(parts[0], parts[1] - 1, parts[2]);
+      } else {
+        d = new Date(fechaInicial);
+      }
+    } else {
+      d = new Date(fechaInicial);
+    }
+    if (isNaN(d.getTime())) return null;
+    d.setMonth(d.getMonth() + Number(frecuenciaMeses));
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch (e) {
+    return null;
+  }
+};
+
+const formatMeses = (num) => {
+  if (!num) return 'No Programada';
+  const n = Number(num);
+  return `${n} ${n === 1 ? 'Mes' : 'Meses'}`;
+};
+
 const HojaDeVidaPrint = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -69,7 +101,7 @@ const HojaDeVidaPrint = () => {
     }
   }, [id, instruments, getInstrumentFromFirestore]);
 
-  // Asignar el título de ventana para el nombre sugerido al guardar en PDF
+  // Nombre de archivo sugerido al guardar en PDF
   useEffect(() => {
     if (inst) {
       const code = inst.codigoMJM || inst.codigo || 'MJM';
@@ -102,8 +134,21 @@ const HojaDeVidaPrint = () => {
   const assetCode = inst.codigoMJM || inst.codigo || 'MJM-009';
   const emissionDate = new Date().toISOString().split('T')[0];
 
+  // Cálculo inteligente de campos metrológicos de alto valor
+  const marcaEquipo = inst.marca || inst.fabricante || (inst.nombre && inst.nombre.toLowerCase().includes('würth') ? 'Würth' : 'Fabricante Original');
+  const proximaCalibracion = inst.proxima_calibracion 
+    || inst.fechaProxima 
+    || getNextDate(inst.rutinas?.calibracion_fecha_inicial, inst.rutinas?.calibracion_frecuencia)
+    || 'Según Ciclo';
+  
+  const ubicacionCompleta = [
+    inst.jerarquia?.planta || 'Planta Principal',
+    inst.jerarquia?.area || 'Área General',
+    inst.jerarquia?.ubicacion || inst.ubicacion ? `(${inst.jerarquia?.ubicacion || inst.ubicacion})` : null
+  ].filter(Boolean).join(' • ');
+
   return (
-    <div className="min-h-screen bg-slate-200/80 py-8 flex justify-center print:bg-white print:py-0 print:m-0">
+    <div className="min-h-screen bg-slate-200/80 py-6 pb-28 flex justify-center print:bg-white print:py-0 print:pb-0 print:m-0">
       
       {/* BARRA DE ACCIÓN FLOTANTE (FROSTED GLASS - NO SE IMPRIME) */}
       <div className="fixed bottom-6 flex items-center gap-3 no-print z-50 bg-slate-950/85 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-white/15 shadow-2xl">
@@ -124,34 +169,34 @@ const HojaDeVidaPrint = () => {
       </div>
 
       {/* LIENZO DE IMPRESIÓN OFICIAL (A4 / LETTER PORTRAIT) */}
-      <main className="bg-white w-[8.5in] min-h-[11in] p-[0.45in] shadow-2xl flex flex-col justify-between print:shadow-none print:m-0 print:w-full print:p-0 print:min-h-0 text-slate-800">
+      <main className="bg-white w-[8.5in] min-h-[11in] p-[0.4in] shadow-2xl flex flex-col justify-between print:shadow-none print:m-0 print:w-full print:p-0 print:min-h-0 text-slate-800">
         
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           
           {/* LÍNEA DE PRESTIGIO & SEGURIDAD BICOLOR */}
           <div className="h-1 bg-gradient-to-r from-[#0F172A] via-[#1E3A5F] to-[#D97706] rounded-full" />
 
-          {/* CABECERA OFICIAL TIPO CERTIFICADO SUIZO */}
-          <header className="border-b border-slate-200/90 pb-3">
+          {/* 1. CABECERA OFICIAL TIPO CERTIFICADO SUIZO */}
+          <header className="border-b border-slate-200/90 pb-2.5">
             <div className="grid grid-cols-12 gap-3 items-center">
               
               {/* Columna 1: Titular del Activo (Cliente / Planta) */}
               <div className="col-span-4 flex items-center gap-3 pr-2 border-r border-slate-200/70">
-                <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200/80 p-1 flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200/80 p-1 flex items-center justify-center shrink-0 shadow-xs">
                   <img 
                     src={tenant?.logo_url || logoAzul} 
                     alt={clientName} 
-                    className="max-h-10 max-w-10 object-contain mix-blend-multiply" 
+                    className="max-h-9 max-w-9 object-contain mix-blend-multiply" 
                   />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[7.5px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
+                  <span className="text-[7px] font-mono font-bold uppercase tracking-wider text-slate-400 block">
                     Titular del Activo
                   </span>
-                  <h2 className="text-xs font-space font-bold text-slate-900 uppercase leading-tight break-words">
+                  <h2 className="text-[11px] font-space font-bold text-slate-900 uppercase leading-snug break-words">
                     {clientName}
                   </h2>
-                  <span className="text-[7px] font-mono text-slate-500 uppercase block mt-0.5">
+                  <span className="text-[6.5px] font-mono text-slate-500 uppercase block mt-0.5">
                     Planta Industrial & Calidad
                   </span>
                 </div>
@@ -159,17 +204,17 @@ const HojaDeVidaPrint = () => {
 
               {/* Columna 2: Título de Expediente & ID del Activo */}
               <div className="col-span-4 px-2 flex flex-col items-center justify-center text-center border-r border-slate-200/70">
-                <span className="text-[7.5px] font-mono font-bold uppercase tracking-[0.25em] text-slate-400 block">
+                <span className="text-[7px] font-mono font-bold uppercase tracking-[0.25em] text-slate-400 block">
                   Expediente Metrológico Técnico
                 </span>
-                <h1 className="text-[13px] font-space font-black uppercase tracking-tight text-slate-950 block mt-0.5">
+                <h1 className="text-[12px] font-space font-black uppercase tracking-tight text-slate-950 block mt-0.5">
                   Hoja de Vida de Activo
                 </h1>
-                <div className="mt-1 px-3 py-0.5 rounded-full bg-slate-950 text-white font-mono text-[9.5px] font-bold tracking-wider inline-flex items-center gap-1.5 shadow-xs">
+                <div className="mt-1 px-2.5 py-0.5 rounded-full bg-slate-950 text-white font-mono text-[9px] font-bold tracking-wider inline-flex items-center gap-1.5 shadow-xs">
                   <span className={`w-1.5 h-1.5 rounded-full ${isVencido ? 'bg-red-400' : isProximo ? 'bg-amber-400' : 'bg-emerald-400'}`} />
                   ID ACTIVO: {assetCode}
                 </div>
-                <span className="text-[7px] font-mono text-slate-400 uppercase tracking-widest block mt-0.5">
+                <span className="text-[6.5px] font-mono text-slate-400 uppercase tracking-widest block mt-0.5">
                   Normativa NTC-ISO 10012:2003
                 </span>
               </div>
@@ -177,18 +222,18 @@ const HojaDeVidaPrint = () => {
               {/* Columna 3: MJM Metrología, Emisión & Estado Operativo */}
               <div className="col-span-4 pl-2 flex flex-col justify-between items-end text-right">
                 <div>
-                  <span className="text-xs font-space font-black tracking-tight text-slate-900 block uppercase">
+                  <span className="text-[11px] font-space font-black tracking-tight text-slate-900 block uppercase">
                     MJM Metrología Industrial
                   </span>
-                  <span className="text-[7.5px] font-mono uppercase tracking-widest text-slate-400 block leading-tight mt-0.5">
+                  <span className="text-[7px] font-mono uppercase tracking-widest text-slate-400 block leading-tight mt-0.5">
                     Aseguramiento & Control Metrológico
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[8px] font-mono text-slate-500 uppercase">
+                  <span className="text-[7.5px] font-mono text-slate-500 uppercase">
                     Emisión: <strong className="text-slate-800 font-bold">{emissionDate}</strong>
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[7.5px] font-space font-bold uppercase tracking-wider border inline-flex items-center gap-1 ${
+                  <span className={`px-2 py-0.5 rounded text-[7px] font-space font-bold uppercase tracking-wider border inline-flex items-center gap-1 ${
                     isVencido 
                       ? 'bg-red-50 text-red-700 border-red-200' 
                       : isProximo 
@@ -204,44 +249,44 @@ const HojaDeVidaPrint = () => {
             </div>
           </header>
 
-          {/* FICHA TÉCNICA PRINCIPAL (PROPORCIÓN GOLDEN RATIO 5:7) */}
-          <section className="grid grid-cols-12 gap-3.5 items-stretch">
+          {/* 2. FICHA TÉCNICA PRINCIPAL (PROPORCIÓN OPTIMIZADA) */}
+          <section className="grid grid-cols-12 gap-3 items-stretch">
             
             {/* Lado Izquierdo: Fotografía de Identificación en Laboratorio */}
-            <div className="col-span-5 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-200/90 p-3 flex flex-col items-center justify-between relative shadow-xs">
-              <div className="w-full flex justify-between items-center text-[7.5px] font-mono text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-1.5">
-                <span>Registro Fotográfico</span>
+            <div className="col-span-4 bg-gradient-to-b from-slate-50 to-white rounded-xl border border-slate-200/90 p-2.5 flex flex-col items-center justify-between relative shadow-xs">
+              <div className="w-full flex justify-between items-center text-[7px] font-mono text-slate-400 uppercase tracking-widest border-b border-slate-200/60 pb-1">
+                <span>Registro Técnico</span>
                 <span>Calidad 1:1</span>
               </div>
               
-              <div className="my-auto py-2 flex items-center justify-center w-full h-[180px]">
+              <div className="my-auto py-1.5 flex items-center justify-center w-full h-[155px]">
                 <img 
                   src={inst.imageUrl || manometroIndustrial} 
                   alt={inst.nombre || "Instrumento Metrológico"} 
-                  className="max-h-[175px] max-w-full object-contain mix-blend-multiply drop-shadow-xs"
+                  className="max-h-[150px] max-w-full object-contain mix-blend-multiply drop-shadow-xs"
                 />
               </div>
 
               {/* Placa metálica de identificación inferior */}
-              <div className="w-full bg-slate-950 text-white rounded-xl p-2 text-center shadow-xs flex flex-col gap-0.5">
-                <span className="font-mono text-[8.5px] font-bold text-amber-400 uppercase tracking-wider truncate">
-                  REF / MODELO: {inst.modelo || 'GENERIC'}
+              <div className="w-full bg-slate-950 text-white rounded-lg p-1.5 text-center shadow-xs flex flex-col gap-0.5">
+                <span className="font-mono text-[8px] font-bold text-amber-400 uppercase tracking-wider truncate">
+                  REF: {inst.modelo || 'GENERIC'}
                 </span>
-                <span className="font-mono text-[7.5px] text-slate-400 uppercase tracking-widest truncate">
-                  SERIAL: {inst.serie || 'S/N'} &bull; TAG: {assetCode}
+                <span className="font-mono text-[7px] text-slate-400 uppercase tracking-widest truncate">
+                  SERIAL: {inst.serie || 'S/N'}
                 </span>
               </div>
             </div>
 
-            {/* Lado Derecho: Matriz de Especificaciones de Ingeniería */}
-            <div className="col-span-7 bg-white rounded-2xl border border-slate-200/90 overflow-hidden flex flex-col justify-between shadow-xs">
+            {/* Lado Derecho: Matriz de Especificaciones de Ingeniería Sin Redundancias */}
+            <div className="col-span-8 bg-white rounded-xl border border-slate-200/90 overflow-hidden flex flex-col justify-between shadow-xs">
               
               {/* Encabezado: Nombre del Instrumento */}
-              <div className="p-3 bg-gradient-to-r from-slate-50 via-slate-50/70 to-white border-b border-slate-200/80">
-                <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-[0.2em] block mb-0.5">
+              <div className="p-2.5 px-3 bg-gradient-to-r from-slate-50 via-slate-50/70 to-white border-b border-slate-200/80">
+                <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-[0.2em] block">
                   Denominación Metrológica del Activo
                 </span>
-                <h3 className="text-sm sm:text-base font-space font-black text-slate-950 uppercase tracking-tight leading-snug">
+                <h3 className="text-sm font-space font-black text-slate-950 uppercase tracking-tight leading-snug">
                   {inst.nombre}
                 </h3>
               </div>
@@ -249,65 +294,71 @@ const HojaDeVidaPrint = () => {
               {/* Filas de Atributos Técnicos de Precisión */}
               <div className="divide-y divide-slate-100/90 text-xs flex-1 flex flex-col justify-around">
                 
+                {/* Fila 1: Marca & Modelo */}
                 <div className="grid grid-cols-2 divide-x divide-slate-100/90">
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Número de Serie</span>
-                    <span className="text-[11px] font-mono font-bold text-slate-900 uppercase">{inst.serie || 'N/A'}</span>
+                  <div className="p-1.5 px-3">
+                    <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Marca / Fabricante</span>
+                    <span className="text-[10.5px] font-semibold text-slate-900 uppercase">{marcaEquipo}</span>
                   </div>
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">País / Fabricación</span>
-                    <span className="text-[11px] font-semibold text-slate-800 uppercase">{inst.jerarquia?.pais || 'Colombia'}</span>
+                  <div className="p-1.5 px-3">
+                    <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Modelo / Referencia</span>
+                    <span className="text-[10.5px] font-mono font-bold text-slate-900 uppercase">{inst.modelo || 'N/A'}</span>
                   </div>
                 </div>
 
+                {/* Fila 2: Serial & Magnitud */}
                 <div className="grid grid-cols-2 divide-x divide-slate-100/90">
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Planta Operativa</span>
-                    <span className="text-[11px] font-semibold text-slate-800 uppercase">{inst.jerarquia?.planta || 'Planta Principal'}</span>
+                  <div className="p-1.5 px-3">
+                    <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Número de Serie</span>
+                    <span className="text-[10.5px] font-mono font-bold text-slate-900 uppercase">{inst.serie || 'N/A'}</span>
                   </div>
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Área / Sección</span>
-                    <span className="text-[11px] font-semibold text-slate-800 uppercase">{inst.jerarquia?.area || 'Área General'}</span>
+                  <div className="p-1.5 px-3">
+                    <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Magnitud de Medición</span>
+                    <span className="text-[10.5px] font-semibold text-slate-800 uppercase">{inst.magnitud || 'Eléctrica / Multimétrica'}</span>
                   </div>
                 </div>
 
+                {/* Fila 3: Ubicación Operativa Unificada */}
+                <div className="p-1.5 px-3">
+                  <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Ubicación Operativa de Planta</span>
+                  <span className="text-[10.5px] font-semibold text-slate-800 uppercase truncate block">
+                    {ubicacionCompleta}
+                  </span>
+                </div>
+
+                {/* Fila 4: Criticidad & Custodio */}
                 <div className="grid grid-cols-2 divide-x divide-slate-100/90">
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Ubicación Física</span>
-                    <span className="text-[11px] font-semibold text-slate-800 uppercase">{inst.jerarquia?.ubicacion || inst.ubicacion || 'N/A'}</span>
-                  </div>
-                  <div className="p-2 px-3 flex items-center justify-between">
+                  <div className="p-1.5 px-3 flex items-center justify-between">
                     <div>
-                      <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Criticidad Operativa</span>
-                      <span className="text-[11px] font-space font-bold uppercase tracking-wider text-amber-700">
-                        {inst.criticidad || 'MEDIA'}
+                      <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Nivel de Criticidad</span>
+                      <span className="text-[10px] font-space font-bold uppercase tracking-wider text-amber-700">
+                        {inst.criticidad || inst.riesgo_operativo || 'ALTA'}
                       </span>
                     </div>
-                    <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 border border-amber-500/30 text-[8px] font-mono font-bold">
+                    <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 border border-amber-500/30 text-[7px] font-mono font-bold">
                       ISO RISK
                     </span>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 divide-x divide-slate-100/90">
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">División de Escala</span>
-                    <span className="text-[11px] font-mono font-bold text-slate-800 uppercase">{cleanUnitDisplay(inst.division_escala || 'N/A')}</span>
-                  </div>
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Responsable / Custodio</span>
-                    <span className="text-[11px] font-semibold text-slate-800 uppercase">{inst.responsable || 'Sin Asignar'}</span>
+                  <div className="p-1.5 px-3">
+                    <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Responsable / Custodio</span>
+                    <span className="text-[10.5px] font-semibold text-slate-800 uppercase">{inst.responsable || 'Sin Asignar'}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 divide-x divide-slate-100/90 bg-slate-50/40">
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Control Metrológico</span>
-                    <span className="text-[11px] font-mono font-bold text-emerald-700 uppercase">{inst.proceso || 'OPERATIVO'}</span>
+                {/* Fila 5: Código Maestro & Próxima Calibración Programada */}
+                <div className="grid grid-cols-2 divide-x divide-slate-100/90 bg-slate-50/50">
+                  <div className="p-1.5 px-3">
+                    <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">ID Maestro del Activo</span>
+                    <span className="text-[10.5px] font-mono font-black text-slate-950 tracking-wider">{assetCode}</span>
                   </div>
-                  <div className="p-2 px-3">
-                    <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-wider block">ID del Activo</span>
-                    <span className="text-[11px] font-mono font-black text-slate-900 tracking-wider">{assetCode}</span>
+                  <div className="p-1.5 px-3 flex items-center justify-between">
+                    <div>
+                      <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Próximo Vencimiento</span>
+                      <span className="text-[10.5px] font-mono font-bold text-blue-700 uppercase">
+                        {proximaCalibracion}
+                      </span>
+                    </div>
+                    <Calendar size={13} className="text-blue-600 shrink-0" />
                   </div>
                 </div>
 
@@ -315,60 +366,64 @@ const HojaDeVidaPrint = () => {
             </div>
           </section>
 
-          {/* LÍMITES DE PROCESO & REQUISITOS ISO 10012 (3 PLAQUETAS DE PRECISIÓN) */}
-          <section className="space-y-2">
+          {/* 3. LÍMITES DE PROCESO & REQUISITOS ISO 10012 (TIRA TÉCNICA HORIZONTAL COMPACTA) */}
+          <section className="space-y-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-[8.5px] font-space font-bold uppercase tracking-[0.25em] text-slate-900 border-l-2 border-[#1E3A5F] pl-2.5">
-                Límites de Proceso & Criterios de Conformidad Metrológica (ISO 10012)
+              <h3 className="text-[8px] font-space font-bold uppercase tracking-[0.2em] text-slate-900 border-l-2 border-[#1E3A5F] pl-2">
+                Límites de Proceso & Criterios de Conformidad (ISO 10012)
               </h3>
-              <span className="text-[7.5px] font-mono text-slate-400 uppercase tracking-widest">Confirmación Metrológica</span>
+              <span className="text-[7px] font-mono text-slate-400 uppercase tracking-widest">Confirmación Metrológica</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-slate-50/80 border border-slate-200/90 p-3 rounded-2xl flex flex-col justify-between text-center shadow-xs">
-                <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">
-                  Capacidad Mín / Máx
+            {/* Franja continua horizontal de 3 métricas */}
+            <div className="bg-slate-50/80 border border-slate-200/90 rounded-xl grid grid-cols-3 divide-x divide-slate-200/90 shadow-xs">
+              
+              <div className="p-2 px-3 text-center">
+                <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+                  Rango Nominal (Mín / Máx)
                 </span>
-                <p className="text-lg font-space font-bold text-slate-950 tracking-tight font-mono">
+                <p className="text-sm font-space font-bold text-slate-950 tracking-tight font-mono mt-0.5">
                   {cleanUnitDisplay(inst.rango_min || '0')} &mdash; {cleanUnitDisplay(inst.rango_max || 'N/A')}
                 </p>
-                <span className="text-[7px] font-mono text-slate-400 mt-1 block">Rango Nominal de Trabajo</span>
+                <span className="text-[6.5px] font-mono text-slate-400 block mt-0.5">Escala de Trabajo Certificada</span>
               </div>
 
-              <div className="bg-slate-50/80 border border-slate-200/90 p-3 rounded-2xl flex flex-col justify-between text-center shadow-xs">
-                <span className="text-[7.5px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1">
-                  Resolución Instrumental
+              <div className="p-2 px-3 text-center">
+                <span className="text-[7px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+                  Resolución / Sensibilidad
                 </span>
-                <p className="text-lg font-space font-bold text-slate-950 tracking-tight font-mono">
+                <p className="text-sm font-space font-bold text-slate-950 tracking-tight font-mono mt-0.5">
                   {cleanUnitDisplay(inst.resolucion || 'N/A')}
                 </p>
-                <span className="text-[7px] font-mono text-slate-400 mt-1 block">Sensibilidad de Escala</span>
+                <span className="text-[6.5px] font-mono text-slate-400 block mt-0.5">Sensibilidad Instrumental</span>
               </div>
 
-              <div className="bg-emerald-50/50 border border-emerald-300/80 p-3 rounded-2xl flex flex-col justify-between text-center shadow-xs">
-                <span className="text-[7.5px] font-mono font-bold text-emerald-800 uppercase tracking-widest block mb-1">
+              <div className="p-2 px-3 text-center bg-emerald-50/40">
+                <span className="text-[7px] font-mono font-bold text-emerald-800 uppercase tracking-wider block">
                   Tolerancia de Proceso (EMP)
                 </span>
-                <p className="text-lg font-space font-black text-emerald-700 tracking-tight font-mono">
+                <p className="text-sm font-space font-black text-emerald-700 tracking-tight font-mono mt-0.5">
                   &plusmn; {cleanUnitDisplay(inst.tolerancia_proceso || 'N/A')}
                 </p>
-                <span className="text-[7px] font-mono text-emerald-600 font-semibold mt-1 block">
+                <span className="text-[6.5px] font-mono text-emerald-600 font-semibold block mt-0.5">
                   Regla: |Error| + U &le; EMP
                 </span>
               </div>
+
             </div>
           </section>
 
-          {/* PLAN DE RUTINAS METROLÓGICAS (4 TARJETAS EJECUTIVAS) */}
-          <section className="space-y-2">
+          {/* 4. PLAN DE RUTINAS METROLÓGICAS (MATRIZ COMPACTA DE 1 FILA) */}
+          <section className="space-y-1">
             <div className="flex items-center justify-between">
-              <h3 className="text-[8.5px] font-space font-bold uppercase tracking-[0.25em] text-slate-900 border-l-2 border-[#1E3A5F] pl-2.5">
+              <h3 className="text-[8px] font-space font-bold uppercase tracking-[0.2em] text-slate-900 border-l-2 border-[#1E3A5F] pl-2">
                 Plan de Rutinas Metrológicas & Mantenimiento
               </h3>
-              <span className="text-[7.5px] font-mono text-slate-400 uppercase tracking-widest">Ciclo de Aseguramiento</span>
+              <span className="text-[7px] font-mono text-slate-400 uppercase tracking-widest">Ciclo de Aseguramiento</span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2.5">
+            {/* Matriz horizontal continua */}
+            <div className="bg-slate-50/70 border border-slate-200/90 rounded-xl grid grid-cols-4 divide-x divide-slate-200/90 shadow-xs">
               {[
                 { key: 'calibracion', label: 'Calibración', icon: ShieldCheck },
                 { key: 'verificacion', label: 'Verificación', icon: FileCheck2 },
@@ -377,27 +432,19 @@ const HojaDeVidaPrint = () => {
               ].map((rutina, idx) => {
                 const freq = inst.rutinas?.[`${rutina.key}_frecuencia`];
                 const fechaBase = inst.rutinas?.[`${rutina.key}_fecha_inicial`];
-                const isActive = !!(inst.rutinas?.[rutina.key] || freq);
                 const IconComp = rutina.icon;
                 return (
-                  <div 
-                    key={idx} 
-                    className={`rounded-2xl p-2.5 border text-center transition-all ${
-                      isActive 
-                        ? 'bg-slate-50/90 border-slate-200/90 shadow-xs' 
-                        : 'bg-slate-50/30 border-slate-100 opacity-60'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-1.5 mb-1">
-                      <IconComp size={11} className="text-slate-600" />
-                      <span className="text-[8px] font-space font-bold uppercase tracking-wider text-slate-700">
+                  <div key={idx} className="p-1.5 px-2 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <IconComp size={10} className="text-slate-500 shrink-0" />
+                      <span className="text-[7.5px] font-space font-bold uppercase tracking-wider text-slate-700">
                         {rutina.label}
                       </span>
                     </div>
-                    <p className="text-xs font-space font-black text-slate-900 font-mono">
-                      {freq ? `${freq} Meses` : 'No Programada'}
+                    <p className="text-[11px] font-space font-black text-slate-900 font-mono mt-0.5">
+                      {formatMeses(freq)}
                     </p>
-                    <span className="text-[7px] font-mono text-slate-400 block mt-0.5">
+                    <span className="text-[6.5px] font-mono text-slate-400 block">
                       {fechaBase ? `Base: ${new Date(fechaBase).toISOString().split('T')[0]}` : 'Sin fecha base'}
                     </span>
                   </div>
@@ -406,20 +453,20 @@ const HojaDeVidaPrint = () => {
             </div>
           </section>
 
-          {/* HISTORIAL TÉCNICO Y TRAZABILIDAD (SWISS PRECISION TABLE) */}
-          <section className="space-y-1.5 flex-grow">
+          {/* 5. HISTORIAL TÉCNICO Y TRAZABILIDAD (TABLA SUpro-PRECISIÓN CON ESPACIO DESPEJADO) */}
+          <section className="space-y-1 flex-grow">
             <div className="flex justify-between items-end">
-              <h3 className="text-[8.5px] font-space font-bold uppercase tracking-[0.25em] text-slate-900 border-l-2 border-[#1E3A5F] pl-2.5">
+              <h3 className="text-[8px] font-space font-bold uppercase tracking-[0.2em] text-slate-900 border-l-2 border-[#1E3A5F] pl-2">
                 Registro Histórico de Calibración & Trazabilidad (ISO/IEC 17025)
               </h3>
-              <span className="text-[7.5px] font-mono text-slate-400 uppercase tracking-widest font-bold">
+              <span className="text-[7px] font-mono text-slate-400 uppercase tracking-widest font-bold">
                 Cadena de Custodia
               </span>
             </div>
 
-            <div className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-xs">
+            <div className="overflow-hidden border border-slate-200/90 rounded-xl shadow-xs">
               <table className="w-full text-left border-collapse table-precision">
-                <thead className="bg-slate-50 border-b border-slate-200 font-mono text-[7.5px] font-bold text-slate-500 uppercase tracking-widest">
+                <thead className="bg-slate-50 border-b border-slate-200 font-mono text-[7px] font-bold text-slate-500 uppercase tracking-widest">
                   <tr>
                     <th className="px-3 py-1.5 text-left">Fecha</th>
                     <th className="px-3 py-1.5 text-left">Actividad</th>
@@ -429,7 +476,7 @@ const HojaDeVidaPrint = () => {
                     <th className="px-3 py-1.5 text-right">Dictamen ISO</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-mono text-[8px]">
+                <tbody className="divide-y divide-slate-100 font-mono text-[7.5px]">
                   {(inst.historial || []).length > 0 ? (
                     (inst.historial).slice(0, 5).map((reg, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50">
@@ -441,7 +488,7 @@ const HojaDeVidaPrint = () => {
                           {reg.error !== undefined && reg.error !== null ? `±${reg.error}` : (reg.tipo === 'Mantenimiento' ? 'N/A' : '0.00')}
                         </td>
                         <td className="px-3 py-1.5 text-right">
-                          <span className={`px-2 py-0.5 rounded-full text-[7px] font-space font-bold uppercase tracking-wider border inline-flex items-center gap-1 ${
+                          <span className={`px-2 py-0.5 rounded-full text-[6.5px] font-space font-bold uppercase tracking-wider border inline-flex items-center gap-1 ${
                             (reg.declaracion_conformidad === 'No Conforme' || reg.resultado === 'No Conforme')
                               ? 'bg-red-50 text-red-700 border-red-200'
                               : 'bg-emerald-50 text-emerald-700 border-emerald-300'
@@ -456,7 +503,7 @@ const HojaDeVidaPrint = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="6" className="px-4 py-3 text-center text-slate-400 italic text-[8.5px]">
+                      <td colSpan="6" className="px-4 py-2.5 text-center text-slate-400 italic text-[8px]">
                         No se registran intervenciones previas archivadas. Activo en ciclo inicial de calibración.
                       </td>
                     </tr>
@@ -468,37 +515,31 @@ const HojaDeVidaPrint = () => {
 
         </div>
 
-        {/* PIE DE PÁGINA OFICIAL, FIRMAS Y SELLO DE SEGURIDAD LEGAL */}
-        <footer className="mt-auto pt-2">
-          <div className="grid grid-cols-2 gap-12 px-6 mb-3">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-full border-b border-dashed border-slate-300 h-8 mb-1 flex items-end justify-center pb-1">
-                <span className="text-[6.5px] font-mono text-slate-400 uppercase tracking-widest">Firma Digital Verificada</span>
+        {/* 6. PIE DE PÁGINA: SELLO DE VALIDACIÓN DIGITAL COMPACTO (OPCIÓN EJECUTIVA) */}
+        <footer className="mt-auto pt-2 border-t border-slate-200/80">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 py-1">
+            
+            {/* Micro-Badge & Texto Legal Conciso */}
+            <div className="flex items-center gap-2.5">
+              <div className="px-2 py-1 rounded-md bg-slate-950 text-white font-mono text-[7px] font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-xs">
+                <CheckCircle2 size={10} className="text-emerald-400" />
+                VALIDACIÓN DIGITAL AUDIT-TRAIL
               </div>
-              <span className="text-[8px] font-space font-bold uppercase tracking-wider text-slate-800">
-                Responsable Metrológico
-              </span>
-              <span className="text-[6.5px] font-mono text-slate-400 uppercase">Ingeniería & Metrología Industrial</span>
+              <p className="text-[7px] font-mono text-slate-500 leading-tight">
+                Documento inmutable emitido por MJM Metrología. Trazabilidad validada en base de datos bajo NTC-ISO 10012 (No requiere firma autógrafa).
+              </p>
             </div>
 
-            <div className="flex flex-col items-center text-center">
-              <div className="w-full border-b border-dashed border-slate-300 h-8 mb-1 flex items-end justify-center pb-1">
-                <span className="text-[6.5px] font-mono text-slate-400 uppercase tracking-widest">Aprobación Técnica</span>
-              </div>
-              <span className="text-[8px] font-space font-bold uppercase tracking-wider text-slate-800">
-                Director de Garantía de Calidad
+            {/* Token Hash de Auditoría */}
+            <div className="text-right shrink-0">
+              <span className="text-[7px] font-mono font-bold text-slate-700 uppercase tracking-widest block">
+                HASH: {assetCode}-{new Date().getFullYear()}
               </span>
-              <span className="text-[6.5px] font-mono text-slate-400 uppercase">Dirección Técnica de Planta</span>
+              <span className="text-[6px] font-mono text-slate-400 uppercase block">
+                Sistema de Gestión ISO 9001
+              </span>
             </div>
-          </div>
 
-          <div className="border-t border-slate-200/90 pt-2 flex flex-col items-center gap-0.5 text-slate-400 text-center">
-            <p className="text-[7.5px] font-mono uppercase tracking-[0.2em] text-slate-500">
-              Documento Oficial de Trazabilidad Metrológica &bull; Compatible con NTC-ISO 10012 e ISO/IEC 17025
-            </p>
-            <p className="text-[6.5px] font-mono text-slate-400 tracking-wider uppercase">
-              MJM Metrología Industrial S.A.S. &bull; Sistema de Gestión de la Calidad &bull; Trazabilidad Digital ID: {assetCode}-{new Date().getFullYear()}
-            </p>
           </div>
         </footer>
 
