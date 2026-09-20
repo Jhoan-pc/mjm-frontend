@@ -168,10 +168,23 @@ const HojaDeVidaPrint = () => {
         </button>
       </div>
 
-      {/* LIENZO DE IMPRESIÓN OFICIAL (A4 / LETTER PORTRAIT) */}
-      <main className="bg-white w-[8.5in] min-h-[11in] p-[0.4in] shadow-2xl flex flex-col justify-between print:shadow-none print:m-0 print:w-full print:p-0 print:min-h-0 text-slate-800">
+      {/* LIENZO DE IMPRESIÓN OFICIAL (GOLDEN PRINT STANDARD - A4 / LETTER PORTRAIT) */}
+      <main className="letterhead-container relative bg-white w-[8.5in] min-h-[11in] p-[0.4in] shadow-2xl flex flex-col justify-between print:shadow-none print:m-0 print:w-full print:p-0 print:min-h-0 text-slate-800 overflow-hidden">
         
-        <div className="space-y-3">
+        {/* MARCA DE AGUA CORPORATIVA CENTRADA (GOLDEN PRINT STANDARD - 0.025 OPACIDAD) */}
+        <div 
+          className="watermark-overlay pointer-events-none fixed inset-0 flex items-center justify-center overflow-hidden z-0 select-none"
+          style={{ opacity: 0.025 }}
+          aria-hidden="true"
+        >
+          <img 
+            src={logoAzul} 
+            alt="" 
+            className="w-[340px] max-w-full -rotate-25 grayscale select-none"
+          />
+        </div>
+
+        <div className="relative z-10 space-y-3">
           
           {/* LÍNEA DE PRESTIGIO & SEGURIDAD BICOLOR */}
           <div className="h-1 bg-gradient-to-r from-[#0F172A] via-[#1E3A5F] to-[#D97706] rounded-full" />
@@ -472,7 +485,7 @@ const HojaDeVidaPrint = () => {
                     <th className="px-3 py-1.5 text-left">Actividad</th>
                     <th className="px-3 py-1.5 text-left">No. Certificado / OT</th>
                     <th className="px-3 py-1.5 text-left">Laboratorio / Taller</th>
-                    <th className="px-3 py-1.5 text-center">Error Encontrado</th>
+                    <th className="px-3 py-1.5 text-right">Error Encontrado</th>
                     <th className="px-3 py-1.5 text-right">Dictamen ISO</th>
                   </tr>
                 </thead>
@@ -484,7 +497,7 @@ const HojaDeVidaPrint = () => {
                         <td className="px-3 py-1.5 font-space font-bold uppercase text-slate-900">{reg.tipo || 'Calibración'}</td>
                         <td className="px-3 py-1.5 text-slate-700 font-bold">{reg.certificado || (reg.certificado_url ? 'CERT-REGISTRADO' : 'CERT-INT-001')}</td>
                         <td className="px-3 py-1.5 text-slate-600 uppercase truncate max-w-[140px]">{reg.laboratorio || reg.ejecutor || 'MJM Metrología'}</td>
-                        <td className="px-3 py-1.5 text-center text-slate-700 font-bold">
+                        <td className="px-3 py-1.5 text-right num-cell text-slate-700 font-bold">
                           {reg.error !== undefined && reg.error !== null ? `±${reg.error}` : (reg.tipo === 'Mantenimiento' ? 'N/A' : '0.00')}
                         </td>
                         <td className="px-3 py-1.5 text-right">
@@ -545,30 +558,48 @@ const HojaDeVidaPrint = () => {
 
       </main>
 
-      {/* ESTILOS DE IMPRESIÓN (ESTÁNDAR FRUFRESCO / DISENADOR-WEB) */}
+      {/* ESTILOS DE IMPRESIÓN (ESTÁNDAR DE ORO FRUFRESCO / DISENADOR-WEB) */}
       <style dangerouslySetInnerHTML={{ __html: `
+        @page {
+          size: letter portrait;
+          margin: 1.0cm 1.2cm 1.0cm 1.2cm;
+        }
         @media print {
           html, body {
             background: #ffffff !important;
             margin: 0 !important;
             padding: 0 !important;
+            color: #000000 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           .no-print {
             display: none !important;
           }
-          main {
-            box-shadow: none !important;
-            margin: 0 !important;
+          .letterhead-container, main {
             width: 100% !important;
-            min-height: 0 !important;
+            height: auto !important;
+            min-height: auto !important;
+            position: static !important;
+            margin: 0 !important;
             padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
           }
-          @page {
-            size: letter portrait;
-            margin: 0.8cm 1.0cm 0.8cm 1.0cm;
+          thead {
+            display: table-header-group !important;
           }
+          tfoot {
+            display: table-row-group !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
+          }
+        }
+        .num-cell {
+          font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+          font-variant-numeric: tabular-nums !important;
+          text-align: right !important;
         }
       `}} />
 
