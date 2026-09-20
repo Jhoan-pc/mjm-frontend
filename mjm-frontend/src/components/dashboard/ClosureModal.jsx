@@ -589,7 +589,7 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                         type="button"
                         onClick={handleCreateNewLab}
                         disabled={!newLabName.trim() || isSavingLab}
-                        className="h-8 px-3 bg-[var(--primary)] text-white dark:text-slate-950 rounded-lg text-[10px] font-space font-bold uppercase tracking-wider flex items-center gap-1 hover:opacity-90 disabled:opacity-50 cursor-pointer shadow-xs"
+                        className="h-8 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-space font-bold uppercase tracking-wider flex items-center gap-1 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-xs transition-all"
                       >
                         {isSavingLab ? <RefreshCw size={11} className="animate-spin" /> : <Plus size={11} />}
                         Guardar
@@ -647,9 +647,9 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                   {[
-                    { id: 'Operativo', label: 'Operativo', desc: '100% Apto para producción', color: 'emerald', border: 'border-emerald-500/40', bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
-                    { id: 'En Observación', label: 'En Observación', desc: 'Funcional con advertencia', color: 'amber', border: 'border-amber-500/40', bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400' },
-                    { id: 'No Operativo', label: 'No Operativo', desc: 'Fuera de servicio / Bloqueado', color: 'red', border: 'border-red-500/40', bg: 'bg-red-500/10 text-red-600 dark:text-red-400' }
+                    { id: 'Operativo', label: 'Operativo', desc: '100% Apto para producción', activeBorder: 'border-emerald-500/50 ring-1 ring-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300', dotActive: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
+                    { id: 'En Observación', label: 'En Observación', desc: 'Funcional con advertencia', activeBorder: 'border-amber-500/50 ring-1 ring-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300', dotActive: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' },
+                    { id: 'No Operativo', label: 'No Operativo', desc: 'Fuera de servicio / Bloqueado', activeBorder: 'border-red-500/50 ring-1 ring-red-500/20 bg-red-500/10 text-red-700 dark:text-red-300', dotActive: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
                   ].map((item) => {
                     const isSelected = estadoOperativo === item.id;
                     return (
@@ -659,13 +659,13 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                         onClick={() => setEstadoOperativo(item.id)}
                         className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between relative ${
                           isSelected 
-                            ? `${item.bg} ${item.border} ring-2 ring-current shadow-xs` 
-                            : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:border-[var(--outline-color)]'
+                            ? `${item.activeBorder} shadow-xs` 
+                            : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:border-slate-300 dark:hover:border-slate-700 hover:text-[var(--text-main)]'
                         }`}
                       >
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-xs font-bold font-space uppercase tracking-tight">{item.label}</span>
-                          <span className={`w-2.5 h-2.5 rounded-full ${isSelected ? 'bg-current shadow-[0_0_8px_currentColor]' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                          <span className={`w-2.5 h-2.5 rounded-full transition-all ${isSelected ? item.dotActive : 'bg-slate-300 dark:bg-slate-700'}`} />
                         </div>
                         <p className="text-[9.5px] opacity-80 leading-snug">{item.desc}</p>
                       </button>
@@ -703,21 +703,24 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] block mb-1.5">
                     Etapa de Calificación *
                   </label>
-                  <div className="flex gap-1.5 p-1 bg-[var(--background)] rounded-xl border border-[var(--outline-color)]/30">
-                    {['IQ', 'OQ', 'PQ'].map((stage) => (
-                      <button
-                        key={stage}
-                        type="button"
-                        onClick={() => setEtapaCalificacion(stage)}
-                        className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                          etapaCalificacion === stage 
-                            ? 'bg-purple-600 text-white shadow-xs' 
-                            : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                        }`}
-                      >
-                        {stage}
-                      </button>
-                    ))}
+                  <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/50">
+                    {['IQ', 'OQ', 'PQ'].map((stage) => {
+                      const isSelected = etapaCalificacion === stage;
+                      return (
+                        <button
+                          key={stage}
+                          type="button"
+                          onClick={() => setEtapaCalificacion(stage)}
+                          className={`flex-1 py-1.5 text-xs font-space font-bold rounded-lg transition-all cursor-pointer ${
+                            isSelected 
+                              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-600/50' 
+                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                          }`}
+                        >
+                          {stage}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -727,21 +730,27 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                   Dictamen Final de Calificación *
                 </label>
                 <div className="flex gap-2.5">
-                  {['Aprobado', 'No Aprobado'].map((res) => (
-                    <button
-                      key={res}
-                      type="button"
-                      onClick={() => setResultadoCalificacion(res)}
-                      className={`flex-1 py-2.5 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                        resultadoCalificacion === res 
-                          ? (res === 'Aprobado' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 shadow-xs' : 'bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/40 shadow-xs')
-                          : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)]'
-                      }`}
-                    >
-                      <span className={`w-2 h-2 rounded-full ${res === 'Aprobado' ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                      {res}
-                    </button>
-                  ))}
+                  {[
+                    { id: 'Aprobado', label: 'Aprobado', activeClass: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 shadow-xs ring-1 ring-emerald-500/20', dotClass: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' },
+                    { id: 'No Aprobado', label: 'No Aprobado', activeClass: 'bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/40 shadow-xs ring-1 ring-red-500/20', dotClass: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' }
+                  ].map((item) => {
+                    const isSelected = resultadoCalificacion === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setResultadoCalificacion(item.id)}
+                        className={`flex-1 py-2.5 text-xs font-space font-bold uppercase tracking-wider rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          isSelected 
+                            ? item.activeClass
+                            : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:border-slate-300 dark:hover:border-slate-700 hover:text-[var(--text-main)]'
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full transition-all ${isSelected ? item.dotClass : 'bg-slate-300 dark:bg-slate-700'}`} />
+                        {item.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -774,21 +783,24 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
                   <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 block">
                     Acreditación del Laboratorio
                   </label>
-                  <div className="flex gap-2">
-                    {['Acreditado', 'Trazable'].map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setLaboratorioTipo(t)}
-                        className={`flex-1 h-10 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
-                          laboratorioTipo === t
-                            ? 'bg-[var(--primary)] border-transparent text-white dark:text-slate-950 shadow-xs'
-                            : 'bg-[var(--background)] border-[var(--outline-color)]/30 text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
+                  <div className="flex gap-1 p-1 h-10 bg-slate-100 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/50">
+                    {['Acreditado', 'Trazable'].map((t) => {
+                      const isSelected = laboratorioTipo === t;
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setLaboratorioTipo(t)}
+                          className={`flex-1 h-full text-xs font-space font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center justify-center ${
+                            isSelected
+                              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs border border-slate-200/60 dark:border-slate-600/50'
+                              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
