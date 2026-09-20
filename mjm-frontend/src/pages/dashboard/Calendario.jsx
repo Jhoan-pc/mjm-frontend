@@ -840,50 +840,58 @@ export default function Calendario() {
           activity={closureAct} 
           onClose={() => setClosureAct(null)} 
           onFinish={async (data) => {
-            const cleanData = Object.fromEntries(
-              Object.entries(data).filter(([_, v]) => v !== undefined)
-            );
-            await updateActivityStatus(closureAct.id, 'done', cleanData);
+            try {
+              const cleanData = Object.fromEntries(
+                Object.entries(data).filter(([_, v]) => v !== undefined)
+              );
+              await updateActivityStatus(closureAct.id, 'done', cleanData);
 
-            // Si es NO CONFORME, generar tarea correctiva y disparar alerta automática en Firebase 'mail'
-            if (data.conformidad_metrologica === 'No Conforme' || data.declaracion_conformidad === 'No Conforme') {
-              const tenantId = closureAct.tenantId || tenant?.id;
-              const nextWeekDate = new Date();
-              nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
-              const dateStr = nextWeekDate.toISOString().split('T')[0];
+              // Si es NO CONFORME, generar tarea correctiva y disparar alerta automática en Firebase 'mail'
+              if (data.conformidad_metrologica === 'No Conforme' || data.declaracion_conformidad === 'No Conforme') {
+                const tenantId = closureAct.tenantId || tenant?.id;
+                const nextWeekDate = new Date();
+                nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
+                const dateStr = nextWeekDate.toISOString().split('T')[0];
 
-              const isMaint = (closureAct.tipo || '').toLowerCase().includes('mantenimiento');
-              const failureDesc = isMaint 
-                ? `Falla técnica / Equipo No Operativo tras mantenimiento en ${closureAct.instrumentNombre}. Detalle: ${data.descripcion_trabajos || 'Equipo fuera de servicio'}.`
-                : `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado ?? 'N/A'}, Incertidumbre: ${data.incertidumbre ?? 'N/A'}. Tolerancia excedida.`;
+                const isMaint = (closureAct.tipo || '').toLowerCase().includes('mantenimiento');
+                const failureDesc = isMaint 
+                  ? `Falla técnica / Equipo No Operativo tras mantenimiento en ${closureAct.instrumentNombre}. Detalle: ${data.descripcion_trabajos || 'Equipo fuera de servicio'}.`
+                  : `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado ?? 'N/A'}, Incertidumbre: ${data.incertidumbre ?? 'N/A'}. Tolerancia excedida.`;
 
-              const correctiveAct = {
-                tenantId,
-                instrumentId: closureAct.instrumentId,
-                instrumentNombre: closureAct.instrumentNombre,
-                codigoMJM: closureAct.codigoMJM || '',
-                tipo: 'Mantenimiento Correctivo',
-                estado: 'todo',
-                fechaProgramada: dateStr,
-                priority: 'high',
-                notas: failureDesc
-              };
+                const correctiveAct = {
+                  tenantId,
+                  instrumentId: closureAct.instrumentId,
+                  instrumentNombre: closureAct.instrumentNombre,
+                  codigoMJM: closureAct.codigoMJM || '',
+                  tipo: 'Mantenimiento Correctivo',
+                  estado: 'todo',
+                  fechaProgramada: dateStr,
+                  priority: 'high',
+                  notas: failureDesc
+                };
 
-              await addActivity(correctiveAct);
+                await addActivity(correctiveAct);
 
-              try {
-                await sendMetrologyEmailAlert({
-                  activity: correctiveAct,
-                  tenant,
-                  reason: 'desviacion_no_conforme'
-                });
-              } catch (mailErr) {
-                console.warn("Aviso al encolar alerta por no conformidad:", mailErr);
+                try {
+                  await sendMetrologyEmailAlert({
+                    activity: correctiveAct,
+                    tenant,
+                    reason: 'desviacion_no_conforme'
+                  });
+                } catch (mailErr) {
+                  console.warn("Aviso al encolar alerta por no conformidad:", mailErr);
+                }
               }
-            }
 
-            setClosureAct(null);
-            setSelectedActivity(null);
+              setAlertSuccessToast(`✅ ¡Actividad registrada con éxito y guardada en la Hoja de Vida!`);
+              setTimeout(() => setAlertSuccessToast(''), 4500);
+
+              setClosureAct(null);
+              setSelectedActivity(null);
+            } catch (err) {
+              console.error("Error al registrar actividad:", err);
+              throw err;
+            }
           }}
         />
       )}

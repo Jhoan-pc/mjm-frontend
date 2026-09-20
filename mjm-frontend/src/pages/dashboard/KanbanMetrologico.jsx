@@ -111,6 +111,7 @@ export default function KanbanMetrologico() {
   const { tenant } = useAuthStore();
   const [search, setSearch] = useState('');
   const [closureAct, setClosureAct] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
   const [activeTab, setActiveTab] = useState('por_gestionar');
   const boardRef = React.useRef(null);
 
@@ -381,51 +382,66 @@ export default function KanbanMetrologico() {
         </div>
       </main>
 
+      {/* TOAST DE CONFIRMACIÓN DE REGISTRO */}
+      {toastMessage && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] bg-slate-900/95 text-white px-6 py-3.5 rounded-2xl shadow-2xl border border-emerald-400/40 backdrop-blur-md flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300">
+          <CheckCircle2 className="text-emerald-400" size={18} />
+          <span className="text-xs font-bold font-inter">{toastMessage}</span>
+        </div>
+      )}
+
       {/* --- MODAL DE CIERRE --- */}
       {closureAct && (
         <ClosureModal 
           activity={closureAct} 
           onClose={() => setClosureAct(null)} 
           onFinish={async (data) => {
-            const cleanData = Object.fromEntries(
-              Object.entries(data).filter(([_, v]) => v !== undefined)
-            );
-            await updateActivityStatus(closureAct.id, 'done', cleanData);
+            try {
+              const cleanData = Object.fromEntries(
+                Object.entries(data).filter(([_, v]) => v !== undefined)
+              );
+              await updateActivityStatus(closureAct.id, 'done', cleanData);
 
-            // Si es NO CONFORME, generar tarea correctiva y disparar alerta automática en Firebase 'mail'
-            if (data.conformidad_metrologica === 'No Conforme' || data.declaracion_conformidad === 'No Conforme') {
-              const tenantId = closureAct.tenantId || tenant?.id;
-              const nextWeekDate = new Date();
-              nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
-              const dateStr = nextWeekDate.toISOString().split('T')[0];
+              // Si es NO CONFORME, generar tarea correctiva y disparar alerta automática en Firebase 'mail'
+              if (data.conformidad_metrologica === 'No Conforme' || data.declaracion_conformidad === 'No Conforme') {
+                const tenantId = closureAct.tenantId || tenant?.id;
+                const nextWeekDate = new Date();
+                nextWeekDate.setDate(nextWeekDate.getDate() + 7); // Plazo de 7 días
+                const dateStr = nextWeekDate.toISOString().split('T')[0];
 
-              const isMaint = (closureAct.tipo || '').toLowerCase().includes('mantenimiento');
-              const failureDesc = isMaint 
-                ? `Falla técnica / Equipo No Operativo tras mantenimiento en ${closureAct.instrumentNombre}. Detalle: ${data.descripcion_trabajos || 'Equipo fuera de servicio'}.`
-                : `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado ?? 'N/A'}, Incertidumbre: ${data.incertidumbre ?? 'N/A'}. Tolerancia excedida.`;
+                const isMaint = (closureAct.tipo || '').toLowerCase().includes('mantenimiento');
+                const failureDesc = isMaint 
+                  ? `Falla técnica / Equipo No Operativo tras mantenimiento en ${closureAct.instrumentNombre}. Detalle: ${data.descripcion_trabajos || 'Equipo fuera de servicio'}.`
+                  : `Desviación metrológica crítica (No Conforme) en ${closureAct.instrumentNombre}. Error: ${data.error_encontrado ?? 'N/A'}, Incertidumbre: ${data.incertidumbre ?? 'N/A'}. Tolerancia excedida.`;
 
-              const correctiveAct = {
-                tenantId,
-                instrumentId: closureAct.instrumentId,
-                instrumentNombre: closureAct.instrumentNombre,
-                codigoMJM: closureAct.codigoMJM || '',
-                tipo: 'Mantenimiento Correctivo',
-                estado: 'todo',
-                fechaProgramada: dateStr,
-                priority: 'high',
-                notas: failureDesc
-              };
+                const correctiveAct = {
+                  tenantId,
+                  instrumentId: closureAct.instrumentId,
+                  instrumentNombre: closureAct.instrumentNombre,
+                  codigoMJM: closureAct.codigoMJM || '',
+                  tipo: 'Mantenimiento Correctivo',
+                  estado: 'todo',
+                  fechaProgramada: dateStr,
+                  priority: 'high',
+                  notas: failureDesc
+                };
 
-              addActivity(correctiveAct);
+                addActivity(correctiveAct);
 
-              sendMetrologyEmailAlert({
-                activity: correctiveAct,
-                tenant,
-                reason: 'desviacion_no_conforme'
-              }).catch(err => console.warn("Aviso al emitir alerta de correo:", err));
+                sendMetrologyEmailAlert({
+                  activity: correctiveAct,
+                  tenant,
+                  reason: 'desviacion_no_conforme'
+                }).catch(err => console.warn("Aviso al emitir alerta de correo:", err));
+              }
+
+              setToastMessage('✅ ¡Actividad registrada con éxito y guardada en la Hoja de Vida!');
+              setTimeout(() => setToastMessage(''), 4500);
+              setClosureAct(null);
+            } catch (err) {
+              console.error("Error al registrar actividad en Kanban:", err);
+              throw err;
             }
-
-            setClosureAct(null);
           }}
         />
       )}

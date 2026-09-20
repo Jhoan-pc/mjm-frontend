@@ -17,7 +17,8 @@ import {
   Check,
   Award,
   Search,
-  ChevronDown
+  ChevronDown,
+  AlertTriangle
 } from 'lucide-react';
 
 /**
@@ -93,6 +94,7 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
   const todayStr = getColombiaDate();
   const isVencida = activity.fechaProgramada < todayStr;
   const [fechaEjecucion, setFechaEjecucion] = useState(todayStr);
+  const [formError, setFormError] = useState('');
 
   // ─── CAMPOS ESPECÍFICOS PARA MANTENIMIENTO ───────────────────────
   const [reporteOT, setReporteOT] = useState('');
@@ -194,76 +196,122 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
     }
   };
 
-  // Finalizar y despachar resultado
+  // Finalizar y despachar resultado con validación preventiva e informe de errores
   const handleFinish = async () => {
-    setIsUploading(true);
-    let certificado_url = null;
+    setFormError('');
 
-    if (file) {
-      try {
-        const safeName = file.name.replace(/\s+/g, '_');
-        const fileRef = ref(storage, `tenants/${tenantId}/actividades/${activity.id}/soportes/${Date.now()}_${safeName}`);
-        await uploadBytes(fileRef, file);
-        certificado_url = await getDownloadURL(fileRef);
-      } catch (error) {
-        console.warn("Aviso al subir archivo a storage:", error.message);
-      }
+    // 1. Verificación exhaustiva de campos requeridos
+    const missingFields = [];
+    const activeLab = (laboratorio || labSearch || '').trim();
+    if (!activeLab) {
+      missingFields.push('Laboratorio o Taller Técnico ejecutor');
+    }
+    if (!fechaEjecucion) {
+      missingFields.push('Fecha de Ejecución');
     }
 
     if (isMantenimiento) {
-      // 🛠️ PAYLOAD LIMPIO DE MANTENIMIENTO TÉCNICO
-      onFinish({
-        laboratorio: laboratorio || 'Taller Técnico Interno de Planta',
-        proveedor_ejecutor: laboratorio || 'Taller Técnico Interno de Planta',
-        laboratorio_ejecutor: laboratorio || 'Taller Técnico Interno de Planta',
-        fecha_ejecucion: fechaEjecucion,
-        reporte_ot: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
-        certificado_numero: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
-        certificado: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
-        certificado_url: certificado_url || null,
-        descripcion_trabajos: descripcionTrabajos,
-        estado_operativo: estadoOperativo,
-        declaracion_conformidad: estadoOperativo === 'No Operativo' ? 'No Conforme' : 'Conforme',
-        conformidad_metrologica: estadoOperativo === 'No Operativo' ? 'No Conforme' : 'Conforme'
-      });
+      if (!descripcionTrabajos.trim()) {
+        missingFields.push('Descripción de trabajos realizados o repuestos');
+      }
     } else if (isCalificacion) {
-      // 📋 PAYLOAD DE CALIFICACIÓN DE EQUIPO (IQ / OQ / PQ)
-      onFinish({
-        laboratorio: laboratorio || 'Laboratorio Metrológico MJM',
-        laboratorio_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
-        proveedor_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
-        fecha_ejecucion: fechaEjecucion,
-        certificado_numero: protocoloNumero || `PROT-${Date.now().toString().slice(-6)}`,
-        certificado: protocoloNumero || `PROT-${Date.now().toString().slice(-6)}`,
-        certificado_url: certificado_url || null,
-        etapa_calificacion: etapaCalificacion,
-        resultado_calificacion: resultadoCalificacion,
-        declaracion_conformidad: resultadoCalificacion === 'Aprobado' ? 'Conforme' : 'No Conforme',
-        conformidad_metrologica: resultadoCalificacion === 'Aprobado' ? 'Conforme' : 'No Conforme'
-      });
+      if (!protocoloNumero.trim() && !file) {
+        missingFields.push('Número de Protocolo o adjuntar soporte');
+      }
     } else {
-      // ⚖️ PAYLOAD DE PROTOCOLO METROLÓGICO RIGUROSO (CALIBRACIÓN / VERIFICACIÓN ISO 10012)
-      onFinish({
-        laboratorio: laboratorio || 'Laboratorio Metrológico MJM',
-        laboratorio_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
-        proveedor_ejecutor: laboratorio || 'Laboratorio Metrológico MJM',
-        fecha_ejecucion: fechaEjecucion,
-        certificado_numero: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
-        certificado: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
-        certificado_url: certificado_url || null,
-        patron_referencia: patronReferencia || null,
-        laboratorio_tipo: laboratorioTipo,
-        error_encontrado: isNaN(parsedError) ? 0.00 : parsedError,
-        incertidumbre: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
-        incertidumbre_medicion: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
-        criterio_tipo: criterioTipo,
-        criterio_valor: isNaN(parsedCriterio) ? null : parsedCriterio,
-        declaracion_conformidad: compliance,
-        conformidad_metrologica: compliance
-      });
+      // Calibración / Verificación
+      if (!certificadoNumero.trim() && !file) {
+        missingFields.push('Número de Certificado o adjuntar soporte');
+      }
+      if (isNaN(parsedError)) {
+        missingFields.push('Error Máximo Encontrado (numérico)');
+      }
+      if (isNaN(parsedIncertidumbre)) {
+        missingFields.push('Incertidumbre de Medición U (numérica)');
+      }
+      if (isNaN(parsedCriterio)) {
+        missingFields.push('Valor del Límite de Aceptación / EMP (numérico)');
+      }
     }
 
-    setIsUploading(false);
+    if (missingFields.length > 0) {
+      setFormError(`Por favor complete los siguientes campos obligatorios para guardar: ${missingFields.join(', ')}.`);
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      let certificado_url = null;
+
+      if (file) {
+        try {
+          const safeName = file.name.replace(/\s+/g, '_');
+          const fileRef = ref(storage, `tenants/${tenantId}/actividades/${activity.id}/soportes/${Date.now()}_${safeName}`);
+          await uploadBytes(fileRef, file);
+          certificado_url = await getDownloadURL(fileRef);
+        } catch (error) {
+          console.warn("Aviso al subir archivo a storage:", error.message);
+        }
+      }
+
+      if (isMantenimiento) {
+        // 🛠️ PAYLOAD LIMPIO DE MANTENIMIENTO TÉCNICO
+        await onFinish({
+          laboratorio: activeLab || 'Taller Técnico Interno de Planta',
+          proveedor_ejecutor: activeLab || 'Taller Técnico Interno de Planta',
+          laboratorio_ejecutor: activeLab || 'Taller Técnico Interno de Planta',
+          fecha_ejecucion: fechaEjecucion,
+          reporte_ot: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
+          certificado_numero: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
+          certificado: reporteOT || (file ? file.name.replace(/\.[^/.]+$/, "") : `OT-${Date.now().toString().slice(-6)}`),
+          certificado_url: certificado_url || null,
+          descripcion_trabajos: descripcionTrabajos,
+          estado_operativo: estadoOperativo,
+          declaracion_conformidad: estadoOperativo === 'No Operativo' ? 'No Conforme' : 'Conforme',
+          conformidad_metrologica: estadoOperativo === 'No Operativo' ? 'No Conforme' : 'Conforme'
+        });
+      } else if (isCalificacion) {
+        // 📋 PAYLOAD DE CALIFICACIÓN DE EQUIPO (IQ / OQ / PQ)
+        await onFinish({
+          laboratorio: activeLab || 'Laboratorio Metrológico MJM',
+          laboratorio_ejecutor: activeLab || 'Laboratorio Metrológico MJM',
+          proveedor_ejecutor: activeLab || 'Laboratorio Metrológico MJM',
+          fecha_ejecucion: fechaEjecucion,
+          certificado_numero: protocoloNumero || `PROT-${Date.now().toString().slice(-6)}`,
+          certificado: protocoloNumero || `PROT-${Date.now().toString().slice(-6)}`,
+          certificado_url: certificado_url || null,
+          etapa_calificacion: etapaCalificacion,
+          resultado_calificacion: resultadoCalificacion,
+          declaracion_conformidad: resultadoCalificacion === 'Aprobado' ? 'Conforme' : 'No Conforme',
+          conformidad_metrologica: resultadoCalificacion === 'Aprobado' ? 'Conforme' : 'No Conforme'
+        });
+      } else {
+        // ⚖️ PAYLOAD DE PROTOCOLO METROLÓGICO RIGUROSO (CALIBRACIÓN / VERIFICACIÓN ISO 10012)
+        await onFinish({
+          laboratorio: activeLab || 'Laboratorio Metrológico MJM',
+          laboratorio_ejecutor: activeLab || 'Laboratorio Metrológico MJM',
+          proveedor_ejecutor: activeLab || 'Laboratorio Metrológico MJM',
+          fecha_ejecucion: fechaEjecucion,
+          certificado_numero: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
+          certificado: certificadoNumero || (file ? file.name.replace(/\.[^/.]+$/, "") : `CERT-${Date.now().toString().slice(-6)}`),
+          certificado_url: certificado_url || null,
+          patron_referencia: patronReferencia || null,
+          laboratorio_tipo: laboratorioTipo,
+          error_encontrado: isNaN(parsedError) ? 0.00 : parsedError,
+          incertidumbre: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
+          incertidumbre_medicion: isNaN(parsedIncertidumbre) ? 0.00 : parsedIncertidumbre,
+          criterio_tipo: criterioTipo,
+          criterio_valor: isNaN(parsedCriterio) ? null : parsedCriterio,
+          declaracion_conformidad: compliance,
+          conformidad_metrologica: compliance
+        });
+      }
+    } catch (err) {
+      console.error("Error al registrar actividad en ClosureModal:", err);
+      setFormError(`No fue posible guardar la actividad en base de datos: ${err.message || 'Error de conexión'}. Verifique la información e intente nuevamente.`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -785,28 +833,51 @@ export default function ClosureModal({ activity, onClose, onFinish }) {
               </label>
            </div>
 
-           {/* Botones de Acción */}
-           <div className="flex gap-3 pt-2">
-              <button 
-                onClick={onClose} 
-                className="flex-1 btn-precision-secondary py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer" 
-                disabled={isUploading}
-              >
-                Cancelar
-              </button>
-              <button 
-                onClick={handleFinish}
-                disabled={!laboratorio || isUploading}
-                className="flex-2 btn-precision-primary py-2.5 px-6 text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex justify-center items-center gap-2 cursor-pointer shadow-md"
-              >
-                {isUploading ? (
-                  <><RefreshCw size={15} className="animate-spin" /> REGISTRANDO Y SUBIENDO...</>
-                ) : (
-                  'REGISTRAR Y FINALIZAR ACTIVIDAD'
-                )}
-              </button>
-           </div>
-        </div>
+            {/* ALERTA VISUAL DE DATOS FALTANTES O ERROR AL GUARDAR */}
+            {formError && (
+              <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+                <AlertTriangle size={18} className="shrink-0 mt-0.5 text-red-500 animate-pulse" />
+                <div className="flex-1">
+                  <p className="font-bold uppercase tracking-wider text-[10px] mb-0.5 text-red-700 dark:text-red-300">
+                    Atención: Datos Incompletos o No Válidos
+                  </p>
+                  <p className="font-medium leading-relaxed">{formError}</p>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setFormError('')} 
+                  className="p-1 hover:bg-red-500/20 rounded-lg text-red-500 transition-colors"
+                  title="Cerrar advertencia"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+
+            {/* Botones de Acción */}
+            <div className="flex gap-3 pt-2">
+               <button 
+                 type="button"
+                 onClick={onClose} 
+                 className="flex-1 btn-precision-secondary py-2.5 text-xs font-bold uppercase tracking-wider cursor-pointer" 
+                 disabled={isUploading}
+               >
+                 Cancelar
+               </button>
+               <button 
+                 type="button"
+                 onClick={handleFinish}
+                 disabled={isUploading}
+                 className="flex-2 btn-precision-primary py-2.5 px-6 text-xs font-bold uppercase tracking-wider disabled:opacity-50 flex justify-center items-center gap-2 cursor-pointer shadow-md"
+               >
+                 {isUploading ? (
+                   <><RefreshCw size={15} className="animate-spin" /> REGISTRANDO Y GUARDANDO...</>
+                 ) : (
+                   'REGISTRAR Y FINALIZAR ACTIVIDAD'
+                 )}
+               </button>
+            </div>
+         </div>
       </div>
     </div>
   );
