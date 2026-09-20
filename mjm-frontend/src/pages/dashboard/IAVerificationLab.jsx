@@ -219,7 +219,10 @@ export default function IAVerificationLab() {
 
   React.useEffect(() => {
     if (tenant?.id) {
-      loadInstruments(tenant.id);
+      const unsub = loadInstruments(tenant.id);
+      return () => {
+        if (unsub) unsub();
+      };
     }
   }, [tenant?.id, loadInstruments]);
 

@@ -24,8 +24,12 @@ export default function ComprobacionMetrologica() {
 
   useEffect(() => {
     if (tenant) {
-      loadInstruments(tenant.id, isSuperAdmin);
-      loadActivities(tenant.id, isSuperAdmin);
+      const unsubInst = loadInstruments(tenant.id, isSuperAdmin);
+      const unsubAct = loadActivities(tenant.id, isSuperAdmin);
+      return () => {
+        if (unsubInst) unsubInst();
+        if (unsubAct) unsubAct();
+      };
     }
   }, [tenant, isSuperAdmin, loadInstruments, loadActivities]);
 

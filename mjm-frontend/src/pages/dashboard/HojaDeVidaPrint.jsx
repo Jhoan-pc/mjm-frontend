@@ -87,7 +87,10 @@ const HojaDeVidaPrint = () => {
 
   useEffect(() => {
     const activeTenantId = tenant?.id || 'sandboxdemo';
-    loadInstruments(activeTenantId);
+    const unsub = loadInstruments(activeTenantId);
+    return () => {
+      if (unsub) unsub();
+    };
   }, [tenant, loadInstruments]);
 
   useEffect(() => {

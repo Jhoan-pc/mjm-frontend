@@ -87,11 +87,12 @@ const syncActivitiesInFirestore = async (tenantId, instrumentId, instrumentData)
   try {
     const q = query(
       collection(db, 'activities'),
+      where('tenantId', '==', tenantId),
       where('instrumentId', '==', instrumentId)
     );
     const snap = await getDocs(q);
     existingActivities = snap.docs
-      .filter(docSnap => docSnap.data().estado === 'todo' && docSnap.data().tenantId === tenantId)
+      .filter(docSnap => docSnap.data().estado === 'todo')
       .map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
   } catch (err) {
     console.error("Error al obtener actividades previas:", err);

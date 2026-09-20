@@ -1437,7 +1437,12 @@ export default function Inventario() {
   const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'Activo' | 'Próximo Vencimiento' | 'Vencido'
 
   React.useEffect(() => {
-    if (tenant) loadInstruments(tenant.id, isSuperAdmin);
+    if (tenant) {
+      const unsub = loadInstruments(tenant.id, isSuperAdmin);
+      return () => {
+        if (unsub) unsub();
+      };
+    }
   }, [tenant, isSuperAdmin, loadInstruments]);
 
   // Conteos en vivo
