@@ -68,11 +68,11 @@ function AppRoutes() {
             <Route path="inventario" element={<Inventario />} />
             <Route path="inventario/:id" element={<HojaDeVida />} />
 
-            {/* Planificador */}
+            {/* Planificador Operativo Unificado */}
             <Route path="calendario" element={<Calendario />} />
 
-            {/* Kanban Metrológico */}
-            <Route path="kanban" element={<KanbanMetrologico />} />
+            {/* Redirección Kanban a Cronograma Operativo */}
+            <Route path="kanban" element={<Navigate to="/dashboard/calendario" replace />} />
 
             {/* Aseguramiento Metrológico */}
             <Route path="aseguramiento" element={<AsegMetrologico />} />

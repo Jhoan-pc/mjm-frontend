@@ -129,7 +129,6 @@ export default function DashboardLayout() {
     { name: 'Comprobación en Planta', path: '/dashboard/aseguramiento', icon: <ShieldCheck size={19} /> },
     { name: 'Confirmación Metrológica', path: '/dashboard/ia-lab', icon: <Database size={19} /> },
     { name: 'Cronograma', path: '/dashboard/calendario', icon: <Calendar size={19} /> },
-    { name: 'Gestión Operativa', path: '/dashboard/kanban', icon: <History size={19} /> },
     ...(isSuperAdmin ? [{ name: 'Ajustes & CRM', path: '/dashboard/settings', icon: <SettingsIcon size={19} /> }] : [])
   ];
 
@@ -483,12 +482,12 @@ export default function DashboardLayout() {
                     {/* Footer Shortcut */}
                     <div className="mt-3.5 pt-3 border-t border-sky-400/20 flex items-center justify-between relative">
                       <Link 
-                        to="/dashboard/kanban" 
+                        to="/dashboard/calendario" 
                         onClick={() => setShowNotifications(false)}
                         className="w-full flex items-center justify-between text-[11px] font-space font-bold uppercase tracking-wider text-sky-400 hover:text-sky-300 transition-colors group p-1"
                       >
                         <span className="flex items-center gap-1.5">
-                          Ver Gestión Operativa
+                          Ver Cronograma Operativo
                         </span>
                         <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
                       </Link>

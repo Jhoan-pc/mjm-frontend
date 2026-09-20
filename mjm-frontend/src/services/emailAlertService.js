@@ -127,7 +127,7 @@ const buildEmailTemplate = ({ activity, tenant, reason }) => {
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td align="center">
-                        <a href="http://localhost:3005/dashboard/kanban" target="_blank" style="display: inline-block; background-color: ${colorSecundario}; color: #ffffff; padding: 14px 32px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(247,147,27,0.3);">
+                        <a href="http://localhost:3005/dashboard/calendario" target="_blank" style="display: inline-block; background-color: ${colorSecundario}; color: #ffffff; padding: 14px 32px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(247,147,27,0.3);">
                           Ver Actividad en el Sistema &rarr;
                         </a>
                       </td>
