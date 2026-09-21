@@ -1017,14 +1017,14 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                   placeholder="Nombre del Instrumento"
                   className="font-black text-[var(--text-main)] text-3xl uppercase tracking-tighter bg-white border-2 border-[var(--primary)]/20 rounded-xl px-4 py-1 outline-none focus:border-[var(--primary)] max-w-md"
                 />
-                <span className="px-4 py-2 bg-[#1A202C] text-[var(--primary)] border border-[var(--primary)]/30 font-black text-sm rounded-xl uppercase tracking-[0.2em] shadow-lg">
+                <span className="px-4 py-2 bg-[#0B1326] text-[#f7931b] border border-[#f7931b]/40 font-mono font-black text-sm rounded-xl uppercase tracking-[0.15em] shadow-md">
                   {form.codigo || inst.codigo}
                 </span>
               </div>
             ) : (
               <div className="flex items-center gap-4 flex-wrap">
                 <h1 className="font-black text-[var(--text-main)] text-3xl uppercase tracking-tighter leading-none">{form.nombre}</h1>
-                <span className="px-4 py-2 bg-[#1A202C] text-[var(--primary)] border border-[var(--primary)]/30 font-black text-sm rounded-xl uppercase tracking-[0.2em] shadow-lg">
+                <span className="px-4 py-2 bg-[#0B1326] text-[#f7931b] border border-[#f7931b]/40 font-mono font-black text-sm rounded-xl uppercase tracking-[0.15em] shadow-md">
                   {form.codigo || inst.codigo}
                 </span>
               </div>
@@ -1294,19 +1294,19 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                 navigate(`/dashboard/inventario/${instrumentId}`);
                 onClose();
               }}
-              className="flex items-center gap-2 px-6 py-3 bg-[var(--primary)] text-[#1A202C] rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-md"
+              className="flex items-center gap-2 px-6 py-3 bg-mjm-navy hover:bg-[#1a3857] text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-md"
             >
-              <Eye size={18}/> Ver Expediente Completo
+              <Eye size={18} className="text-[#f7931b]"/> Ver Expediente Completo
             </button>
             <button 
               onClick={() => setShowGallery(true)}
-              className="flex items-center gap-2 px-6 py-3 border border-[var(--outline-color)] text-[var(--text-muted)] rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[var(--surface-alt)] transition-all"
+              className="flex items-center gap-2 px-6 py-3 border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all"
             >
               <ImageIcon size={18}/> Ver Fotos
             </button>
             <button 
               onClick={handleArchive}
-              className="flex items-center gap-2 px-6 py-3 border border-amber-600/30 text-amber-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500/5 transition-all"
+              className="flex items-center gap-2 px-6 py-3 border border-amber-500/40 text-amber-700 dark:text-amber-400 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-all"
             >
               <Archive size={18}/> Archivar Activo
             </button>

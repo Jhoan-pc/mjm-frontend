@@ -313,7 +313,7 @@ export default function IAVerificationLab() {
       let certificateUrl = '';
       if (selectedFile) {
         try {
-          const fileRef = ref(storage, `certificates/${tenant.id}/${parsedData.serie}/${selectedFile.name}`);
+          const fileRef = ref(storage, `tenants/${tenant.id}/certificates/${parsedData.serie}/${selectedFile.name}`);
           const uploadResult = await uploadBytes(fileRef, selectedFile);
           certificateUrl = await getDownloadURL(uploadResult.ref);
         } catch (storageErr) {

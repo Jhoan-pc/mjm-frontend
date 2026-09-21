@@ -65,10 +65,15 @@ const EditInstrumentModal = ({ inst, onClose, onSave }) => {
     magnitud: inst.magnitud || 'Longitud',
     unidad_medida: inst.unidad_medida || 'mm',
     tolerancia_proceso: inst.tolerancia_proceso || 0.05,
+    resolucion: inst.resolucion || '',
+    rango_min: inst.rango_min || '',
+    rango_max: inst.rango_max || '',
     intervalo_confirmacion: inst.intervalo_confirmacion || 12,
-    riesgo_operativo: inst.riesgo_operativo || 'Media',
+    riesgo_operativo: inst.riesgo_operativo || inst.criticidad || 'Media',
+    estado: inst.estado || 'Activo',
     ubicacion: inst.jerarquia?.ubicacion || inst.ubicacion || '',
     planta: inst.jerarquia?.planta || 'Planta Principal',
+    area: inst.jerarquia?.area || 'Área General',
     responsable: inst.responsable || ''
   });
   const [saving, setSaving] = useState(false);
@@ -81,9 +86,11 @@ const EditInstrumentModal = ({ inst, onClose, onSave }) => {
         ...formData,
         tolerancia_proceso: Number(formData.tolerancia_proceso) || 0.05,
         intervalo_confirmacion: Number(formData.intervalo_confirmacion) || 12,
+        criticidad: formData.riesgo_operativo,
         jerarquia: {
           ...(inst.jerarquia || {}),
           planta: formData.planta,
+          area: formData.area,
           ubicacion: formData.ubicacion
         }
       });
@@ -198,6 +205,39 @@ const EditInstrumentModal = ({ inst, onClose, onSave }) => {
             </div>
 
             <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Resolución Metrológica</label>
+              <input
+                type="text"
+                value={formData.resolucion}
+                onChange={e => setFormData({ ...formData, resolucion: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-mono"
+                placeholder="ej: 0.01 mm, 0.1 °C"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Capacidad Mínima</label>
+              <input
+                type="text"
+                value={formData.rango_min}
+                onChange={e => setFormData({ ...formData, rango_min: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-mono"
+                placeholder="ej: 0"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Capacidad Máxima</label>
+              <input
+                type="text"
+                value={formData.rango_max}
+                onChange={e => setFormData({ ...formData, rango_max: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-mono"
+                placeholder="ej: 150 mm"
+              />
+            </div>
+
+            <div>
               <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Planta / Fábrica</label>
               <input
                 type="text"
@@ -208,7 +248,18 @@ const EditInstrumentModal = ({ inst, onClose, onSave }) => {
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Ubicación Física / Área</label>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Área / Sección</label>
+              <input
+                type="text"
+                value={formData.area}
+                onChange={e => setFormData({ ...formData, area: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white"
+                placeholder="ej: Mecanizado CNC, Calidad"
+              />
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Ubicación Física Específica</label>
               <input
                 type="text"
                 value={formData.ubicacion}
@@ -238,6 +289,21 @@ const EditInstrumentModal = ({ inst, onClose, onSave }) => {
                 <option value="Media">Media</option>
                 <option value="Alta">Alta</option>
                 <option value="Crítica">Crítica</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-bold">Estado Operativo</label>
+              <select
+                value={formData.estado}
+                onChange={e => setFormData({ ...formData, estado: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-slate-900 dark:text-white font-bold"
+              >
+                <option value="Activo">Activo / Operativo</option>
+                <option value="En Calibración">En Calibración</option>
+                <option value="Vencido">Vencido</option>
+                <option value="Fuera de Servicio">Fuera de Servicio</option>
+                <option value="De Baja">De Baja</option>
               </select>
             </div>
           </div>
@@ -441,7 +507,7 @@ export default function HojaDeVida() {
         <div className="lg:col-span-4 grid grid-cols-2 gap-stack-md">
           {[
             { label: 'Serial', val: inst.serie || 'N/A', icon: <Barcode size={18}/> },
-            { label: 'Criticidad', val: inst.criticidad || 'N/A', icon: <AlertCircle size={18}/> },
+            { label: 'Criticidad', val: inst.criticidad || inst.riesgo_operativo || 'N/A', icon: <AlertCircle size={18}/> },
             { label: 'Resolución', val: cleanUnitDisplay(inst.resolucion || 'N/A'), icon: <Activity size={18}/>, highlight: true },
             { label: 'Div. de Escala', val: cleanUnitDisplay(inst.division_escala || 'N/A'), icon: <Activity size={18}/>, highlight: true },
             { label: 'Capacidad Mínima', val: cleanUnitDisplay(inst.rango_min || 'N/A'), icon: <LineChart size={18}/> },

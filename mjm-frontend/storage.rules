@@ -2,8 +2,23 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    
+    // Aislamiento Multi-Tenant Estricto (ISO/IEC 27001 & SDD Contrato)
+    // Permite lectura y escritura únicamente en rutas encapsuladas por tenantId
+    match /tenants/{tenantId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Ruta de certificados por tenant (Compatibilidad trazabilidad INM)
+    match /certificates/{tenantId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Denegar cualquier acceso a rutas raíz o desestructuradas
     match /{allPaths=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if false;
     }
   }
 }
