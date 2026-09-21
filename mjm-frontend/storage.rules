@@ -6,14 +6,22 @@ service firebase.storage {
     // Aislamiento Multi-Tenant Estricto (ISO/IEC 27001 & SDD Contrato)
     // Permite lectura y escritura únicamente en rutas encapsuladas por tenantId
     match /tenants/{tenantId}/{allPaths=**} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read, write: if request.auth != null && (
+        request.auth.token.tenantId == tenantId ||
+        request.auth.token.isSuperAdmin == true ||
+        tenantId == 'sandboxdemo' ||
+        tenantId == 'sandbox-guest-001'
+      );
     }
 
     // Ruta de certificados por tenant (Compatibilidad trazabilidad INM)
     match /certificates/{tenantId}/{allPaths=**} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read, write: if request.auth != null && (
+        request.auth.token.tenantId == tenantId ||
+        request.auth.token.isSuperAdmin == true ||
+        tenantId == 'sandboxdemo' ||
+        tenantId == 'sandbox-guest-001'
+      );
     }
 
     // Denegar cualquier acceso a rutas raíz o desestructuradas

@@ -47,7 +47,7 @@ const ISOComparator = ({
   const numError = parseFloat(error) || 0;
   const numUncertainty = parseFloat(uncertainty) || 0;
   const numTol = parseFloat(tolerance) || 0;
-  const totalDeviation = (numError + numUncertainty).toFixed(4);
+  const totalDeviation = (Math.abs(numError) + numUncertainty).toFixed(4);
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--outline-color)]/30 rounded-2xl p-5 sm:p-6 shadow-sm space-y-6">
@@ -185,7 +185,7 @@ const ISOComparator = ({
         <p className="text-xs font-semibold text-[var(--text-main)] leading-relaxed">
           {error} (Error) + {uncertainty} (Incertidumbre) = <span className="font-bold">{totalDeviation} {unit}</span> de Desviación Acumulada.
           <br />
-          Criterio con Banda de Guarda: <span className="font-bold">{totalDeviation} {unit} {isAprobado ? '≤' : '>'} {tolerance} {unit}</span>
+          Criterio con Banda de Guarda: <span className="font-bold">{totalDeviation} {unit} {Number(totalDeviation) <= numTol ? '≤' : '>'} {tolerance} {unit}</span>
         </p>
       </div>
     </div>

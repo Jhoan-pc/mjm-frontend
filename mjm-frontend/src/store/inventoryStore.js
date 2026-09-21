@@ -110,6 +110,7 @@ export const useInventoryStore = create((set, get) => ({
   instruments: [],
   activities: [],
   loading: false,
+  activeSubscriptions: { instruments: null, activities: null },
 
   // 🧹 Limpieza de toda la capa efímera al cerrar sesión
   resetDemoData: () => {
@@ -120,15 +121,48 @@ export const useInventoryStore = create((set, get) => ({
     set({ instruments: [], activities: [], loading: false });
   },
 
+  // 🧹 Purga de estado de inventario para alternancia segura de tenant (evita sangrado visual)
+  resetInventoryState: () => {
+    set({ instruments: [], activities: [], loading: true });
+  },
+
+  // 🧹 Cancelar y limpiar todas las suscripciones activas a Firestore
+  clearAllSubscriptions: () => {
+    const { activeSubscriptions } = get();
+    if (activeSubscriptions?.instruments) {
+      try {
+        activeSubscriptions.instruments();
+      } catch (_) {}
+    }
+    if (activeSubscriptions?.activities) {
+      try {
+        activeSubscriptions.activities();
+      } catch (_) {}
+    }
+    set({
+      activeSubscriptions: { instruments: null, activities: null },
+      instruments: [],
+      activities: [],
+      loading: false
+    });
+  },
+
   // ─── CARGAR INSTRUMENTOS ───
   loadInstruments: (tenantId) => {
+    const { activeSubscriptions } = get();
+    if (activeSubscriptions?.instruments) {
+      try {
+        activeSubscriptions.instruments();
+      } catch (_) {}
+    }
+
     set({ loading: true });
     const targetTenantId = tenantId || 'sandboxdemo';
     const isDemo = useAuthStore.getState().isDemoMode;
 
     const q = query(collection(db, 'tenants', targetTenantId, 'inventario_metrologico'));
     
-    return onSnapshot(q, 
+    const unsub = onSnapshot(q, 
       (snapshot) => {
         let docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -151,6 +185,15 @@ export const useInventoryStore = create((set, get) => ({
         set({ loading: false });
       }
     );
+
+    set(state => ({
+      activeSubscriptions: {
+        ...state.activeSubscriptions,
+        instruments: unsub
+      }
+    }));
+
+    return unsub;
   },
 
   // ─── OBTENER INSTRUMENTO INDIVIDUAL (HOJA DE VIDA) ───
@@ -250,6 +293,13 @@ export const useInventoryStore = create((set, get) => ({
 
   // ─── CARGAR ACTIVIDADES (KANBAN & CRONOGRAMA) ───
   loadActivities: (tenantId) => {
+    const { activeSubscriptions } = get();
+    if (activeSubscriptions?.activities) {
+      try {
+        activeSubscriptions.activities();
+      } catch (_) {}
+    }
+
     const targetTenantId = tenantId || 'sandboxdemo';
     const isDemo = useAuthStore.getState().isDemoMode;
 
@@ -258,7 +308,7 @@ export const useInventoryStore = create((set, get) => ({
       where('tenantId', '==', targetTenantId)
     );
     
-    return onSnapshot(q, 
+    const unsub = onSnapshot(q, 
       (snapshot) => {
         let docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -277,6 +327,15 @@ export const useInventoryStore = create((set, get) => ({
         console.warn("Aviso: Error al cargar actividades en tiempo real:", error.message);
       }
     );
+
+    set(state => ({
+      activeSubscriptions: {
+        ...state.activeSubscriptions,
+        activities: unsub
+      }
+    }));
+
+    return unsub;
   },
 
   // ─── AGREGAR ACTIVIDAD MANUAL ───

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
+import { calculateNextRoutineDate } from '../../utils/metrologyCore';
 import manometroIndustrial from '../../assets/manometro_industrial.jpeg';
 
 const cleanUnitDisplay = (val) => {
@@ -503,19 +504,7 @@ export default function HojaDeVida() {
               <p className="text-[13px] text-on-surface-variant">
                 Próxima intervención programada para el <span className="text-tertiary font-bold">
                   {inst.rutinas?.calibracion && inst.rutinas?.calibracion_fecha_inicial && inst.rutinas?.calibracion_frecuencia 
-                    ? (() => {
-                        const parts = String(inst.rutinas.calibracion_fecha_inicial).split('-');
-                        if (parts.length === 3) {
-                          const year = Number(parts[0]);
-                          const month = Number(parts[1]) - 1;
-                          const day = Number(parts[2]);
-                          const d = new Date(year, month + Number(inst.rutinas.calibracion_frecuencia), day);
-                          return formatDateYYYYMMDD(d);
-                        }
-                        const d = new Date(inst.rutinas.calibracion_fecha_inicial);
-                        d.setMonth(d.getMonth() + Number(inst.rutinas.calibracion_frecuencia));
-                        return formatDateYYYYMMDD(d);
-                      })()
+                    ? (calculateNextRoutineDate(inst.rutinas.calibracion_fecha_inicial, inst.rutinas.calibracion_frecuencia) || 'N/A')
                     : 'N/A'
                   }
                 </span>. Asegure condiciones ambientales.
@@ -612,15 +601,15 @@ export default function HojaDeVida() {
             </div>
             <span className="text-[10px] font-mono text-[var(--text-muted)] font-bold">Total: {inst.historial?.length || 0} registros</span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="bg-[var(--surface-alt)] text-[9px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider border-b border-outline-variant/20">
+          <div className="max-h-[380px] overflow-auto">
+            <table className="w-full text-xs border-separate border-spacing-0">
+              <thead className="sticky top-0 z-10 bg-[var(--surface-alt)] shadow-xs border-b border-[var(--outline-color)] text-[9px] font-mono font-bold text-[var(--text-muted)] uppercase tracking-wider">
                 <tr>
-                  <th className="px-4 py-2.5 text-left">Fecha</th>
-                  <th className="px-4 py-2.5 text-left">Descripción de la Actividad</th>
-                  <th className="px-4 py-2.5 text-center">Tipo</th>
-                  <th className="px-4 py-2.5 text-center">Dictamen</th>
-                  <th className="px-4 py-2.5 text-right">Acciones</th>
+                  <th className="sticky top-0 bg-[var(--surface-alt)] px-4 py-2.5 text-left border-b border-[var(--outline-color)]">Fecha</th>
+                  <th className="sticky top-0 bg-[var(--surface-alt)] px-4 py-2.5 text-left border-b border-[var(--outline-color)]">Descripción de la Actividad</th>
+                  <th className="sticky top-0 bg-[var(--surface-alt)] px-4 py-2.5 text-center border-b border-[var(--outline-color)]">Tipo</th>
+                  <th className="sticky top-0 bg-[var(--surface-alt)] px-4 py-2.5 text-center border-b border-[var(--outline-color)]">Dictamen</th>
+                  <th className="sticky top-0 bg-[var(--surface-alt)] px-4 py-2.5 text-right border-b border-[var(--outline-color)]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10 text-xs">

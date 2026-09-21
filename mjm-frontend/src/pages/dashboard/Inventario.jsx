@@ -369,18 +369,18 @@ const InstrumentCard = ({ inst, onNavigate }) => {
 // --- SWISS PRECISION TABLE VIEW (ALTA DENSIDAD) ---
 const PrecisionTableView = ({ instruments, onSelect, onNavigateDetail }) => {
   return (
-    <div className="overflow-x-auto lg:overflow-visible rounded-xl border border-[var(--outline-color)] bg-[var(--surface)] shadow-xs">
-      <table className="w-full text-left border-collapse table-precision relative">
-        <thead className="sticky top-[52px] z-20 bg-[var(--surface-alt)] shadow-xs">
-          <tr className="bg-[var(--surface-alt)] border-b border-[var(--outline-color)] text-[var(--text-muted)]">
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-left font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] rounded-tl-xl whitespace-nowrap">Código / ID</th>
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-left font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] whitespace-nowrap">Activo & Marca</th>
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-center font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] whitespace-nowrap">Magnitud</th>
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-center font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] whitespace-nowrap">Serie</th>
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-left font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] whitespace-nowrap">Ubicación</th>
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-right font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] whitespace-nowrap">Capacidad / Rango</th>
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-center font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] whitespace-nowrap">Estado</th>
-            <th className="sticky top-[52px] bg-[var(--surface-alt)] px-3.5 py-2.5 text-right font-space text-[10px] font-bold uppercase tracking-wider z-20 shadow-[0_1px_0_0_var(--outline-color)] rounded-tr-xl whitespace-nowrap">Acciones</th>
+    <div className="max-h-[calc(100vh-210px)] overflow-auto rounded-xl border border-[var(--outline-color)] bg-[var(--surface)] shadow-xs">
+      <table className="w-full text-left border-separate border-spacing-0 table-precision relative">
+        <thead className="sticky top-0 z-20 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] shadow-xs">
+          <tr className="bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] border-b border-[var(--outline-color)] text-[var(--text-muted)]">
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-left font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Código / ID</th>
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-left font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Activo & Marca</th>
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-center font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Magnitud</th>
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-center font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Serie</th>
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-left font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Ubicación</th>
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-right font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Capacidad / Rango</th>
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-center font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Estado</th>
+            <th className="sticky top-0 bg-[var(--surface-alt)] dark:bg-[var(--surface-alt)] px-3.5 py-2.5 text-right font-space text-[10px] font-bold uppercase tracking-wider z-20 border-b border-[var(--outline-color)] rounded-none whitespace-nowrap">Acciones</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[var(--outline-color)]/50 text-xs font-inter">
@@ -1605,7 +1605,7 @@ export default function Inventario() {
       </div>
 
       {/* BARRA DE COMANDOS (Docked Flush al Topbar con 0px de brecha y 100% opacidad) */}
-      <div className="sticky top-0 z-30 -mx-3.5 sm:-mx-5 lg:-mx-6 px-3.5 sm:px-5 lg:px-6 md:h-[52px] py-2 md:py-0 bg-white dark:bg-[#070C18] border-b border-slate-200 dark:border-zinc-800 shadow-xs transition-all flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 mb-4">
+      <div className="sticky top-0 z-30 -mx-3.5 sm:-mx-5 lg:-mx-6 px-3.5 sm:px-5 lg:px-6 md:h-[52px] py-2 md:py-0 bg-[var(--surface)] dark:bg-[var(--surface)] border-b border-[var(--outline-color)] shadow-xs transition-all flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 mb-0">
          
          {/* Buscador Integrado */}
          <div className="relative flex-1 max-w-sm">
@@ -1707,7 +1707,7 @@ export default function Inventario() {
             onNavigateDetail={(id) => navigate(`/dashboard/inventario/${id}`)}
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 pt-4">
             {filtered.map(inst => (
               <InstrumentCard key={inst.id} inst={inst} onNavigate={setSelectedId} />
             ))}

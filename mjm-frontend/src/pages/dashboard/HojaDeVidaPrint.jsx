@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
+import { calculateNextRoutineDate } from '../../utils/metrologyCore';
 import logoAzul from '../../assets/logo_azul_sin_fondo.png';
 import manometroIndustrial from '../../assets/manometro_industrial.jpeg';
 import { 
@@ -47,30 +48,7 @@ const formatDateYYYYMMDD = (dateVal) => {
   }
 };
 
-const getNextDate = (fechaInicial, frecuenciaMeses) => {
-  if (!fechaInicial || !frecuenciaMeses) return null;
-  try {
-    let d;
-    if (typeof fechaInicial === 'string') {
-      const parts = fechaInicial.split('-').map(Number);
-      if (parts.length === 3) {
-        d = new Date(parts[0], parts[1] - 1, parts[2]);
-      } else {
-        d = new Date(fechaInicial);
-      }
-    } else {
-      d = new Date(fechaInicial);
-    }
-    if (isNaN(d.getTime())) return null;
-    d.setMonth(d.getMonth() + Number(frecuenciaMeses));
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  } catch (e) {
-    return null;
-  }
-};
+const getNextDate = (fechaInicial, frecuenciaMeses) => calculateNextRoutineDate(fechaInicial, frecuenciaMeses);
 
 const formatMeses = (num) => {
   if (!num) return 'No Programada';
@@ -81,17 +59,9 @@ const formatMeses = (num) => {
 const HojaDeVidaPrint = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { instruments, loadInstruments, getInstrumentFromFirestore } = useInventoryStore();
+  const { instruments, getInstrumentFromFirestore } = useInventoryStore();
   const { tenant } = useAuthStore();
   const [inst, setInst] = useState(null);
-
-  useEffect(() => {
-    const activeTenantId = tenant?.id || 'sandboxdemo';
-    const unsub = loadInstruments(activeTenantId);
-    return () => {
-      if (unsub) unsub();
-    };
-  }, [tenant, loadInstruments]);
 
   useEffect(() => {
     const found = instruments.find(i => i.id === id);

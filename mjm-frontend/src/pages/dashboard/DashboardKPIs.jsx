@@ -42,7 +42,8 @@ export default function DashboardKPIs() {
           const err = parseFloat(latest.error) || 0;
           const unc = parseFloat(latest.incertidumbre) || 0;
           const tol = parseFloat(inst.tolerancia_proceso) || parseFloat(latest.process_tolerance) || 0;
-          if (tol > 0 && (err + unc) > 0.8 * tol) {
+          const totalDev = Math.abs(err) + unc;
+          if (tol > 0 && totalDev > 0.8 * tol) {
             warningCount++;
           }
         }
@@ -174,9 +175,10 @@ export default function DashboardKPIs() {
         const err = parseFloat(latest?.error) || 0;
         const unc = parseFloat(latest?.incertidumbre) || 0;
         const tol = parseFloat(inst.tolerancia_proceso) || parseFloat(latest?.process_tolerance) || 0;
-        if (tol > 0 && (err + unc) > 0.8 * tol) {
+        const totalDev = Math.abs(err) + unc;
+        if (tol > 0 && totalDev > 0.8 * tol) {
           type = 'warning';
-          desc = `Alerta de Deriva (${Math.round(((err + unc) / tol) * 100)}% del MPE)`;
+          desc = `Alerta de Deriva (${Math.round((totalDev / tol) * 100)}% del MPE)`;
         }
       }
 

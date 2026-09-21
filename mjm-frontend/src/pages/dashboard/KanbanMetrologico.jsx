@@ -432,10 +432,10 @@ export default function KanbanMetrologico() {
   };
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-500 pb-12 pt-3.5 sm:pt-5">
+    <div className="flex flex-col h-full animate-in fade-in duration-500 pb-12 pt-0">
       
       {/* --- FLOATING / FROSTED CONTROL TOOLBAR (Estándar Diseñador-Web) --- */}
-      <header className="sticky top-0 z-30 mb-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col gap-3.5">
+      <header className="sticky top-0 z-30 mb-0 bg-[var(--surface)] p-4 rounded-b-2xl rounded-t-none border border-[var(--outline-color)] shadow-sm flex flex-col gap-3.5">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -529,7 +529,7 @@ export default function KanbanMetrologico() {
       </header>
 
       {/* --- MOBILE TABS NAVIGATION --- */}
-      <div className="flex xl:hidden bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-1 mb-3 justify-between items-center shrink-0">
+      <div className="flex xl:hidden bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-1 mt-3 mb-3 justify-between items-center shrink-0">
         {columns.map(col => {
           const count = (grouped[col.id] || []).length;
           const isActive = activeTab === col.id;
@@ -562,7 +562,7 @@ export default function KanbanMetrologico() {
       <main 
         ref={boardRef}
         onScroll={handleBoardScroll}
-        className="flex-1 overflow-x-auto custom-scrollbar snap-x snap-mandatory scroll-smooth pb-4"
+        className="flex-1 overflow-x-auto custom-scrollbar snap-x snap-mandatory scroll-smooth pb-4 mt-3"
       >
         <div className="flex gap-4 h-full min-h-[550px]">
           {columns.map(col => {

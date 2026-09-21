@@ -52,11 +52,15 @@ const INSTRUMENTS_SEED = [
 ];
 
 export const seedInstruments = async (tenantId) => {
+  if (!tenantId) {
+    console.error("seedInstruments cancelado: tenantId no proporcionado.");
+    return 0;
+  }
   console.log(`Iniciando siembra masiva de 40 instrumentos para ${tenantId}...`);
   let count = 0;
   for (const inst of INSTRUMENTS_SEED) {
     try {
-      await addDoc(collection(db, 'inventario_metrologico'), {
+      await addDoc(collection(db, 'tenants', tenantId, 'inventario_metrologico'), {
         ...inst,
         tenantId,
         codigoMJM: `MJM-DC-${String(count+1).padStart(3, '0')}`,

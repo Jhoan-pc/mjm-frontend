@@ -39,9 +39,13 @@ const PrivateRoute = ({ children }) => {
 function AppRoutes() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
   const tenant = useAuthStore((state) => state.tenant);
+  const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
 
   useEffect(() => {
-    initializeAuth();
+    const unsub = initializeAuth();
+    return () => {
+      if (unsub) unsub();
+    };
   }, [initializeAuth]);
 
   // Inject Branding CSS Variables dynamically
@@ -78,7 +82,7 @@ function AppRoutes() {
             <Route path="aseguramiento" element={<AsegMetrologico />} />
 
             {/* Otros módulos */}
-            <Route path="solicitudes" element={<ChatbotSubmissions />} />
+            <Route path="solicitudes" element={isSuperAdmin ? <ChatbotSubmissions /> : <Navigate to="/dashboard" replace />} />
             <Route path="ia-lab" element={<IAVerificationLab />} />
             <Route path="cotizador" element={<Cotizador />} />
             <Route path="settings" element={<Settings />} />

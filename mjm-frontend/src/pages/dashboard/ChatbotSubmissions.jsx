@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { MessageSquare, Clock, Building2, User, Phone, Tag, Calendar, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -8,10 +8,25 @@ export default function ChatbotSubmissions() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const tenant = useAuthStore(state => state.tenant);
+  const isSuperAdmin = useAuthStore(state => state.isSuperAdmin);
 
   useEffect(() => {
-    // Escuchar en tiempo real las solicitudes del chatbot
-    const q = query(collection(db, 'chatbot_submissions'), orderBy('timestamp', 'desc'));
+    // Escuchar en tiempo real las solicitudes del chatbot con aislamiento multi-tenant
+    let q;
+    if (isSuperAdmin) {
+      q = query(collection(db, 'chatbot_submissions'), orderBy('timestamp', 'desc'));
+    } else if (tenant?.id) {
+      q = query(
+        collection(db, 'chatbot_submissions'),
+        where('tenantId', '==', tenant.id),
+        orderBy('timestamp', 'desc')
+      );
+    } else {
+      setSubmissions([]);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -19,10 +34,13 @@ export default function ChatbotSubmissions() {
       }));
       setSubmissions(data);
       setLoading(false);
+    }, (error) => {
+      console.error("Error al consultar solicitudes de chatbot:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [isSuperAdmin, tenant?.id]);
 
   return (
     <div className="space-y-6 pb-20 pt-3.5 sm:pt-5">

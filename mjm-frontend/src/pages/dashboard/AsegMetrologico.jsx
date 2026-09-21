@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useInventoryStore } from '../../store/inventoryStore';
+import { calculateMetrologicalCheck } from '../../utils/metrologyCore';
 
 // ─── COMPONENTE 1: MODAL DE NUEVA COMPROBACIÓN METROLÓGICA EN PISO ─────────────
 const NewCheckModal = ({ 
@@ -131,11 +132,19 @@ const NewCheckModal = ({
       return { errorVal: null, consumoPct: 0, declaracion: 'Pendiente', tol, unidad };
     }
 
-    const errorVal = Number((vL - vP).toFixed(4));
-    const consumoPct = tol > 0 ? Math.min(999, Math.round((Math.abs(errorVal) / tol) * 100)) : 0;
-    const declaracion = Math.abs(errorVal) <= tol ? 'Conforme' : 'No Conforme';
+    const res = calculateMetrologicalCheck({
+      valorLeido: vL,
+      valorPatron: vP,
+      tolerancia: tol
+    });
 
-    return { errorVal, consumoPct, declaracion, tol, unidad };
+    return {
+      errorVal: res.errorVal,
+      consumoPct: res.consumoPct,
+      declaracion: res.declaracion,
+      tol: res.tol,
+      unidad
+    };
   }, [valorPatron, valorLeido, selectedInst]);
 
   const handleSubmit = async (e) => {
@@ -647,18 +656,18 @@ const MasterLogModal = ({ isOpen, onClose, instruments = [], activities = [] }) 
               No se encontraron registros de comprobación con los filtros aplicados.
             </div>
           ) : (
-            <div className="border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 dark:bg-zinc-800/80 text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase tracking-wider border-b border-slate-200 dark:border-zinc-700">
-                    <th className="py-2.5 px-3">Fecha</th>
-                    <th className="py-2.5 px-3">Código MJM</th>
-                    <th className="py-2.5 px-3">Instrumento</th>
-                    <th className="py-2.5 px-3">Patrón de Referencia</th>
-                    <th className="py-2.5 px-3 text-right">Error Encontrado</th>
-                    <th className="py-2.5 px-3 text-right">Tolerancia (EMP)</th>
-                    <th className="py-2.5 px-3 text-center">Veredicto</th>
-                    <th className="py-2.5 px-3">Metrólogo</th>
+            <div className="border border-slate-200 dark:border-zinc-800 rounded-xl shadow-sm">
+              <table className="w-full text-left text-xs border-separate border-spacing-0">
+                <thead className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 shadow-xs border-b border-slate-200 dark:border-zinc-700">
+                  <tr className="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase tracking-wider border-b border-slate-200 dark:border-zinc-700">
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 border-b border-slate-200 dark:border-zinc-700">Fecha</th>
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 border-b border-slate-200 dark:border-zinc-700">Código MJM</th>
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 border-b border-slate-200 dark:border-zinc-700">Instrumento</th>
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 border-b border-slate-200 dark:border-zinc-700">Patrón de Referencia</th>
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 text-right border-b border-slate-200 dark:border-zinc-700">Error Encontrado</th>
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 text-right border-b border-slate-200 dark:border-zinc-700">Tolerancia (EMP)</th>
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 text-center border-b border-slate-200 dark:border-zinc-700">Veredicto</th>
+                    <th className="sticky top-0 z-20 bg-slate-50 dark:bg-zinc-900 py-2.5 px-3 border-b border-slate-200 dark:border-zinc-700">Metrólogo</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-mono">
@@ -1170,8 +1179,8 @@ export default function ComprobacionMetrologica() {
         ))}
       </div>
 
-      {/* Search Toolbar & Filter by Plant */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center">
+      {/* Search Toolbar & Filter by Plant (Sticky Docked) */}
+      <div className="sticky top-0 z-20 bg-[var(--surface)] -mx-3.5 sm:-mx-5 lg:-mx-6 px-3.5 sm:px-5 lg:px-6 py-3 border-b border-[var(--outline-color)] shadow-xs flex flex-col sm:flex-row gap-3 items-center mb-1">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input 
@@ -1188,7 +1197,7 @@ export default function ComprobacionMetrologica() {
           <select
             value={plantFilter}
             onChange={(e) => setPlantFilter(e.target.value)}
-            className="w-full sm:w-auto px-3.5 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-slate-300 font-medium text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all shadow-sm focus:outline-none"
+            className="w-full sm:w-auto px-3.5 py-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-slate-300 font-medium text-xs rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-800 transition-all shadow-sm focus:outline-none cursor-pointer"
           >
             <option value="ALL">Todas las Plantas / Áreas ({instruments.length})</option>
             {availablePlants.map((plant, idx) => (
@@ -1199,7 +1208,7 @@ export default function ComprobacionMetrologica() {
       </div>
 
       {/* Verification Cards Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-4">
         {filteredInstruments.map((item) => {
           // Obtener la comprobación más reciente
           const historyCheck = (item.historial || []).find(h => (h.tipo || '').toLowerCase().includes('verificaci'));

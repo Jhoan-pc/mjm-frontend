@@ -279,7 +279,8 @@ export default function Calendario() {
         </header>
 
         <section className="premium-card p-4 sm:p-5 bg-[var(--surface)] shadow-xs">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 pb-3 border-b border-[var(--outline-color)] gap-3">
+          {/* Month Navigation Toolbar (Sticky Docked) */}
+          <div className="sticky top-0 z-20 bg-[var(--surface)] border-b border-[var(--outline-color)] shadow-xs -mx-4 sm:-mx-5 -mt-4 sm:-mt-5 px-4 sm:px-5 md:h-[52px] py-2.5 flex flex-col sm:flex-row justify-between items-center gap-3 rounded-t-xl">
             <h3 className="font-space font-bold text-[var(--text-main)] text-lg uppercase tracking-tight flex items-center gap-2">
               {monthStrOnly} <span className="text-[var(--text-muted)] font-mono font-medium">{year}</span>
             </h3>
@@ -287,20 +288,20 @@ export default function Calendario() {
             <div className="flex items-center gap-1 bg-[var(--background)] p-1 rounded-lg border border-[var(--outline-color)]">
               <button 
                 onClick={handlePrevMonth}
-                className="p-1 hover:bg-[var(--surface)] rounded text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all"
+                className="p-1 hover:bg-[var(--surface)] rounded text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all cursor-pointer"
                 title="Mes Anterior"
               >
                 <ChevronLeft size={16} />
               </button>
               <button 
                 onClick={handleToday}
-                className="px-3 py-1 text-[10px] font-space font-bold uppercase tracking-wider text-[var(--text-main)] hover:bg-[var(--surface)] rounded transition-all"
+                className="px-3 py-1 text-[10px] font-space font-bold uppercase tracking-wider text-[var(--text-main)] hover:bg-[var(--surface)] rounded transition-all cursor-pointer"
               >
                 Hoy
               </button>
               <button 
                 onClick={handleNextMonth}
-                className="p-1 hover:bg-[var(--surface)] rounded text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all"
+                className="p-1 hover:bg-[var(--surface)] rounded text-[var(--text-muted)] hover:text-[var(--text-main)] transition-all cursor-pointer"
                 title="Mes Siguiente"
               >
                 <ChevronRight size={16} />
@@ -308,12 +309,16 @@ export default function Calendario() {
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-2 sm:gap-2.5">
+          {/* Weekday Header Row (Sticky Docked beneath month bar) */}
+          <div className="sticky top-[52px] z-20 bg-[var(--surface-alt)] border-b border-[var(--outline-color)] shadow-xs -mx-4 sm:-mx-5 px-4 sm:px-5 grid grid-cols-7 gap-2 sm:gap-2.5 py-2 mb-3">
             {days.map(day => (
-              <div key={day} className="py-1.5 text-center text-[9px] sm:text-[10px] font-black text-[var(--text-muted)] tracking-[0.15em] opacity-60">
+              <div key={day} className="text-center text-[9px] sm:text-[10px] font-black text-[var(--text-muted)] tracking-[0.15em] opacity-75">
                 {day}
               </div>
             ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-2 sm:gap-2.5">
             {gridCells.map((cell) => {
               if (cell.day === null) {
                 return (

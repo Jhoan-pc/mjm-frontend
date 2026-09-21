@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebas
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import mjmLogo from '../assets/logo_final_2.0.png';
+import { useInventoryStore } from './inventoryStore';
 
 // 🏢 HELPER: Resolver Tenant Principal para Administradores de MJM
 export const resolveDefaultMjmTenant = (tenantsList = []) => {
@@ -101,11 +102,21 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // 🔀 Alternar de Tenant en caliente (SuperAdmin Switcher)
-  switchTenant: async (tenantId) => {
-    const { allTenants } = get();
-    let selected = allTenants.find((t) => t.id === tenantId);
+  switchTenant: async (newTenant) => {
+    // 🛡️ Aislamiento Multi-Tenant: Cancelar suscripciones activas y purgar inventario
+    try {
+      useInventoryStore.getState().clearAllSubscriptions?.();
+    } catch (_) {}
+    useInventoryStore.getState().resetInventoryState?.() ||
+      useInventoryStore.setState({ instruments: [], activities: [], loading: true });
 
-    if (!selected) {
+    const tenantId = typeof newTenant === 'string' ? newTenant : newTenant?.id;
+    const { allTenants } = get();
+    let selected = typeof newTenant === 'object' && newTenant !== null && newTenant.id
+      ? newTenant
+      : allTenants.find((t) => t.id === tenantId);
+
+    if (!selected && tenantId) {
       try {
         const snap = await getDoc(doc(db, 'tenants', tenantId));
         if (snap.exists()) {
@@ -142,7 +153,7 @@ export const useAuthStore = create((set, get) => ({
 
   // 🛡️ Inicialización de sesión y escucha de Firebase en tiempo real
   initializeAuth: () => {
-    onAuthStateChanged(auth, async (firebaseUser) => {
+    return onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
           const userDoc = await getDoc(doc(db, 'usuarios', firebaseUser.uid));
@@ -472,9 +483,13 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     localStorage.removeItem('mjm_mock_session');
 
+    // 🧹 Limpiar y cancelar todas las suscripciones activas a Firestore
+    try {
+      useInventoryStore.getState().clearAllSubscriptions?.();
+    } catch (_) {}
+
     // 🧹 Purgar inmediatamente la memoria efímera del Sandbox
     try {
-      const { useInventoryStore } = await import('./inventoryStore');
       useInventoryStore.getState().resetDemoData();
     } catch (_) {}
 

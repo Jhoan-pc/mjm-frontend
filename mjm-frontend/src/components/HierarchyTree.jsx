@@ -179,21 +179,38 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
     const buildTree = async () => {
       try {
         setIsLoading(true);
+
+        // Guard: No ejecutar consultas raíz abiertas si no es SuperAdmin y no hay tenant resuelto
+        if (!isSuperAdmin && !tenant) {
+          setData([]);
+          setIsLoading(false);
+          return;
+        }
+
         // 1. Cargar Tenants (Clientes) con Fallback en caso de error de permisos
         let tenantDocs = [];
         try {
-          let tenantsQuery = collection(db, 'tenants');
-          if (!isSuperAdmin && tenant) {
+          let tenantsQuery = null;
+          if (isSuperAdmin) {
+            tenantsQuery = collection(db, 'tenants');
+          } else if (tenant?.id) {
             tenantsQuery = query(collection(db, 'tenants'), where('__name__', '==', tenant.id));
           }
-          const tenantSnap = await getDocs(tenantsQuery);
-          tenantDocs = tenantSnap.docs;
+
+          if (tenantsQuery) {
+            const tenantSnap = await getDocs(tenantsQuery);
+            tenantDocs = tenantSnap.docs;
+          }
         } catch (err) {
-          console.warn("Fallo al listar todos los tenants, cargando tenant actual directamente por ID:", err);
+          console.warn("Fallo al listar tenants, cargando tenant actual directamente por ID:", err);
           if (tenant && tenant.id) {
-            const docSnap = await getDoc(doc(db, 'tenants', tenant.id));
-            if (docSnap.exists()) {
-              tenantDocs = [docSnap];
+            try {
+              const docSnap = await getDoc(doc(db, 'tenants', tenant.id));
+              if (docSnap.exists()) {
+                tenantDocs = [docSnap];
+              }
+            } catch (docErr) {
+              console.error("Error al cargar tenant individual:", docErr);
             }
           }
         }
@@ -208,10 +225,7 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
           } catch (err) {
             console.warn("Fallo al listar jerarquías en subcolección, intentando desde colección global:", err);
             try {
-              let hierarchyQuery = collection(db, 'hierarchy');
-              if (!isSuperAdmin && tenant) {
-                hierarchyQuery = query(collection(db, 'hierarchy'), where('tenantId', '==', tenant.id));
-              }
+              const hierarchyQuery = query(collection(db, 'hierarchy'), where('tenantId', '==', tenant.id));
               const hierarchySnap = await getDocs(hierarchyQuery);
               hierarchyDocs = hierarchySnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             } catch (err2) {
@@ -225,6 +239,13 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
             hierarchyDocs = [...hierarchyDocs, ...localNodes];
           } catch (e) {
             console.error("Error reading local hierarchy:", e);
+          }
+        } else if (isSuperAdmin) {
+          try {
+            const hierarchySnap = await getDocs(collection(db, 'hierarchy'));
+            hierarchyDocs = hierarchySnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          } catch (err) {
+            console.warn("Fallo al listar jerarquías globales para superadmin:", err);
           }
         }
         
@@ -377,6 +398,10 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
     setIsSaving(true);
     try {
       if (modalType === 'cliente') {
+        if (!isSuperAdmin) {
+          alert('Acceso no autorizado: Solo SuperAdmin puede registrar nuevos clientes.');
+          return;
+        }
         const tenantData = {
           nombre_empresa: form.name,
           nit: form.nit,
@@ -424,6 +449,10 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
 
   // Encender/Apagar un tenant directamente desde el árbol
   const handleToggleStatus = async (node) => {
+    if (!isSuperAdmin) {
+      alert("Acceso no autorizado: Solo SuperAdmin puede modificar el estado de suscripción de clientes.");
+      return;
+    }
     const nextStatus = !node.suscripcion_activa;
     const msg = nextStatus 
       ? `¿Deseas reactivar al cliente ${node.name}?`
@@ -444,6 +473,10 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
   };
 
   const openModal = (pId, type, tId) => {
+    if (type === 'cliente' && !isSuperAdmin) {
+      alert("Acceso no autorizado: Solo SuperAdmin puede registrar nuevos clientes.");
+      return;
+    }
     setParentId(pId);
     setModalType(type);
     setCurrentTenantId(tId || (tenant?.id));
@@ -473,12 +506,14 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
           >
             Contraer Todo
           </button>
-          <button 
-            onClick={() => openModal('mjm_root', 'cliente')}
-            className="px-5 py-3 bg-mjm-navy text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-mjm-orange transition shadow shadow-mjm-navy/10 ml-2 active:scale-95"
-          >
-            + Nuevo Cliente
-          </button>
+          {isSuperAdmin && (
+            <button 
+              onClick={() => openModal('mjm_root', 'cliente')}
+              className="px-5 py-3 bg-mjm-navy text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-mjm-orange transition shadow shadow-mjm-navy/10 ml-2 active:scale-95"
+            >
+              + Nuevo Cliente
+            </button>
+          )}
         </div>
       </div>
 
@@ -500,7 +535,7 @@ export default function HierarchyTree({ instruments = [], activeFilter = null, o
               node={node} 
               level={0} 
               onAddChild={openModal} 
-              onToggleStatus={handleToggleStatus}
+              onToggleStatus={isSuperAdmin ? handleToggleStatus : null}
               instruments={instruments}
               forceExpanded={globalExpanded}
             />
