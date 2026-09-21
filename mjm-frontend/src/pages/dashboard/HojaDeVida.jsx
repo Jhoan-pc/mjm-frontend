@@ -383,7 +383,7 @@ export default function HojaDeVida() {
     <div className="min-h-screen bg-surface pb-24 lg:pb-12 animate-in fade-in duration-700">
       
       {/* --- HEADER SECTOR --- */}
-      <section className="px-container-padding pt-2 mb-6">
+      <section className="px-container-padding pt-3.5 sm:pt-5 mb-6">
         {/* Volver al inventario (izquierda) y Badges (derecha) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-5 border-b border-outline-variant/10">
           <button 

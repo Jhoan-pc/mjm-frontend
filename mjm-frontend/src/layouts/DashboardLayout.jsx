@@ -572,7 +572,7 @@ export default function DashboardLayout() {
         )}
 
         {/* CONTENIDO SCROLLABLE DE ALTA DENSIDAD */}
-        <main className="flex-1 overflow-y-auto bg-[var(--background)] p-3.5 sm:p-5 lg:p-6 pb-20 lg:pb-6 transition-colors duration-300">
+        <main className="flex-1 overflow-y-auto bg-[var(--background)] px-3.5 sm:px-5 lg:px-6 pb-20 lg:pb-6 pt-0 transition-colors duration-300">
            <Outlet />
         </main>
       </div>

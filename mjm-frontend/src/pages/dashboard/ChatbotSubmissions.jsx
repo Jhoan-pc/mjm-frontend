@@ -25,7 +25,7 @@ export default function ChatbotSubmissions() {
   }, []);
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 pt-3.5 sm:pt-5">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-10">
         <div>
            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)] mb-1">MJM Chatbot Submissions</p>

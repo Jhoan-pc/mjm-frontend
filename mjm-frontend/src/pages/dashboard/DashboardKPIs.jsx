@@ -221,7 +221,7 @@ export default function DashboardKPIs() {
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-300">
+    <div className="space-y-4 animate-in fade-in duration-300 pt-3.5 sm:pt-5">
       
       {/* --- HEADER --- */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">

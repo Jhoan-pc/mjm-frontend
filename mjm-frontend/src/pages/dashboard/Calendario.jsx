@@ -220,7 +220,7 @@ export default function Calendario() {
       )}
 
       {/* --- MAIN CALENDAR VIEW --- */}
-      <div className="flex-1 space-y-4 w-full max-w-7xl mx-auto pb-6">
+      <div className="flex-1 space-y-4 w-full max-w-7xl mx-auto pb-6 pt-3.5 sm:pt-5">
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h1 className="font-space font-bold text-[var(--text-main)] text-xl sm:text-2xl tracking-tight uppercase">

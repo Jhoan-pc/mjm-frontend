@@ -432,7 +432,7 @@ export default function KanbanMetrologico() {
   };
 
   return (
-    <div className="flex flex-col h-full animate-in fade-in duration-500 pb-12">
+    <div className="flex flex-col h-full animate-in fade-in duration-500 pb-12 pt-3.5 sm:pt-5">
       
       {/* --- FLOATING / FROSTED CONTROL TOOLBAR (Estándar Diseñador-Web) --- */}
       <header className="sticky top-0 z-30 mb-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm flex flex-col gap-3.5">

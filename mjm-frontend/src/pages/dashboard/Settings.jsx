@@ -1137,7 +1137,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-8 font-sans">
+    <div className="h-full flex flex-col gap-8 font-sans pt-3.5 sm:pt-5">
       
       {/* Header Premium */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

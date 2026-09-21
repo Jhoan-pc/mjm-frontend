@@ -1095,7 +1095,7 @@ export default function ComprobacionMetrologica() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-12 selection:bg-[#f7931b]/20">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-12 pt-3.5 sm:pt-5 selection:bg-[#f7931b]/20">
       
       {/* Toast de Éxito al Registrar */}
       {successToast && (

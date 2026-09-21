@@ -422,7 +422,7 @@ export default function IAVerificationLab() {
   }, []);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pt-3.5 sm:pt-5">
       
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200 dark:border-zinc-800 pb-6">
