@@ -19,7 +19,9 @@ import {
   FileText,
   Ruler,
   ArrowLeft,
-  X
+  X,
+  ZoomIn,
+  ExternalLink
 } from 'lucide-react';
 import { useInventoryStore } from '../../store/inventoryStore';
 import { useAuthStore } from '../../store/authStore';
@@ -340,6 +342,15 @@ export default function HojaDeVida() {
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [pdfModalUrl, setPdfModalUrl] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsZoomOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -423,13 +434,23 @@ export default function HojaDeVida() {
         
         {/* Profile Card (Large) */}
         <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden flex flex-col md:flex-row shadow-sm hover:shadow-md transition-shadow group">
-          <div className="md:w-1/3 aspect-square md:aspect-auto relative bg-surface-container overflow-hidden">
+          <div 
+            onClick={() => setIsZoomOpen(true)}
+            className="md:w-1/3 aspect-square md:aspect-auto relative bg-surface-container overflow-hidden cursor-pointer group/photo"
+            title="Haga clic para ver la fotografía aumentada"
+          >
             <img 
-              src={inst.imageUrl && !inst.imageUrl.includes('photo-1581092160562') && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : imgPlaceholder} 
+              src={inst.imageUrl && !inst.imageUrl.includes('photo-1581091226825') && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : imgPlaceholder} 
               alt={inst.nombre} 
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover/photo:scale-110" 
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 text-white">
+              <ZoomIn size={26} className="text-[#f7931b] drop-shadow-md animate-in zoom-in-75 duration-200" />
+              <span className="text-[9px] font-black uppercase tracking-wider bg-black/60 px-2.5 py-1 rounded-full border border-white/10 shadow-md">
+                Ver Aumentada
+              </span>
+            </div>
           </div>
           <div className="flex-1 p-stack-lg flex flex-col justify-between">
             <div className="flex justify-between items-start mb-6">
@@ -699,6 +720,69 @@ export default function HojaDeVida() {
             setIsEditModalOpen(false);
           }}
         />
+      )}
+
+      {/* Lightbox Visor de Fotografía Aumentada */}
+      {isZoomOpen && inst && (
+        <div 
+          onClick={() => setIsZoomOpen(false)}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
+        >
+          {/* Header del Lightbox */}
+          <div 
+            onClick={e => e.stopPropagation()} 
+            className="w-full max-w-4xl flex items-center justify-between pb-3 mb-3 border-b border-white/10 text-white"
+          >
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 bg-[#0B1326] text-[#f7931b] border border-[#f7931b]/40 font-mono font-black text-xs rounded-lg uppercase tracking-wider">
+                {inst.codigoMJM || inst.codigo || 'MJM'}
+              </span>
+              <div>
+                <h4 className="font-bold text-sm sm:text-base text-white tracking-tight truncate max-w-md">
+                  {inst.nombre || 'Fotografía de Alta Resolución del Activo'}
+                </h4>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  {inst.marca} {inst.modelo} • Serial: {inst.serie || 'S/N'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <a 
+                href={inst.imageUrl && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : imgPlaceholder} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all text-xs flex items-center gap-1.5 font-bold"
+                title="Abrir imagen original"
+              >
+                <ExternalLink size={15} />
+                <span className="hidden sm:inline text-[11px]">Original</span>
+              </a>
+              <button 
+                onClick={() => setIsZoomOpen(false)}
+                className="p-2 bg-white/10 hover:bg-red-500/80 text-white rounded-xl transition-all"
+                title="Cerrar (Esc)"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Contenedor de la Imagen Aumentada */}
+          <div 
+            onClick={e => e.stopPropagation()} 
+            className="relative max-w-4xl max-h-[75vh] w-full flex items-center justify-center p-4 bg-white/5 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+          >
+            <img 
+              src={inst.imageUrl && !inst.imageUrl.includes('photo-1581091226825') ? inst.imageUrl : imgPlaceholder} 
+              alt={inst.nombre || "Fotografía ampliada"} 
+              className="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl transition-transform duration-300 hover:scale-105" 
+            />
+          </div>
+
+          <p className="text-[11px] text-slate-400 mt-3 font-mono">
+            Haz clic afuera o pulsa <span className="text-white bg-white/10 px-1.5 py-0.5 rounded text-[10px]">Esc</span> para cerrar
+          </p>
+        </div>
       )}
     </div>
   );

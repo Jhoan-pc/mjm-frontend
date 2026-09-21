@@ -26,7 +26,7 @@ import {
   Cpu, Layers, Wrench, ShieldCheck, Barcode, Tag,
   Activity, ArrowLeft, Image as ImageIcon, Check,
   AlertTriangle, Filter, Loader2, Archive, FileText, Lock, FileUp,
-  LayoutGrid, List
+  LayoutGrid, List, ZoomIn, ExternalLink, Maximize2
 } from 'lucide-react';
 
 // --- ESTADO BADGE (METROLOGY PRECISION STYLE) ---
@@ -833,6 +833,17 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
   const [showGallery, setShowGallery] = useState(false);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const galleryInputRef = useRef(null);
+  const [zoomedImage, setZoomedImage] = useState(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setZoomedImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const inst = instruments.find(i => i.id === instrumentId);
 
@@ -1121,23 +1132,45 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                   </div>
                 </div>
 
-                {/* IMAGEN PRINCIPAL (CLIC PARA SUBIR) */}
-                <div 
-                  onClick={handlePhotoClick}
-                  className={`flex-shrink-0 w-44 h-44 bg-white rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#D4AF37]/35 overflow-hidden relative group/img transition-all flex items-center justify-center ${isEditing ? 'cursor-pointer hover:border-[var(--primary)] hover:scale-105' : ''}`}
-                >
-                  <img 
-                    className="max-w-full max-h-full object-contain mix-blend-multiply" 
-                    src={form.imageUrl && !form.imageUrl.includes('photo-1581091226825') ? form.imageUrl : manometroIndustrial} 
-                    alt="Inst" 
-                  />
-                  {isEditing && (
-                    <div className="absolute inset-0 bg-[#0B1326]/75 flex flex-col items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity">
-                       <ImageIcon size={28} className="text-[#D4AF37] mb-2" />
-                       <span className="text-[8px] font-black uppercase tracking-widest text-center px-4 text-[#D4AF37]">Click para subir imagen</span>
+                {/* IMAGEN PRINCIPAL (CLIC PARA SUBIR O VER AUMENTADA) */}
+                {(() => {
+                  const currentPhotoUrl = form.imageUrl && !form.imageUrl.includes('photo-1581091226825') 
+                    ? form.imageUrl 
+                    : manometroIndustrial;
+
+                  return (
+                    <div 
+                      onClick={() => {
+                        if (isEditing) {
+                          handlePhotoClick();
+                        } else {
+                          setZoomedImage(currentPhotoUrl);
+                        }
+                      }}
+                      className={`flex-shrink-0 w-44 h-44 bg-white rounded-[2rem] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.4)] border border-[#D4AF37]/35 overflow-hidden relative group/img transition-all flex items-center justify-center cursor-pointer hover:border-[#f7931b] hover:scale-105`}
+                      title={isEditing ? "Haga clic para subir una nueva imagen" : "Haga clic para ver la imagen aumentada"}
+                    >
+                      <img 
+                        className="max-w-full max-h-full object-contain mix-blend-multiply transition-transform duration-300 group-hover/img:scale-105" 
+                        src={currentPhotoUrl} 
+                        alt={form.nombre || "Instrumento"} 
+                      />
+                      {isEditing ? (
+                        <div className="absolute inset-0 bg-[#0B1326]/75 flex flex-col items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity">
+                           <ImageIcon size={28} className="text-[#D4AF37] mb-2" />
+                           <span className="text-[8px] font-black uppercase tracking-widest text-center px-4 text-[#D4AF37]">Click para subir imagen</span>
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 bg-[#0B1326]/60 backdrop-blur-[1px] flex flex-col items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity gap-1.5">
+                           <ZoomIn size={26} className="text-[#f7931b] drop-shadow-md animate-in zoom-in-75 duration-200" />
+                           <span className="text-[8.5px] font-black uppercase tracking-wider text-white bg-black/60 px-2.5 py-1 rounded-full border border-white/10 shadow-md">
+                             Ver Aumentada
+                           </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -1360,16 +1393,22 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
                     />
                     
                     {/* Controles al hacer Hover */}
-                    <div className="absolute inset-0 bg-[#0B1326]/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+                    <div className="absolute inset-0 bg-[#0B1326]/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2.5 p-2">
+                      <button 
+                        onClick={() => setZoomedImage(url)}
+                        className="bg-white hover:bg-slate-100 text-slate-900 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md flex items-center gap-1 hover:scale-105 transition-all w-full max-w-[130px] justify-center"
+                      >
+                        <ZoomIn size={13} className="text-[#f7931b]" /> Ver Aumentada
+                      </button>
                       <button 
                         onClick={() => handleSetMainPhoto(url)}
-                        className="bg-primary text-[#1A202C] px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md hover:brightness-110 active:scale-95 transition-all"
+                        className="bg-mjm-navy text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md hover:brightness-110 active:scale-95 transition-all w-full max-w-[130px] justify-center"
                       >
                         Hacer Principal
                       </button>
                       <button 
                         onClick={() => handleDeletePhoto(url)}
-                        className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md hover:bg-red-700 active:scale-95 transition-all"
+                        className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md hover:bg-red-700 active:scale-95 transition-all w-full max-w-[130px] justify-center"
                       >
                         Eliminar
                       </button>
@@ -1394,6 +1433,69 @@ const InstrumentDetailsModal = ({ instrumentId, onClose }) => {
 
               </div>
             </div>
+          </div>
+        )}
+
+        {/* MODAL / LIGHTBOX DE FOTO AUMENTADA (FULL SCREEN) */}
+        {zoomedImage && (
+          <div 
+            onClick={() => setZoomedImage(null)}
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
+          >
+            {/* Header del Lightbox */}
+            <div 
+              onClick={e => e.stopPropagation()} 
+              className="w-full max-w-4xl flex items-center justify-between pb-3 mb-3 border-b border-white/10 text-white"
+            >
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-[#0B1326] text-[#f7931b] border border-[#f7931b]/40 font-mono font-black text-xs rounded-lg uppercase tracking-wider">
+                  {form?.codigo || inst?.codigo || 'MJM'}
+                </span>
+                <div>
+                  <h4 className="font-bold text-sm sm:text-base text-white tracking-tight truncate max-w-md">
+                    {cleanText(form?.nombre) || 'Vista de Detalle Metrológico'}
+                  </h4>
+                  <p className="text-[10px] text-slate-400 font-mono">
+                    {form?.marca} {form?.modelo} • Serial: {form?.serie || 'S/N'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a 
+                  href={zoomedImage} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all text-xs flex items-center gap-1.5 font-bold"
+                  title="Abrir imagen en pestaña nueva"
+                >
+                  <ExternalLink size={15} />
+                  <span className="hidden sm:inline text-[11px]">Original</span>
+                </a>
+                <button 
+                  onClick={() => setZoomedImage(null)}
+                  className="p-2 bg-white/10 hover:bg-red-500/80 text-white rounded-xl transition-all"
+                  title="Cerrar (Esc)"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Contenedor de la Imagen Aumentada */}
+            <div 
+              onClick={e => e.stopPropagation()} 
+              className="relative max-w-4xl max-h-[75vh] w-full flex items-center justify-center p-4 bg-white/5 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+            >
+              <img 
+                src={zoomedImage} 
+                alt="Foto Aumentada del Instrumento" 
+                className="max-w-full max-h-[70vh] object-contain rounded-xl shadow-2xl transition-transform duration-300 hover:scale-105" 
+              />
+            </div>
+
+            <p className="text-[11px] text-slate-400 mt-3 font-mono">
+              Haz clic afuera o pulsa <span className="text-white bg-white/10 px-1.5 py-0.5 rounded text-[10px]">Esc</span> para cerrar
+            </p>
           </div>
         )}
       </div>
