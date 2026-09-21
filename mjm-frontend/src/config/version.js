@@ -1,7 +1,7 @@
 // Metadatos automáticos de versión, build y fecha de último despliegue (Publish)
 export const BUILD_INFO = {
   version: '2.4',
-  engine: 'MJM Engine v2.4',
+  engine: 'Powered by Delta CoreTech',
   publishDate: typeof __APP_PUBLISH_TIME__ !== 'undefined' 
     ? __APP_PUBLISH_TIME__ 
     : new Date().toLocaleString('es-CO', {

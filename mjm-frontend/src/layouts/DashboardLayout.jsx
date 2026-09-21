@@ -247,8 +247,8 @@ export default function DashboardLayout() {
               </button>
 
               <div className="flex flex-col items-center text-center mt-2.5 select-none pointer-events-none px-2">
-                <p className="text-[9px] text-white/35 font-mono uppercase tracking-widest font-semibold">
-                  MJM Engine v2.4
+                <p className="text-[9px] text-white/40 font-mono tracking-wider font-semibold">
+                  Powered by <span className="text-white/75 font-bold">Delta CoreTech</span>
                 </p>
                 <div className="flex items-center gap-1.5 text-[8.5px] text-[#f7931b]/90 font-mono tracking-wider mt-1 bg-white/5 px-2 py-0.5 rounded border border-white/5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
@@ -342,8 +342,8 @@ export default function DashboardLayout() {
               </button>
 
               <div className="flex flex-col items-center text-center mt-2 select-none pointer-events-none w-full px-1">
-                <p className="text-[8.5px] text-white/35 font-mono uppercase tracking-widest font-semibold">
-                  MJM Engine v2.4
+                <p className="text-[8.5px] text-white/40 font-mono tracking-wider font-semibold">
+                  Powered by <span className="text-white/75 font-bold">Delta CoreTech</span>
                 </p>
                 <div className="flex items-center justify-center gap-1 text-[8px] text-[#f7931b]/90 font-mono tracking-tight mt-1 bg-white/5 px-2 py-0.5 rounded border border-white/5 w-full truncate">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
