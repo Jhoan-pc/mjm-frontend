@@ -71,8 +71,8 @@ function AppRoutes() {
             {/* Planificador Operativo Unificado */}
             <Route path="calendario" element={<Calendario />} />
 
-            {/* Redirección Kanban a Cronograma Operativo */}
-            <Route path="kanban" element={<Navigate to="/dashboard/calendario" replace />} />
+            {/* Tablero Kanban de Ejecución Táctica */}
+            <Route path="kanban" element={<KanbanMetrologico />} />
 
             {/* Aseguramiento Metrológico */}
             <Route path="aseguramiento" element={<AsegMetrologico />} />

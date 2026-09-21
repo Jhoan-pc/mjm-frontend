@@ -189,8 +189,12 @@ interface ComprobacionPlanta {
 ### 4.4 Módulo: Hoja de Vida Imprimible
 - **Ruta Dedicada:** `/dashboard/inventario/imprimir/:id` (Renderizada fuera del `DashboardLayout` para garantizar compatibilidad estricta con hojas de estilo `@media print` en tamaño carta sin barras de scroll).
 
-### 4.5 Módulo: Cronograma Maestro & Planificación Operativa Kaizen
-- **Ruta Principal:** `/dashboard/calendario` (Redirección unificada desde `/dashboard/kanban` para erradicar desperdicios Lean y concentrar la visibilidad en el calendario temporal de intervenciones).
+### 4.5 Módulo: Cronograma Maestro (Planificación Heijunka)
+- **Ruta Principal:** `/dashboard/calendario` (Planificación temporal y programación de rutinas de calibración, verificación y mantenimiento proyectadas a 5 años).
+
+### 4.6 Módulo: Tablero Kanban Operativo (Control de Flujo WIP & Taller)
+- **Ruta Principal:** `/dashboard/kanban` (Gestión táctica del flujo de trabajo en piso y taller: Programadas, Semana en Curso, En Ejecución Técnica y Vencidas).
+- **Operabilidad:** 100% interactivo. Permite transicionar tarjetas vía Drag & Drop o botones táctiles, abriendo el `ClosureModal` para adjuntar certificados de calibración, emitir dictamen de conformidad ISO 10012 y disparar alertas de mantenimiento correctivo.
 
 ---
 
@@ -202,3 +206,4 @@ interface ComprobacionPlanta {
 - [x] **Tarea 1.3 (Completada):** Verificación y endurecimiento de las reglas de Firebase Storage (`storage.rules`) para aislar carpetas de certificados y evidencias por `tenantId` (`tenants/{tenantId}/...`).
 - [x] **Tarea 1.4 (Completada):** Limpieza del archivo huérfano `src/store/inventoryStore.js-tmp.txt` y consolidación de cambios en Git.
 - [x] **Tarea 1.5 (Completada):** Corrección de contraste y accesibilidad visual WCAG en modal de detalle (`Inventario.jsx`): Badge de código de activo (`#0B1326` con texto `#f7931b`) y botón de acción principal `Ver Expediente Completo` (`bg-mjm-navy text-white`).
+- [x] **Tarea 1.6 (Completada):** Reactivación y rediseño del Tablero Kanban Operativo (`/dashboard/kanban`) con barra flotante de filtros, operabilidad táctil y Drag & Drop, y reorganización semántica del Sidebar en 4 categorías de flujo de valor metrológico.

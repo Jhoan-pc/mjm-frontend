@@ -18,7 +18,8 @@ import {
   AlertCircle,
   Settings as SettingsIcon,
   Sparkles,
-  Building
+  Building,
+  Kanban
 } from 'lucide-react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import mjmLogo from '../assets/mjm-logo-main.jpg';
@@ -123,13 +124,34 @@ export default function DashboardLayout() {
     </div>
   );
 
-  const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={19} /> },
-    { name: 'Inventario de Activos', path: '/dashboard/inventario', icon: <Package size={19} /> },
-    { name: 'Comprobación en Planta', path: '/dashboard/aseguramiento', icon: <ShieldCheck size={19} /> },
-    { name: 'Confirmación Metrológica', path: '/dashboard/ia-lab', icon: <Database size={19} /> },
-    { name: 'Cronograma', path: '/dashboard/calendario', icon: <Calendar size={19} /> },
-    ...(isSuperAdmin ? [{ name: 'Ajustes & CRM', path: '/dashboard/settings', icon: <SettingsIcon size={19} /> }] : [])
+  const navSections = [
+    {
+      title: 'Activos & Gestión',
+      items: [
+        { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={19} /> },
+        { name: 'Inventario de Activos', path: '/dashboard/inventario', icon: <Package size={19} /> },
+      ]
+    },
+    {
+      title: 'Planificación & Flujo',
+      items: [
+        { name: 'Cronograma Anual', path: '/dashboard/calendario', icon: <Calendar size={19} /> },
+        { name: 'Tablero Kanban', path: '/dashboard/kanban', icon: <Kanban size={19} /> },
+      ]
+    },
+    {
+      title: 'Aseguramiento & Calidad',
+      items: [
+        { name: 'Comprobación en Planta', path: '/dashboard/aseguramiento', icon: <ShieldCheck size={19} /> },
+        { name: 'Confirmación Metrológica', path: '/dashboard/ia-lab', icon: <Database size={19} /> },
+      ]
+    },
+    ...(isSuperAdmin ? [{
+      title: 'Sistema',
+      items: [
+        { name: 'Ajustes & CRM', path: '/dashboard/settings', icon: <SettingsIcon size={19} /> }
+      ]
+    }] : [])
   ];
 
   return (
@@ -172,39 +194,46 @@ export default function DashboardLayout() {
               </button>
             </div>
 
-            <nav className="flex-1 px-3 space-y-1">
-              {navItems.map((item) => {
-                const isIALab = item.path === '/dashboard/ia-lab';
-                const isDemoTarget = isDemo && isIALab;
-                const active = isActive(item.path);
+            <nav className="flex-1 px-3 space-y-3 overflow-y-auto custom-scrollbar">
+              {navSections.map((section, sIdx) => (
+                <div key={sIdx} className="space-y-1">
+                  <p className="px-3 pt-1 pb-0.5 text-[8.5px] font-mono font-bold tracking-widest text-slate-400/60 uppercase select-none">
+                    {section.title}
+                  </p>
+                  {section.items.map((item) => {
+                    const isIALab = item.path === '/dashboard/ia-lab';
+                    const isDemoTarget = isDemo && isIALab;
+                    const active = isActive(item.path);
 
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-200 group text-xs ${
-                      active
-                        ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b]'
-                        : isDemoTarget
-                          ? 'border border-[#f7931b]/60 bg-[#f7931b]/15 text-white font-semibold shadow-[0_0_15px_rgba(247,147,27,0.25)]'
-                          : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
-                    }`}
-                  >
-                    <span className={`transition-transform duration-200 ${active || isDemoTarget ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
-                      {item.icon}
-                    </span>
-                    <span className="tracking-wide">{item.name}</span>
-                    {isDemoTarget ? (
-                      <span className="ml-auto px-1.5 py-0.5 rounded bg-[#f7931b] text-zinc-950 text-[9px] font-black tracking-wider uppercase flex items-center gap-1 shadow-sm animate-pulse">
-                        <Sparkles size={9} /> PROBAR
-                      </span>
-                    ) : active ? (
-                      <ChevronRight size={12} className="ml-auto text-[#f7931b]" />
-                    ) : null}
-                  </Link>
-                );
-              })}
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group text-xs ${
+                          active
+                            ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b]'
+                            : isDemoTarget
+                              ? 'border border-[#f7931b]/60 bg-[#f7931b]/15 text-white font-semibold shadow-[0_0_15px_rgba(247,147,27,0.25)]'
+                              : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
+                        }`}
+                      >
+                        <span className={`transition-transform duration-200 ${active || isDemoTarget ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
+                          {item.icon}
+                        </span>
+                        <span className="tracking-wide">{item.name}</span>
+                        {isDemoTarget ? (
+                          <span className="ml-auto px-1.5 py-0.5 rounded bg-[#f7931b] text-zinc-950 text-[9px] font-black tracking-wider uppercase flex items-center gap-1 shadow-sm animate-pulse">
+                            <Sparkles size={9} /> PROBAR
+                          </span>
+                        ) : active ? (
+                          <ChevronRight size={12} className="ml-auto text-[#f7931b]" />
+                        ) : null}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
             </nav>
 
             <div className="mt-auto pb-5 flex flex-col items-center">
@@ -254,38 +283,45 @@ export default function DashboardLayout() {
             </div>
           </div>
 
-          <nav className="flex-1 px-2.5 space-y-0.5 font-inter mt-1">
-            {navItems.map((item) => {
-              const isIALab = item.path === '/dashboard/ia-lab';
-              const isDemoTarget = isDemo && isIALab;
-              const active = isActive(item.path);
+          <nav className="flex-1 px-2.5 space-y-3 font-inter mt-1 overflow-y-auto custom-scrollbar">
+            {navSections.map((section, sIdx) => (
+              <div key={sIdx} className="space-y-0.5">
+                <p className="px-3 pt-1 pb-1 text-[8.5px] font-mono font-bold tracking-widest text-slate-400/60 uppercase select-none">
+                  {section.title}
+                </p>
+                {section.items.map((item) => {
+                  const isIALab = item.path === '/dashboard/ia-lab';
+                  const isDemoTarget = isDemo && isIALab;
+                  const active = isActive(item.path);
 
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all duration-150 group text-[11.5px] ${
-                    active
-                      ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b] shadow-xs'
-                      : isDemoTarget
-                        ? 'border border-[#f7931b]/60 bg-[#f7931b]/15 text-white font-semibold shadow-[0_0_12px_rgba(247,147,27,0.2)]'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
-                  }`}
-                >
-                  <span className={`transition-transform duration-150 shrink-0 ${active || isDemoTarget ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
-                    {React.cloneElement(item.icon, { size: 16 })}
-                  </span>
-                  <span className="tracking-tight truncate">{item.name}</span>
-                  {isDemoTarget ? (
-                    <span className="ml-auto px-1.5 py-0.5 rounded bg-[#f7931b] text-zinc-950 text-[8px] font-black tracking-wider uppercase flex items-center gap-1 shadow-xs animate-pulse">
-                      <Sparkles size={8} /> PROBAR
-                    </span>
-                  ) : active ? (
-                    <ChevronRight size={11} className="ml-auto text-[#f7931b] shrink-0" />
-                  ) : null}
-                </Link>
-              );
-            })}
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg transition-all duration-150 group text-[11.5px] ${
+                        active
+                          ? 'bg-white/10 text-white font-semibold border-l-2 border-[#f7931b] shadow-xs'
+                          : isDemoTarget
+                            ? 'border border-[#f7931b]/60 bg-[#f7931b]/15 text-white font-semibold shadow-[0_0_12px_rgba(247,147,27,0.2)]'
+                            : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'
+                      }`}
+                    >
+                      <span className={`transition-transform duration-150 shrink-0 ${active || isDemoTarget ? 'text-[#f7931b]' : 'text-slate-400 group-hover:text-white'}`}>
+                        {React.cloneElement(item.icon, { size: 16 })}
+                      </span>
+                      <span className="tracking-tight truncate">{item.name}</span>
+                      {isDemoTarget ? (
+                        <span className="ml-auto px-1.5 py-0.5 rounded bg-[#f7931b] text-zinc-950 text-[8px] font-black tracking-wider uppercase flex items-center gap-1 shadow-xs animate-pulse">
+                          <Sparkles size={8} /> PROBAR
+                        </span>
+                      ) : active ? (
+                        <ChevronRight size={11} className="ml-auto text-[#f7931b] shrink-0" />
+                      ) : null}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
 
           {/* --- FOOTER BRANDING --- */}
