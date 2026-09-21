@@ -1,9 +1,38 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { execSync } from 'child_process'
+
+const getBuildInfo = () => {
+  let commitHash = 'latest';
+  try {
+    commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+  } catch (e) {
+    commitHash = 'dev';
+  }
+
+  const now = new Date();
+  const publishDate = now.toLocaleString('es-CO', {
+    timeZone: 'America/Bogota',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  return { commitHash, publishDate };
+};
+
+const buildInfo = getBuildInfo();
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: {
+    __APP_PUBLISH_TIME__: JSON.stringify(buildInfo.publishDate),
+    __APP_COMMIT_HASH__: JSON.stringify(buildInfo.commitHash),
+  },
   build: {
     chunkSizeWarningLimit: 800,
     modulePreload: {

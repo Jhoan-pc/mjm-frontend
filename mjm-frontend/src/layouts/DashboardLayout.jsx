@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation, Link, Outlet } from 'react-router-dom';
 import mjmLogo from '../assets/mjm-logo-main.jpg';
+import { BUILD_INFO } from '../config/version';
 
 export default function DashboardLayout() {
   const { user, tenant, logout, isDarkMode, toggleDarkMode, isDemoMode, isSuperAdmin, allTenants, switchTenant } = useAuthStore();
@@ -245,9 +246,15 @@ export default function DashboardLayout() {
                 <span className="text-[11px] font-semibold uppercase tracking-wider">Cerrar Sesión</span>
               </button>
 
-               <p className="text-[9px] text-white/25 font-mono uppercase tracking-widest mt-2 select-none pointer-events-none">
+              <div className="flex flex-col items-center text-center mt-2.5 select-none pointer-events-none px-2">
+                <p className="text-[9px] text-white/35 font-mono uppercase tracking-widest font-semibold">
                   MJM Engine v2.4
-               </p>
+                </p>
+                <div className="flex items-center gap-1.5 text-[8.5px] text-[#f7931b]/90 font-mono tracking-wider mt-1 bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                  <span>Pub: {BUILD_INFO.publishDate}</span>
+                </div>
+              </div>
             </div>
           </aside>
         </div>
@@ -334,9 +341,15 @@ export default function DashboardLayout() {
                 <span className="text-[10px] font-semibold uppercase tracking-wider">Cerrar Sesión</span>
               </button>
 
-             <p className="text-[8px] text-white/20 font-mono uppercase tracking-widest mt-1 select-none pointer-events-none">
-                MJM Engine v2.4
-             </p>
+              <div className="flex flex-col items-center text-center mt-2 select-none pointer-events-none w-full px-1">
+                <p className="text-[8.5px] text-white/35 font-mono uppercase tracking-widest font-semibold">
+                  MJM Engine v2.4
+                </p>
+                <div className="flex items-center justify-center gap-1 text-[8px] text-[#f7931b]/90 font-mono tracking-tight mt-1 bg-white/5 px-2 py-0.5 rounded border border-white/5 w-full truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                  <span className="truncate">Pub: {BUILD_INFO.publishDate}</span>
+                </div>
+              </div>
           </div>
         </div>
       </aside>
